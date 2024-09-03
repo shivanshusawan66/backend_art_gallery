@@ -1,0 +1,17 @@
+version: "3.3"
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    networks:
+      - ai_mf
+    volumes:
+      - ai_mf_redis_data:/data
+
+networks:
+  ai_mf:
+
+volumes:
+  ai_mf_redis_data:

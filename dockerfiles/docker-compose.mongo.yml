@@ -1,0 +1,25 @@
+version: "3.3"
+
+services:
+  mongodbserver:
+    image: mongo
+    container_name: ai-mf-mongo
+    restart: always
+    stdin_open: true
+    volumes:
+      - mongo_data:/data/db
+    tty: true
+    ports:
+      - ${MONGO_EXTERNAL_PORT}:27017/tcp
+    environment:
+      MONGO_DATA_DIR: /data/db
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    networks:
+      - ai_mf
+
+volumes: 
+  mongo_data:
+
+networks:
+  ai_mf:
