@@ -27,11 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-print(postgres_config.POSTGRES_DB_NAME)
-print(postgres_config.POSTGRES_HOST)
-print(postgres_config.POSTGRES_USERNAME)
-print(postgres_config.POSTGRES_PASSWORD)
-print(postgres_config.POSTGRES_PORT)
 # Application definition
 
 INSTALLED_APPS = [
@@ -122,7 +117,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-print(BASE_DIR)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

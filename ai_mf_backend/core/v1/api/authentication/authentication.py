@@ -124,7 +124,7 @@ async def signup(request: SignUpRequest, response: Response):
     password=request.password
     name=request.name
 
-    user_doc= user_doc = await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
+    user_doc = await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
 
     if user_doc and user_doc.is_verified:
         response = SignUpResponse(
