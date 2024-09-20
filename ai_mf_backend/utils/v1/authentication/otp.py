@@ -48,8 +48,8 @@ def send_email_otp_verification_done(receiver_email_id: str = None) -> None:
     """
 
     # Replace these with your email configuration
-    sender_email = "sahilgarg2814@gmail.com"
-    sender_password = "sahil9896"
+    sender_email = os.getenv("SENDER_EMAIL")
+    sender_password = os.getenv("SENDER_PASSWORD")
 
     msg = MIMEText("Your OTP verification was successful. You can now proceed to log in.")
     msg["Subject"] = "OTP Verification Successful"

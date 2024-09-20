@@ -12,6 +12,9 @@ from starlette.middleware.cors import CORSMiddleware
 
 
 from config.v1.api_config import api_config
+from core.v1.api.forms.example_form import (
+    router as example_form_router_v1
+)
 from core.v1.api.authentication.authentication import (
     router as authentication_router_v1,
 )
@@ -71,6 +74,7 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.include_router(authentication_router_v1)
 application.include_router(forget_password_router_v1)
 application.include_router(otp_verification_router_v1)
+application.include_router(example_form_router_v1)
 application.mount("/django",application1)
 application.mount("/static", StaticFiles(directory="config/staticfiles"), name="static")
 

@@ -1,6 +1,6 @@
 from pydantic import field_validator
 
-from ai_mf_backend.config.v1 import BaseSettingsWrapper
+from config.v1 import BaseSettingsWrapper
 
 
 class CeleryConfig(BaseSettingsWrapper):

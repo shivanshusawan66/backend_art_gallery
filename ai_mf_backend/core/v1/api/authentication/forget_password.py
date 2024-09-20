@@ -55,20 +55,14 @@ async def forgot_password(request: ForgotPasswordRequest):
 
 @router.post("/change_password", response_model=ChangePasswordResponse, status_code=200)
 async def change_password(req: Request,request: ChangePasswordRequest,Authorization: str = Header(None),):
-    print(f"All headers: {req.headers}")
-    print(f"Authorization header: {Authorization}")
-    print("step-1")
     if Authorization is None:
         return ChangePasswordResponse(
             status=False,
             message="Authorization header is missing",
             data={"error": "Please provide an Authorization header."},
         )
-    print(f"Authorization Header: {Authorization}")
+    
     jwt_token = await login_checker(Authorization=Authorization)
-    print("step-2")
-    print("login checked")
-    print(jwt_token)
     decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
     user_email = decoded_payload["email"]
     user_doc=await sync_to_async(UserManagement.objects.filter(email=user_email).first)()
