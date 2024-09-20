@@ -12,9 +12,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 
 from config.v1.api_config import api_config
-from core.v1.api.forms.example_form import (
-    router as example_form_router_v1
-)
 from core.v1.api.authentication.authentication import (
     router as authentication_router_v1,
 )
@@ -43,20 +40,20 @@ async def internal_server_exception_handler(
     return JSONResponse(status_code=500, content={"message": message})
 
 
-# @application.middleware("http")
-# async def log_requests(request: Request, call_next):
-#     idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-#     logger.info(f"rid={idem} start request path={request.url.path}")
-#     start_time = time.time()
+@application.middleware("http")
+async def log_requests(request: Request, call_next):
+    idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    logger.info(f"rid={idem} start request path={request.url.path}")
+    start_time = time.time()
 
-#     response = await call_next(request)
-#     process_time = (time.time() - start_time) * 1000
-#     formatted_process_time = "{0:.2f}".format(process_time)
-#     logger.info(
-#         f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}"
-#     )
+    response = await call_next(request)
+    process_time = (time.time() - start_time) * 1000
+    formatted_process_time = "{0:.2f}".format(process_time)
+    logger.info(
+        f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}"
+    )
 
-#     return response
+    return response
 
 
 if api_config.BACKEND_CORS_ORIGINS:
