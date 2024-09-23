@@ -71,7 +71,6 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.include_router(authentication_router_v1)
 application.include_router(forget_password_router_v1)
 application.include_router(otp_verification_router_v1)
-application.include_router(example_form_router_v1)
 application.mount("/django",application1)
 application.mount("/static", StaticFiles(directory="config/staticfiles"), name="static")
 
