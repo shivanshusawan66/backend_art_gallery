@@ -21,6 +21,7 @@ from core.v1.api.authentication.forget_password import (
 from core.v1.api.authentication.otp_verification import (
     router as otp_verification_router_v1,
 )
+
 from utils.v1.errors import (
     InternalServerException,
 )

@@ -56,49 +56,78 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
     """
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
-async def login_checker(Authorization: Annotated[str | None, Header()]):
-
-    if Authorization:
-        jwt_token = Authorization
-
-    if jwt_token:
-        decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
+async def login_checker(token :str):
+    
+    if token:
+        decoded_payload = jwt_token_checker(jwt_token=token, encode=False)
         if decoded_payload['token_type'] != "logged_in":
             raise HTTPException(
                 status_code=401,
                 detail="Token is not valid for this request.",
             )
-        
-        user_log = await sync_to_async(UserLogs.objects.filter(email_id=decoded_payload["email"]).order_by('-last_access').first)()
-        user= await sync_to_async(UserManagement.objects.filter(email=decoded_payload["email"]).first)()
-        if user:
-            expiry = float(decoded_payload["expiry"])
-            current_time = float(timezone.now().timestamp())
-            if current_time < expiry:
-                return Authorization
-            else:
-                if user_log.action=="logged_in":
-                    new_payload = {
-                        "unique_id": decoded_payload["email"],
-                        "token_type": "logged_in",
-                        "expiry": (timezone.now() + timedelta(minutes=30)).timestamp()  # Extend expiry
-                    }
-                    new_token = jwt_token_checker(payload=new_payload, encode=True)
-
-                    return new_token  # Return the new token
+        if 'email' in decoded_payload:
+            user_log = await sync_to_async(UserLogs.objects.filter(email_id=decoded_payload["email"]).order_by('-last_access').first)()
+            user= await sync_to_async(UserManagement.objects.filter(email=decoded_payload["email"]).first)()
+            if user:
+                expiry = float(decoded_payload["expiry"])
+                current_time = float(timezone.now().timestamp())
+                if current_time < expiry:
+                    return token
                 else:
+                    if user_log.action=="logged_in":
+                        new_payload = {
+                            "email": user.email,
+                            "token_type": "logged_in",
+                            "creation_time": timezone.now().timestamp(),
+                            "expiry": (timezone.now() + timedelta(minutes=30)).timestamp()  # Extend expiry
+                        }
+                        new_token = jwt_token_checker(payload=new_payload, encode=True)
 
-                    raise HTTPException(
-                        status_code=401,
-                        detail="Token is expired, and user is not logged in.",
-                    )
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail="This user does not exist.",
-            )
-   
-    raise HTTPException(
-        status_code=401,
-        detail="No JWT token found.",
-    )
+                        return new_token  # Return the new token
+                    else:
+
+                        raise HTTPException(
+                            status_code=401,
+                            detail="Token is expired, and user is not logged in.",
+                        )
+            else:
+                raise HTTPException(
+                    status_code=401,
+                    detail="This user does not exist.",
+                )
+            
+        elif 'mobile_no' in decoded_payload:
+            user_log = await sync_to_async(UserLogs.objects.filter(mobile_number=decoded_payload["mobile_no"]).order_by('-last_access').first)()
+            user= await sync_to_async(UserManagement.objects.filter(mobile_number=decoded_payload["mobile_no"]).first)()
+            if user:
+                expiry = float(decoded_payload["expiry"])
+                current_time = float(timezone.now().timestamp())
+                if current_time < expiry:
+                    return token
+                else:
+                    if user_log.action=="logged_in":
+                        new_payload = {
+                            "email": user.mobile_number,
+                            "token_type": "logged_in",
+                            "creation_time": timezone.now().timestamp(),
+                            "expiry": (timezone.now() + timedelta(minutes=30)).timestamp()  # Extend expiry
+                        }
+                        new_token = jwt_token_checker(payload=new_payload, encode=True)
+
+                        return new_token  # Return the new token
+                    else:
+
+                        raise HTTPException(
+                            status_code=401,
+                            detail="Token is expired, and user is not logged in.",
+                        )
+            else:
+                raise HTTPException(
+                    status_code=401,
+                    detail="This user does not exist.",
+                )
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Token is not provided.",
+        )

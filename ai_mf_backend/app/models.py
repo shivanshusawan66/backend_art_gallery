@@ -1,4 +1,10 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+
+def validate_mobile_number(value):
+    if value and (len(value) != 10 or not value.isdigit()):
+        raise ValidationError("Mobile number must be exactly 10 digits long and contain only numbers.")
 
 class UserLogs(models.Model):
     """
@@ -6,8 +12,8 @@ class UserLogs(models.Model):
     """
 
     # initial
-    name = models.CharField(max_length=255)
-    email_id = models.EmailField(max_length=255, db_index=True)
+    mobile_number=models.CharField(max_length=10,validators=[validate_mobile_number],blank=True,null=True) 
+    email_id = models.EmailField(max_length=255, db_index=True,blank=True,null=True)
 
     # ip details sent by front end
     ip_details = models.JSONField()  # To handle dynamic IP details similar to Mongo's DynamicField
@@ -42,10 +48,9 @@ class UserManagement(models.Model):
     Model for the ``user_management`` table. This class will be used to maintain users.
     """
 
-    # initial
-    name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255, unique=True, db_index=True)
-    password = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True, db_index=True,blank=True,null=True)
+    mobile_number=models.CharField(max_length=10, unique=True,validators=[validate_mobile_number],blank=True,null=True)
+    password = models.CharField(max_length=255,blank=True)
 
     # time of the query response
     created_at = models.DateTimeField(default=timezone.now)
@@ -56,14 +61,14 @@ class UserManagement(models.Model):
     otp = models.IntegerField(null=True, blank=True)
     otp_valid_till = models.DateTimeField(null=True, blank=True)
 
-    # When a user is verified
-    is_verified = models.BooleanField(default=False)
-
     class Meta:
         db_table = 'user_management'  # Equivalent to Mongo's collection
         indexes = [
             models.Index(fields=['email']),
+            models.Index(fields=['mobile_number']),
         ]
 
     def __str__(self):
         return self.email
+
+

@@ -1,11 +1,17 @@
 from typing import Optional,Dict
 from pydantic import BaseModel
-
+from enum import Enum
 from app.schemas.v1 import Response
 
+class SignUpType(str, Enum):
+    otp = "otp"
+    password = "password"
+
+
 class LoginRequest(BaseModel):
-    email:str
-    password:str
+    email:Optional[str]=""
+    mobile_no:Optional[str]=""
+    otp:Optional[int]
     remember_me:Optional[bool]=False
     device_type:Optional[str]=""
     ip_details:Optional[Dict]=dict()
@@ -15,22 +21,27 @@ class loginResponse(Response):
     pass
 
 class SignUpRequest(BaseModel):
-    email: str
-    password: str
-    name: str
+    email:Optional[str]=""
+    password:Optional[str]=""
+    mobile_no:Optional[str]=""
+    remember_me:Optional[bool]=False
+    device_type:Optional[str]=""
+    ip_details:Optional[Dict]=dict()
+    type: SignUpType
 
 class SignUpResponse(Response):
     pass 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: Optional[str]=""
+    mobile_no: Optional[str]=""
 
 class ForgotPasswordResponse(Response):
     pass 
 
 
 class ChangePasswordRequest(BaseModel):
-    email: Optional[str]=""
+    token :str
     old_password: str
     password: str
 
@@ -46,7 +57,8 @@ class OTPVerificationResponse(Response):
     pass  
 
 class ResendOTPRequest(BaseModel):
-    token: str
+    email: Optional[str]=""
+    mobile_no: Optional[str]=""
 
 class ResendOTPResponse(Response):
     pass
