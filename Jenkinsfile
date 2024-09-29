@@ -58,12 +58,12 @@ pipeline {
             }
         }
 
-        stage('Deploy MongoDB') {
+        stage('Deploy PostgresSQL') {
             steps {
                 script {
                     sh """
-                        echo Deploy MongoDB
-                        kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/mongo-deployment.yaml
+                        echo Deploy PostgreSQL
+                        kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/postgres-deployment.yaml
                     """
                 }
             }

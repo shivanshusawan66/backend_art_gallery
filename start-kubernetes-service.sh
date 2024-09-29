@@ -16,8 +16,8 @@ echo Create ConfigMap
 kubectl -n $K8S_NAMESPACE create configmap ai-mf-config --from-env-file=./ai_mf_backend/.env.k8s --dry-run=client -o yaml > ./kubernetes/ai-mf-config-configmap.yaml
 kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/ai-mf-config-configmap.yaml
 
-echo Deploy MongoDB
-kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/mongo-deployment.yaml
+echo Deploy PostgreSQL
+kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/postgres-deployment.yaml
 
 echo Deploy Redis
 kubectl -n $K8S_NAMESPACE apply -f ./kubernetes/redis-deployment.yaml

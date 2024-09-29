@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
-from ai_mf_backend.app.schemas.v1.authentication import (
+from ai_mf_backend.models.v1.api.authentication import (
     OTPVerificationRequest,
     OTPVerificationResponse,
     ResendOTPRequest,
     ResendOTPResponse,
 )
-from ai_mf_backend.app.models import UserManagement
+from ai_mf_backend.models.v1.database.user_authentication import UserManagement
 
 from ai_mf_backend.utils.v1.authentication.otp import (
     send_email_otp,

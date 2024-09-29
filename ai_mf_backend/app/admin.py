@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import UserLogs, UserManagement
+from ai_mf_backend.models.v1.database.user_authentication import (
+    UserLogs,
+    UserManagement,
+)
 
 
 @admin.register(UserLogs)
