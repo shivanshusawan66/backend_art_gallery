@@ -24,7 +24,7 @@ class PostgresConfig(BaseSettingsWrapper):
     :returns: This class does not return any values, it merely holds configuration parameters for the PostgreSQL database.
     """
 
-    POSTGRES_DB_NAME: str = "your_database_name"
+    POSTGRES_DB_NAME: str = "AIMF"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_USERNAME: Optional[str] = None
     POSTGRES_PASSWORD: Optional[str] = None

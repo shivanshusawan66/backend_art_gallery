@@ -1,19 +1,23 @@
-from typing import Annotated, Dict, Union
-from datetime import datetime, timedelta
+from typing import Dict, Union
+from datetime import timedelta
+
 import jwt
+
 import bcrypt
-from fastapi import HTTPException, Header
+
+from fastapi import HTTPException
+
 from django.utils import timezone
+from asgiref.sync import sync_to_async
+
 from ai_mf_backend.config.v1.authentication_config import authentication_config
 from ai_mf_backend.utils.v1.errors import (
-    PasswordNotValidException,
     MalformedJWTRequestException,
 )
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
     UserManagement,
 )
-from asgiref.sync import sync_to_async
 
 
 def jwt_token_checker(

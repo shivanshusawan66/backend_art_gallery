@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
-from ai_mf_backend.models.v1.api.authentication import (
+from ai_mf_backend.models.v1.api.user_authentication import (
     OTPVerificationRequest,
     OTPVerificationResponse,
     ResendOTPRequest,

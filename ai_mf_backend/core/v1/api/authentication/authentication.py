@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Response
 
-from ai_mf_backend.models.v1.api.authentication import (
+from ai_mf_backend.models.v1.api.user_authentication import (
     loginResponse,
     LoginRequest,
     SignUpRequest,

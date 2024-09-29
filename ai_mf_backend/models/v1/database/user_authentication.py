@@ -1,13 +1,6 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 
-
-def validate_mobile_number(value):
-    if value and (len(value) != 10 or not value.isdigit()):
-        raise ValidationError(
-            "Mobile number must be exactly 10 digits long and contain only numbers."
-        )
+from ai_mf_backend.utils.v1.validators import validate_mobile_number
 
 
 class UserLogs(models.Model):

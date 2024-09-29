@@ -15,15 +15,7 @@ from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
 from ai_mf_backend.config.v1.api_config import api_config
-from ai_mf_backend.core.v1.api.authentication.authentication import (
-    router as authentication_router_v1,
-)
-from ai_mf_backend.core.v1.api.authentication.forget_password import (
-    router as forget_password_router_v1,
-)
-from ai_mf_backend.core.v1.api.authentication.otp_verification import (
-    router as otp_verification_router_v1,
-)
+from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
@@ -79,9 +71,7 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-application.include_router(authentication_router_v1)
-application.include_router(forget_password_router_v1)
-application.include_router(otp_verification_router_v1)
+application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
 
 @admin.register(UserLogs)

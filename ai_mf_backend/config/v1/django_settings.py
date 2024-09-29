@@ -55,7 +55,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "config.v1.urls"
+ROOT_URLCONF = "ai_mf_backend.config.v1.django_settings"
 
 TEMPLATES = [
     {
@@ -72,8 +72,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "config.v1.wsgi.application"
 
 
 # Database
