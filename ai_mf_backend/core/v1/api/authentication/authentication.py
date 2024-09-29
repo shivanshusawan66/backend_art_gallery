@@ -1,54 +1,68 @@
 import logging
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter,Response
+from fastapi import APIRouter, Response
 
-from app.schemas.v1.authentication import(loginResponse,LoginRequest,SignUpRequest,SignUpResponse)
-from app.models import UserLogs
-from app.models import UserManagement
-from utils.v1.authentication.otp import send_email_otp
-from utils.v1.authentication.secrets import(jwt_token_checker,password_checker,password_encoder)
+from ai_mf_backend.app.schemas.v1.authentication import (
+    loginResponse,
+    LoginRequest,
+    SignUpRequest,
+    SignUpResponse,
+)
+from ai_mf_backend.app.models import UserLogs
+from ai_mf_backend.app.models import UserManagement
+from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    jwt_token_checker,
+    password_checker,
+    password_encoder,
+)
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 from fastapi.responses import RedirectResponse
 
 
-logger=logging.getLogger(__name__)
-router=APIRouter()
+logger = logging.getLogger(__name__)
+router = APIRouter()
 
-@router.post("/signup_otp",status_code=200)
+
+@router.post("/signup_otp", status_code=200)
 async def signup_otp(request: LoginRequest, response: Response):
 
     if request.email:
-        doc=await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
-        current_time=timezone.now()
+        doc = await sync_to_async(
+            UserManagement.objects.filter(email=request.email).first
+        )()
+        current_time = timezone.now()
         if doc:
             if current_time < doc.otp_valid_till:
-                if request.otp==doc.otp:
-                    new_payload={
+                if request.otp == doc.otp:
+                    new_payload = {
                         "email": doc.email,
                         "token_type": "logged_in",
                         "creation_time": timezone.now().timestamp(),
-                        "expiry":(
-                            (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
+                        "expiry": (
+                            (
+                                timezone.now() + timedelta(hours=5)
+                            ).timestamp()  # Fixed to 5 hours
                             if not request.remember_me
                             else (timezone.now() + timedelta(days=365)).timestamp()
                         ),
                     }
 
-                    jwt_token=jwt_token_checker(payload=new_payload, encode=True)
-                    doc.last_access=timezone.now()
-                    await sync_to_async(doc.save)() 
+                    jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+                    doc.last_access = timezone.now()
+                    await sync_to_async(doc.save)()
 
-                    user_logs=UserLogs(
+                    user_logs = UserLogs(
                         email_id=request.email,
                         ip_details=request.ip_details,
                         device_type=request.device_type,
                         last_access=timezone.now(),
-                        action="logged_in"
+                        action="logged_in",
                     )
 
-                    await sync_to_async(user_logs.save)() 
+                    await sync_to_async(user_logs.save)()
 
                     response = loginResponse(
                         status=True,
@@ -80,41 +94,47 @@ async def signup_otp(request: LoginRequest, response: Response):
             return response
 
     elif request.mobile_no:
-        doc=await sync_to_async(UserManagement.objects.filter(mobile_number=request.mobile_no).first)()
-        current_time=timezone.now()
+        doc = await sync_to_async(
+            UserManagement.objects.filter(mobile_number=request.mobile_no).first
+        )()
+        current_time = timezone.now()
         if doc:
             if current_time < doc.otp_valid_till:
-                if request.otp==doc.otp:
-                    new_payload={
+                if request.otp == doc.otp:
+                    new_payload = {
                         "mobile_no": doc.mobile_number,
                         "token_type": "logged_in",
                         "creation_time": timezone.now().timestamp(),
-                        "expiry":(
-                            (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
+                        "expiry": (
+                            (
+                                timezone.now() + timedelta(hours=5)
+                            ).timestamp()  # Fixed to 5 hours
                             if not request.remember_me
                             else (timezone.now() + timedelta(days=365)).timestamp()
                         ),
-
                     }
 
-                    jwt_token=jwt_token_checker(payload=new_payload, encode=True)
-                    doc.last_access=timezone.now()
-                    await sync_to_async(doc.save)() 
+                    jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+                    doc.last_access = timezone.now()
+                    await sync_to_async(doc.save)()
 
-                    user_logs=UserLogs(
+                    user_logs = UserLogs(
                         mobile_number=request.mobile_no,
                         ip_details=request.ip_details,
                         device_type=request.device_type,
                         last_access=timezone.now(),
-                        action="logged_in"
+                        action="logged_in",
                     )
 
-                    await sync_to_async(user_logs.save)() 
+                    await sync_to_async(user_logs.save)()
 
                     response = loginResponse(
                         status=True,
                         message=f"Successfully logged in to the Dashboard",
-                        data={"token": jwt_token, "userdata": {"name": doc.mobile_number}},
+                        data={
+                            "token": jwt_token,
+                            "userdata": {"name": doc.mobile_number},
+                        },
                     )
                     return response
                 else:
@@ -146,48 +166,52 @@ async def signup_otp(request: LoginRequest, response: Response):
     status_code=200,
 )
 async def signup(request: SignUpRequest, response: Response):
-    
-    email=request.email
-    password=request.password
-    mobile_no=request.mobile_no
+
+    email = request.email
+    password = request.password
+    mobile_no = request.mobile_no
 
     # user_doc = await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
 
-    if email and password  and request.type=='password':
-        user_doc = await sync_to_async(UserManagement.objects.filter(email=email).first)()
+    if email and password and request.type == "password":
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(email=email).first
+        )()
         if user_doc:
             if not user_doc.password:
                 return SignUpResponse(
                     status=False,
                     message=f"please login through otp",
                     data={"mobile_number": f"{mobile_no}"},
-                    status_code = 403
+                    status_code=403,
                 )
-            elif password_checker(password,user_doc.password):
-                new_payload={
-                "email": user_doc.email,
-                "token_type": "logged_in",
-                "creation_time": timezone.now().timestamp(),
-                "expiry":(
-                    (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
-                    if not request.remember_me
-                    else (timezone.now() + timedelta(days=365)).timestamp()
+            elif password_checker(password, user_doc.password):
+                new_payload = {
+                    "email": user_doc.email,
+                    "token_type": "logged_in",
+                    "creation_time": timezone.now().timestamp(),
+                    "expiry": (
+                        (
+                            timezone.now() + timedelta(hours=5)
+                        ).timestamp()  # Fixed to 5 hours
+                        if not request.remember_me
+                        else (timezone.now() + timedelta(days=365)).timestamp()
                     ),
                 }
 
-                jwt_token=jwt_token_checker(payload=new_payload, encode=True)
-                user_doc.last_access=timezone.now()
-                await sync_to_async(user_doc.save)() 
+                jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+                user_doc.last_access = timezone.now()
+                await sync_to_async(user_doc.save)()
 
-                user_logs=UserLogs(
+                user_logs = UserLogs(
                     email_id=request.email,
                     ip_details=request.ip_details,
                     device_type=request.device_type,
                     last_access=timezone.now(),
-                    action="logged_in"
+                    action="logged_in",
                 )
 
-                await sync_to_async(user_logs.save)() 
+                await sync_to_async(user_logs.save)()
                 return SignUpResponse(
                     status=True,
                     message=f"Successfully logged in to the Dashboard",
@@ -198,7 +222,7 @@ async def signup(request: SignUpRequest, response: Response):
                     status=False,
                     message=f"Please check your id password",
                     data={"email": "Invalid login credentials."},
-                    status_code = 403
+                    status_code=403,
                 )
         else:
             password = password_encoder(password=password)
@@ -210,14 +234,16 @@ async def signup(request: SignUpRequest, response: Response):
             await sync_to_async(user_doc.save)()
 
             payload = {
-            "email": email,
-            "token_type": "signup",
-            "creation_time": timezone.now().timestamp(),
-            "expiry": (
-                    (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
+                "email": email,
+                "token_type": "signup",
+                "creation_time": timezone.now().timestamp(),
+                "expiry": (
+                    (
+                        timezone.now() + timedelta(hours=5)
+                    ).timestamp()  # Fixed to 5 hours
                     if not request.remember_me
                     else (timezone.now() + timedelta(days=365)).timestamp()
-                    ),
+                ),
             }
             jwt_token = jwt_token_checker(payload=payload, encode=True)
 
@@ -226,54 +252,61 @@ async def signup(request: SignUpRequest, response: Response):
                 message=f"welcome you are the first time time user",
                 data={"token": jwt_token, "userdata": {"email": email}},
             )
-    
-    elif mobile_no and password  and request.type=='password':
-        user_doc = await sync_to_async(UserManagement.objects.filter(mobile_number=mobile_no).first)()
+
+    elif mobile_no and password and request.type == "password":
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(mobile_number=mobile_no).first
+        )()
         if user_doc:
             if not user_doc.password:
                 return SignUpResponse(
                     status=False,
                     message=f"please login through otp",
                     data={"mobile_number": f"{mobile_no}"},
-                    status_code = 403
+                    status_code=403,
                 )
-            elif password_checker(password,user_doc.password):
-                new_payload={
-                "mobile_no": user_doc.mobile_number,
-                "token_type": "logged_in",
-                "creation_time": timezone.now().timestamp(),
-                "expiry":(
-                    (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
-                    if not request.remember_me
-                    else (timezone.now() + timedelta(days=365)).timestamp()
+            elif password_checker(password, user_doc.password):
+                new_payload = {
+                    "mobile_no": user_doc.mobile_number,
+                    "token_type": "logged_in",
+                    "creation_time": timezone.now().timestamp(),
+                    "expiry": (
+                        (
+                            timezone.now() + timedelta(hours=5)
+                        ).timestamp()  # Fixed to 5 hours
+                        if not request.remember_me
+                        else (timezone.now() + timedelta(days=365)).timestamp()
                     ),
                 }
 
-                jwt_token=jwt_token_checker(payload=new_payload, encode=True)
-                user_doc.last_access=timezone.now()
-                await sync_to_async(user_doc.save)() 
-                 
-                user_logs=UserLogs(
+                jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+                user_doc.last_access = timezone.now()
+                await sync_to_async(user_doc.save)()
+
+                user_logs = UserLogs(
                     mobile_number=mobile_no,
                     ip_details=request.ip_details,
                     device_type=request.device_type,
                     last_access=timezone.now(),
-                    action="logged_in"
+                    action="logged_in",
                 )
-                await sync_to_async(user_logs.save)() 
- 
+                await sync_to_async(user_logs.save)()
+
                 return SignUpResponse(
                     status=True,
                     message=f"Successfully logged in to the Dashboard",
-                    data={"token": jwt_token, "userdata": {"mobile": user_doc.mobile_number}},
+                    data={
+                        "token": jwt_token,
+                        "userdata": {"mobile": user_doc.mobile_number},
+                    },
                 )
             else:
                 return SignUpResponse(
                     status=False,
                     message=f"Please check your id password",
                     data={"email": "Invalid login credentials."},
-                    status_code = 403
-                )    
+                    status_code=403,
+                )
         else:
             password = password_encoder(password=password)
             user_doc = UserManagement(
@@ -284,14 +317,16 @@ async def signup(request: SignUpRequest, response: Response):
             await sync_to_async(user_doc.save)()
 
             payload = {
-            "mobile_no": mobile_no,
-            "token_type": "signup",
-            "creation_time": timezone.now().timestamp(),
-            "expiry": (
-                    (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
+                "mobile_no": mobile_no,
+                "token_type": "signup",
+                "creation_time": timezone.now().timestamp(),
+                "expiry": (
+                    (
+                        timezone.now() + timedelta(hours=5)
+                    ).timestamp()  # Fixed to 5 hours
                     if not request.remember_me
                     else (timezone.now() + timedelta(days=365)).timestamp()
-                    ),
+                ),
             }
             jwt_token = jwt_token_checker(payload=payload, encode=True)
             return SignUpResponse(
@@ -299,40 +334,44 @@ async def signup(request: SignUpRequest, response: Response):
                 message=f"welcome you are the first time time user",
                 data={"token": jwt_token, "userdata": {"mobile": mobile_no}},
             )
-    elif email and request.type=='otp':
-        user_doc = await sync_to_async(UserManagement.objects.filter(email=email).first)()
+    elif email and request.type == "otp":
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(email=email).first
+        )()
         if user_doc:
-            otp=send_email_otp()
+            otp = send_email_otp()
             print(otp)
-            user_doc.otp=otp
-            user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
-            await sync_to_async(user_doc.save)() 
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            user_doc.otp = otp
+            user_doc.otp_valid_till = timezone.now() + timedelta(minutes=15)
+            await sync_to_async(user_doc.save)()
+            return RedirectResponse(url="/signup_otp", status_code=302)
         else:
-            otp=send_email_otp()
+            otp = send_email_otp()
             user_doc = UserManagement(
                 email=email,
                 created_at=timezone.now(),
                 otp=otp,
-                otp_valid_till=timezone.now() + timedelta(minutes=15)
+                otp_valid_till=timezone.now() + timedelta(minutes=15),
             )
             await sync_to_async(user_doc.save)()
-            return RedirectResponse(url='/signup_otp', status_code=302)
-    elif mobile_no and request.type=='otp':
-        user_doc = await sync_to_async(UserManagement.objects.filter(mobile_number=mobile_no).first)()
+            return RedirectResponse(url="/signup_otp", status_code=302)
+    elif mobile_no and request.type == "otp":
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(mobile_number=mobile_no).first
+        )()
         if user_doc:
-            otp=send_email_otp()
-            user_doc.otp=otp
-            user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
-            await sync_to_async(user_doc.save)() 
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            otp = send_email_otp()
+            user_doc.otp = otp
+            user_doc.otp_valid_till = timezone.now() + timedelta(minutes=15)
+            await sync_to_async(user_doc.save)()
+            return RedirectResponse(url="/signup_otp", status_code=302)
         else:
-            otp=send_email_otp()
+            otp = send_email_otp()
             user_doc = UserManagement(
                 mobile_number=mobile_no,
                 created_at=timezone.now(),
                 otp=otp,
-                otp_valid_till=timezone.now() + timedelta(minutes=15)
+                otp_valid_till=timezone.now() + timedelta(minutes=15),
             )
             await sync_to_async(user_doc.save)()
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            return RedirectResponse(url="/signup_otp", status_code=302)

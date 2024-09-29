@@ -22,8 +22,9 @@ tenacity = "^8.3.0"
 python-slugify = "^8.0.4"
 boto3 = "^1.34.107"
 psycopg2 = "^2.9.9"
-jwt = "^1.3.1"
+pyjwt = "^2.9.0"
 bcrypt = "^4.2.0"
+numpy = "^2.1.1"
 django = "^5.1.1"
 
 
