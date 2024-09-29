@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
+from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
 from ai_mf_backend.config.v1.api_config import api_config
@@ -22,6 +23,11 @@ from ai_mf_backend.core.v1.api.authentication.forget_password import (
 )
 from ai_mf_backend.core.v1.api.authentication.otp_verification import (
     router as otp_verification_router_v1,
+)
+
+from ai_mf_backend.models.v1.database.user_authentication import (
+    UserLogs,
+    UserManagement,
 )
 
 from ai_mf_backend.utils.v1.errors import (
@@ -76,6 +82,23 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.include_router(authentication_router_v1)
 application.include_router(forget_password_router_v1)
 application.include_router(otp_verification_router_v1)
+
+
+@admin.register(UserLogs)
+class UserLogsAdmin(admin.ModelAdmin):
+    list_display = ("mobile_number", "email_id", "last_access", "action")
+    search_fields = ("email_id", "mobile_number")
+    list_filter = ("action", "device_type")
+    ordering = ("-last_access",)
+
+
+@admin.register(UserManagement)
+class UserManagementAdmin(admin.ModelAdmin):
+    list_display = ("mobile_number", "email", "created_at")
+    search_fields = ("email", "mobile_number")
+    list_filter = ("updated_at",)
+    ordering = ("-created_at",)
+
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()

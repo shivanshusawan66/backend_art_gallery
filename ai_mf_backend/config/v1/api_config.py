@@ -1,5 +1,7 @@
 from typing import Optional
 
+from django.apps import AppConfig
+
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
 
@@ -26,3 +28,7 @@ class APIConfig(BaseSettingsWrapper):
 
 
 api_config = APIConfig()
+
+
+class DjangoAppConfig(AppConfig):
+    name = api_config.PROJECT_NAME
