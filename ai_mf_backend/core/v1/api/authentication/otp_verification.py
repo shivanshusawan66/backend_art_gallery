@@ -3,13 +3,18 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
-from app.schemas.v1.authentication import(OTPVerificationRequest,OTPVerificationResponse,ResendOTPRequest,ResendOTPResponse)
-from app.models import UserManagement
+from ai_mf_backend.app.schemas.v1.authentication import (
+    OTPVerificationRequest,
+    OTPVerificationResponse,
+    ResendOTPRequest,
+    ResendOTPResponse,
+)
+from ai_mf_backend.app.models import UserManagement
 
-from utils.v1.authentication.otp import (
+from ai_mf_backend.utils.v1.authentication.otp import (
     send_email_otp,
 )
-from utils.v1.authentication.secrets import (
+from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
 )
@@ -18,11 +23,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.post("/otp_verification", response_model=OTPVerificationResponse, status_code=200)
+
+@router.post(
+    "/otp_verification", response_model=OTPVerificationResponse, status_code=200
+)
 async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationResponse:
     """
     Verifies the OTP sent to the user's email or mobile number for password reset, and updates the password
-    if the OTP is valid. The JWT token provided in the request must correspond to a 'forgot_password' token type.
+    if the OTP is valid. The JWT token provided in the request must correspond to a 'forgot_password' token type
 
     Parameters:
     -----------
@@ -116,16 +124,18 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
     jwt_token = request.token
     payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
-    if payload['token_type'] != "forgot_password":
+    if payload["token_type"] != "forgot_password":
         return OTPVerificationResponse(
             status=False,
             message="Invalid access",
             data={"access_token": "Invalid token."},
-            status_code=403
+            status_code=403,
         )
-    
+
     if "email" in payload:
-        user_doc = await sync_to_async(UserManagement.objects.filter(email=payload['email']).first)()
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(email=payload["email"]).first
+        )()
         original_otp = user_doc.otp
         if user_doc:
             if timezone.now().timestamp() <= user_doc.otp_valid_till.timestamp():
@@ -148,25 +158,27 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                         status=False,
                         message="Invalid or expired OTP.",
                         data={"error": "OTP verification failed."},
-                        status_code=403
+                        status_code=403,
                     )
             else:
                 return OTPVerificationResponse(
                     status=False,
                     message="expired OTP.",
                     data={"error": "OTP verification failed."},
-                    status_code=403
+                    status_code=403,
                 )
         else:
             return OTPVerificationResponse(
                 status=False,
                 message="User not found.",
                 data={"error": "User not found."},
-                status_code=404
+                status_code=404,
             )
 
     elif "mobile_no" in payload:
-        user_doc = await sync_to_async(UserManagement.objects.filter(mobile_number=payload['mobile_no']).first)()
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(mobile_number=payload["mobile_no"]).first
+        )()
         original_otp = user_doc.otp
         if user_doc:
             if timezone.now().timestamp() <= user_doc.otp_valid_till.timestamp():
@@ -189,23 +201,23 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                         status=False,
                         message="Invalid or expired OTP.",
                         data={"error": "OTP verification failed."},
-                        status_code=403
+                        status_code=403,
                     )
             else:
                 return OTPVerificationResponse(
                     status=False,
                     message="expired OTP.",
                     data={"error": "OTP verification failed."},
-                    status_code=403
+                    status_code=403,
                 )
         else:
             return OTPVerificationResponse(
                 status=False,
                 message="User not found.",
                 data={"error": "User not found."},
-                status_code=404
+                status_code=404,
             )
-        
+
 
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
@@ -290,8 +302,10 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
         }
     """
     if request.email:
-        otp=send_email_otp()
-        user_doc = await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
+        otp = send_email_otp()
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(email=request.email).first
+        )()
         if user_doc:
             user_doc.otp = otp
             user_doc.otp_valid_till = timezone.now() + timedelta(minutes=15)
@@ -302,7 +316,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
                 status=False,
                 message="User not found.",
                 data={"error": "User not found."},
-                status_code=404
+                status_code=404,
             )
         return ResendOTPResponse(
             status=True,
@@ -310,8 +324,10 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
             data={"userdata": {"name": user_doc.email, "otp":otp}},
         )
     elif request.mobile_no:
-        otp=send_email_otp()
-        user_doc = await sync_to_async(UserManagement.objects.filter(mobile_number=request.mobile_no).first)()
+        otp = send_email_otp()
+        user_doc = await sync_to_async(
+            UserManagement.objects.filter(mobile_number=request.mobile_no).first
+        )()
         if user_doc:
             user_doc.otp = otp
             user_doc.otp_valid_till = timezone.now() + timedelta(minutes=15)
@@ -322,7 +338,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
                 status=False,
                 message="User not found.",
                 data={"error": "User not found."},
-                status_code=404
+                status_code=404,
             )
         return ResendOTPResponse(
             status=True,

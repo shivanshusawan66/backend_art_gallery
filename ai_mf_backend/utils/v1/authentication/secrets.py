@@ -4,14 +4,18 @@ import jwt
 import bcrypt
 from fastapi import HTTPException, Header
 from django.utils import timezone
-from config.v1.authentication_config import authentication_config
-from utils.v1.errors import (PasswordNotValidException, MalformedJWTRequestException)
-from app.models import (
-    UserLogs,UserManagement
+from ai_mf_backend.config.v1.authentication_config import authentication_config
+from ai_mf_backend.utils.v1.errors import (
+    PasswordNotValidException,
+    MalformedJWTRequestException,
 )
+from ai_mf_backend.app.models import UserLogs, UserManagement
 from asgiref.sync import sync_to_async
 
-def jwt_token_checker(payload: Dict = None, jwt_token: str = None, encode: bool = True) -> Union[str, Dict]:
+
+def jwt_token_checker(
+    payload: Dict = None, jwt_token: str = None, encode: bool = True
+) -> Union[str, Dict]:
     """
     This method can perform various operations on the JWT token.
     :param payload: payload that needs to be encoded
@@ -21,17 +25,24 @@ def jwt_token_checker(payload: Dict = None, jwt_token: str = None, encode: bool 
     :raises: when the combinations are not correct
     """
     if encode and payload:
-        encode_jwt = jwt.encode(payload, authentication_config.SECRET, algorithm="HS256")
+        encode_jwt = jwt.encode(
+            payload, authentication_config.SECRET, algorithm="HS256"
+        )
         return encode_jwt
 
     elif not encode and jwt_token:
-        jwt_token = (jwt_token.split("Bearer")[1].strip() if "Bearer" in jwt_token else jwt_token)
+        jwt_token = (
+            jwt_token.split("Bearer")[1].strip() if "Bearer" in jwt_token else jwt_token
+        )
 
-        decoded_jwt = jwt.decode(jwt_token, authentication_config.SECRET, algorithms=["HS256"])
+        decoded_jwt = jwt.decode(
+            jwt_token, authentication_config.SECRET, algorithms=["HS256"]
+        )
         return decoded_jwt
 
     else:
         raise MalformedJWTRequestException("some problem with the jwt token")
+
 
 def password_encoder(password: str) -> str:
     """
@@ -45,7 +56,8 @@ def password_encoder(password: str) -> str:
 
     # Generate a salt and hash the password
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    return hashed.decode('utf-8')  # Return as a string
+    return hashed.decode("utf-8")  # Return as a string
+
 
 def password_checker(plain_password: str, hashed_password: str) -> bool:
     """
@@ -54,32 +66,43 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
     :param hashed_password: the hashed password stored in the database
     :return: True if the passwords match, False otherwise
     """
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
 
-async def login_checker(token :str):
-    
+
+async def login_checker(token: str):
+
     if token:
         decoded_payload = jwt_token_checker(jwt_token=token, encode=False)
-        if decoded_payload['token_type'] != "logged_in":
+        if decoded_payload["token_type"] != "logged_in":
             raise HTTPException(
                 status_code=401,
                 detail="Token is not valid for this request.",
             )
-        if 'email' in decoded_payload:
-            user_log = await sync_to_async(UserLogs.objects.filter(email_id=decoded_payload["email"]).order_by('-last_access').first)()
-            user= await sync_to_async(UserManagement.objects.filter(email=decoded_payload["email"]).first)()
+        if "email" in decoded_payload:
+            user_log = await sync_to_async(
+                UserLogs.objects.filter(email_id=decoded_payload["email"])
+                .order_by("-last_access")
+                .first
+            )()
+            user = await sync_to_async(
+                UserManagement.objects.filter(email=decoded_payload["email"]).first
+            )()
             if user:
                 expiry = float(decoded_payload["expiry"])
                 current_time = float(timezone.now().timestamp())
                 if current_time < expiry:
                     return token
                 else:
-                    if user_log.action=="logged_in":
+                    if user_log.action == "logged_in":
                         new_payload = {
                             "email": user.email,
                             "token_type": "logged_in",
                             "creation_time": timezone.now().timestamp(),
-                            "expiry": (timezone.now() + timedelta(minutes=30)).timestamp()  # Extend expiry
+                            "expiry": (
+                                timezone.now() + timedelta(minutes=30)
+                            ).timestamp(),  # Extend expiry
                         }
                         new_token = jwt_token_checker(payload=new_payload, encode=True)
 
@@ -95,22 +118,32 @@ async def login_checker(token :str):
                     status_code=401,
                     detail="This user does not exist.",
                 )
-            
-        elif 'mobile_no' in decoded_payload:
-            user_log = await sync_to_async(UserLogs.objects.filter(mobile_number=decoded_payload["mobile_no"]).order_by('-last_access').first)()
-            user= await sync_to_async(UserManagement.objects.filter(mobile_number=decoded_payload["mobile_no"]).first)()
+
+        elif "mobile_no" in decoded_payload:
+            user_log = await sync_to_async(
+                UserLogs.objects.filter(mobile_number=decoded_payload["mobile_no"])
+                .order_by("-last_access")
+                .first
+            )()
+            user = await sync_to_async(
+                UserManagement.objects.filter(
+                    mobile_number=decoded_payload["mobile_no"]
+                ).first
+            )()
             if user:
                 expiry = float(decoded_payload["expiry"])
                 current_time = float(timezone.now().timestamp())
                 if current_time < expiry:
                     return token
                 else:
-                    if user_log.action=="logged_in":
+                    if user_log.action == "logged_in":
                         new_payload = {
                             "email": user.mobile_number,
                             "token_type": "logged_in",
                             "creation_time": timezone.now().timestamp(),
-                            "expiry": (timezone.now() + timedelta(minutes=30)).timestamp()  # Extend expiry
+                            "expiry": (
+                                timezone.now() + timedelta(minutes=30)
+                            ).timestamp(),  # Extend expiry
                         }
                         new_token = jwt_token_checker(payload=new_payload, encode=True)
 

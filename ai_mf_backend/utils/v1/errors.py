@@ -25,6 +25,7 @@ class DataTypeNotHandledException(Exception):
     def __init__(self, message: str = None):
         self.message = message
 
+
 class PasswordNotValidException(Exception):
     """Raise when the provided password is not valid."""
 
