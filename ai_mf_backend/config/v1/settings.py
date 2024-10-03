@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
-from ai_mf_backend.config.v1.database_config import postgres_config
-from ai_mf_backend.config.v1.secret_key_config import secret_config
+from config.v1.database_config import postgres_config
+from config.v1.secret_key_config import secret_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

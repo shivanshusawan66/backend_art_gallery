@@ -2,7 +2,7 @@ import time
 import random
 import string
 import logging
-from ai_mf_backend.config.v1.asgi import application as django_application
+from config.v1.asgi import application as django_application
 from fastapi import FastAPI, Request
 from fastapi.logger import logger as fastapi_logger
 from fastapi.responses import JSONResponse
@@ -10,18 +10,18 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 
-from ai_mf_backend.config.v1.api_config import api_config
-from ai_mf_backend.core.v1.api.authentication.authentication import (
+from config.v1.api_config import api_config
+from core.v1.api.authentication.authentication import (
     router as authentication_router_v1,
 )
-from ai_mf_backend.core.v1.api.authentication.forget_password import (
+from core.v1.api.authentication.forget_password import (
     router as forget_password_router_v1,
 )
-from ai_mf_backend.core.v1.api.authentication.otp_verification import (
+from core.v1.api.authentication.otp_verification import (
     router as otp_verification_router_v1,
 )
 
-from ai_mf_backend.utils.v1.errors import (
+from utils.v1.errors import (
     InternalServerException,
 )
 

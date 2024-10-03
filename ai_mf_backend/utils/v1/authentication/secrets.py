@@ -4,12 +4,12 @@ import jwt
 import bcrypt
 from fastapi import HTTPException, Header
 from django.utils import timezone
-from ai_mf_backend.config.v1.authentication_config import authentication_config
-from ai_mf_backend.utils.v1.errors import (
+from config.v1.authentication_config import authentication_config
+from utils.v1.errors import (
     PasswordNotValidException,
     MalformedJWTRequestException,
 )
-from ai_mf_backend.app.models import UserLogs, UserManagement
+from app.models import UserLogs, UserManagement
 from asgiref.sync import sync_to_async
 
 

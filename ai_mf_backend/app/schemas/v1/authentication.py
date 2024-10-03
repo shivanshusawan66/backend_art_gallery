@@ -2,7 +2,7 @@ from typing import Optional, Dict
 from pydantic import BaseModel
 from enum import Enum
 
-from ai_mf_backend.app.schemas.v1 import Response
+from app.schemas.v1 import Response
 
 
 class SignUpType(str, Enum):
