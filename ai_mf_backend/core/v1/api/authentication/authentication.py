@@ -18,6 +18,76 @@ router=APIRouter()
 
 @router.post("/signup_otp",status_code=200)
 async def signup_otp(request: LoginRequest, response: Response):
+    """
+    Handles user login via OTP (One-Time Password) for email or mobile number.
+
+    This endpoint validates a user's OTP for account login using either an email or a mobile number.
+    It also generates a JWT token upon successful login and logs the user's login activities.
+    
+    The OTP is checked against the `UserManagement` database to ensure the OTP is valid and unexpired.
+
+    Parameters:
+    ----------
+    request : LoginRequest
+        A Pydantic model instance containing the user's email or mobile number, OTP, 
+        `remember_me` flag, IP details, and device type.
+    
+    response : Response
+        A FastAPI response object used to return the login response.
+
+    Logic:
+    ------
+    1. If the user provides an email:
+       - Fetches the corresponding `UserManagement` record.
+       - Checks if the OTP is still valid (before expiration).
+       - If valid, compares the OTP provided by the user with the one in the database.
+       - If the OTP matches:
+         - Generates a JWT token with a 5-hour expiry (or 365 days if `remember_me` is enabled).
+         - Updates the `last_access` time of the user.
+         - Logs the login action in the `UserLogs` model.
+         - Returns a success response with the JWT token.
+       - If the OTP does not match or is expired, returns an appropriate error response.
+       - If no account is found with the provided email, returns a 403 response.
+    
+    2. If the user provides a mobile number:
+       - Follows a similar flow as the email logic but uses the mobile number for fetching the account.
+       - The same validation, token generation, and logging logic is applied for mobile number login.
+
+    Returns:
+    --------
+    loginResponse : JSON
+        A structured response indicating whether the login was successful or failed.
+        Includes the JWT token and user data in case of success, or an error message in case of failure.
+    
+    Possible Status Codes:
+    ----------------------
+    - 200: Successful login (JWT token returned).
+    - 403: Account does not exist.
+
+    Example:
+    --------
+    Request:
+        POST /signup_otp
+        {
+            "email": "user@example.com",
+            "otp": "123456",
+            "remember_me": false,
+            "ip_details": "192.168.1.1",
+            "device_type": "web"
+        }
+
+    Response:
+        {
+            "status": true,
+            "message": "Successfully logged in to the Dashboard",
+            "data": {
+                "token": "jwt_token",
+                "userdata": {
+                    "name": "user@example.com"
+                }
+            }
+        }
+    """
 
     if request.email:
         doc=await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
@@ -146,12 +216,109 @@ async def signup_otp(request: LoginRequest, response: Response):
     status_code=200,
 )
 async def signup(request: SignUpRequest, response: Response):
-    
+    """
+    Handles user signup and login through email or mobile number with support for both password-based
+    and OTP (One-Time Password) authentication.
+
+    This endpoint facilitates user authentication through two types:
+    1. Password-based authentication.
+    2. OTP-based authentication.
+
+    If the user logs in with a password, the system will check if the user already exists, validate their 
+    password, and generate a JWT token if the credentials are correct. If the user signs up for the first time, 
+    a new account will be created, a JWT token will be generated, and the login logs will be updated.
+
+    For OTP-based authentication, the system generates an OTP and redirects the user to an OTP verification 
+    endpoint (`/signup_otp`).
+
+    Parameters:
+    -----------
+    request : SignUpRequest
+        A Pydantic model instance containing the user's signup details, such as email, mobile number, password,
+        authentication type (`password` or `otp`), IP details, device type, and `remember_me` flag.
+
+    response : Response
+        A FastAPI response object used to return the signup/login response.
+
+    Logic:
+    ------
+    1. **Password-based Authentication** (`type == 'password'`):
+       - **Email-based**:
+         - If an email and password are provided, it checks whether the user exists.
+         - If the user exists but has no password, prompts the user to login via OTP.
+         - If the user exists with a password, verifies the password and logs in if correct.
+         - Generates a JWT token with an expiry of 5 hours (or 365 days if `remember_me` is set).
+         - Logs the login action and returns the JWT token.
+         - If the user does not exist, creates a new account with the provided password and generates a JWT token.
+       - **Mobile number-based**:
+         - Follows a similar process as email-based login but checks the mobile number for user existence.
+
+    2. **OTP-based Authentication** (`type == 'otp'`):
+       - **Email-based**:
+         - If an email is provided and OTP is requested, it checks whether the user exists.
+         - If the user exists, generates an OTP and stores it in the `UserManagement` model, valid for 15 minutes.
+         - If the user does not exist, creates a new user record and sends an OTP.
+         - Redirects to `/signup_otp` for OTP verification.
+       - **Mobile number-based**:
+         - Similar logic applies for mobile number OTP generation and redirection to `/signup_otp`.
+
+    Returns:
+    --------
+    SignUpResponse or RedirectResponse: JSON
+        A structured response indicating the outcome of the signup/login process.
+        Includes the JWT token in case of successful login, or redirects to OTP verification page.
+
+    Possible Status Codes:
+    ----------------------
+    - 200: Successful login (JWT token returned).
+    - 302: Redirect to OTP verification.
+    - 403: Invalid credentials or OTP-required login.
+
+    Example:
+    --------
+    **Password-based Login**:
+    Request:
+        POST /signup
+        {
+            "email": "user@example.com",
+            "password": "password123",
+            "type": "password",
+            "remember_me": true,
+            "ip_details": "192.168.1.1",
+            "device_type": "web"
+        }
+
+    Response:
+        {
+            "status": true,
+            "message": "Successfully logged in to the Dashboard",
+            "data": {
+                "token": "jwt_token",
+                "userdata": {
+                    "name": "user@example.com"
+                }
+            }
+        }
+
+    **OTP-based Signup**:
+    Request:
+        POST /signup
+        {
+            "email": "user@example.com",
+            "type": "otp",
+            "ip_details": "192.168.1.1",
+            "device_type": "web"
+        }
+
+    Response:
+        {
+            "status_code": 302,
+            "redirect": "/signup_otp"
+        }
+    """
     email=request.email
     password=request.password
     mobile_no=request.mobile_no
-
-    # user_doc = await sync_to_async(UserManagement.objects.filter(email=request.email).first)()
 
     if email and password  and request.type=='password':
         user_doc = await sync_to_async(UserManagement.objects.filter(email=email).first)()
@@ -307,7 +474,11 @@ async def signup(request: SignUpRequest, response: Response):
             user_doc.otp=otp
             user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
             await sync_to_async(user_doc.save)() 
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            return SignUpResponse(
+                status=True,
+                message=f"We have sent a 6 digit OTP to your email",
+                data={"email": email, "otp": otp},
+            )
         else:
             otp=send_email_otp()
             user_doc = UserManagement(
@@ -317,7 +488,11 @@ async def signup(request: SignUpRequest, response: Response):
                 otp_valid_till=timezone.now() + timedelta(minutes=15)
             )
             await sync_to_async(user_doc.save)()
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            return SignUpResponse(
+                status=True,
+                message=f"We have sent a 6 digit OTP to your email",
+                data={"email": email, "otp": otp},
+            )
     elif mobile_no and request.type=='otp':
         user_doc = await sync_to_async(UserManagement.objects.filter(mobile_number=mobile_no).first)()
         if user_doc:
@@ -325,7 +500,11 @@ async def signup(request: SignUpRequest, response: Response):
             user_doc.otp=otp
             user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
             await sync_to_async(user_doc.save)() 
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            return SignUpResponse(
+                status=True,
+                message=f"We have sent a 6 digit OTP to your email",
+                data={"email": email, "otp": otp},
+            )
         else:
             otp=send_email_otp()
             user_doc = UserManagement(
@@ -335,4 +514,8 @@ async def signup(request: SignUpRequest, response: Response):
                 otp_valid_till=timezone.now() + timedelta(minutes=15)
             )
             await sync_to_async(user_doc.save)()
-            return RedirectResponse(url='/signup_otp', status_code=302)
+            return SignUpResponse(
+                status=True,
+                message=f"We have sent a 6 digit OTP to your email",
+                data={"email": email, "otp": otp},
+            )
