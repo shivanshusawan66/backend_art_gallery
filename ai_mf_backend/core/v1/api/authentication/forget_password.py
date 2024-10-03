@@ -5,15 +5,15 @@ from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
 from fastapi import Header, Request
 from typing import Annotated
-from ai_mf_backend.app.schemas.v1.authentication import (
+from app.schemas.v1.authentication import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     ChangePasswordRequest,
     ChangePasswordResponse,
 )
-from ai_mf_backend.app.models import UserManagement
-from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
-from ai_mf_backend.utils.v1.authentication.secrets import (
+from app.models import UserManagement
+from utils.v1.authentication.otp import send_email_otp
+from utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
     login_checker,

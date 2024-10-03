@@ -3,16 +3,16 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Response
 
-from ai_mf_backend.app.schemas.v1.authentication import (
+from app.schemas.v1.authentication import (
     loginResponse,
     LoginRequest,
     SignUpRequest,
     SignUpResponse,
 )
-from ai_mf_backend.app.models import UserLogs
-from ai_mf_backend.app.models import UserManagement
-from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
-from ai_mf_backend.utils.v1.authentication.secrets import (
+from app.models import UserLogs
+from app.models import UserManagement
+from utils.v1.authentication.otp import send_email_otp
+from utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_checker,
     password_encoder,
