@@ -24,3 +24,19 @@ class DataTypeNotHandledException(Exception):
 
     def __init__(self, message: str = None):
         self.message = message
+
+
+class PasswordNotValidException(Exception):
+    """Raise when the provided password is not valid."""
+
+    def __init__(self, message: str = "The provided password is not valid."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MalformedJWTRequestException(Exception):
+    """Raise when the JWT request is malformed."""
+
+    def __init__(self, message: str = "The JWT request is malformed."):
+        self.message = message
+        super().__init__(self.message)

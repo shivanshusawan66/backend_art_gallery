@@ -1,35 +1,34 @@
 from typing import Optional
+from config.v1 import BaseSettingsWrapper
 
-from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
-
-class MongoConfig(BaseSettingsWrapper):
+class PostgresConfig(BaseSettingsWrapper):
     """
-    Configuration settings for MongoDB database connection.
+    Configuration settings for PostgreSQL database connection.
 
-    :param MONGO_DB_NAME: Name of the mongo database.
-    :type MONGO_DB_NAME: str
+    :param POSTGRES_DB_NAME: Name of the PostgreSQL database.
+    :type POSTGRES_DB_NAME: str
 
-    :param MONGO_HOST: Hostname of the mongo database.
-    :type MONGO_HOST: str
+    :param POSTGRES_HOST: Hostname of the PostgreSQL database.
+    :type POSTGRES_HOST: str
 
-    :param MONGO_USERNAME: Username for mongo authentication, Optional.
-    :type MONGO_USERNAME: Optional[str]
+    :param POSTGRES_USERNAME: Username for PostgreSQL authentication, Optional.
+    :type POSTGRES_USERNAME: Optional[str]
 
-    :param MONGO_PASSWORD: Password for mongo authentication, Optional.
-    :type MONGO_PASSWORD: Optional[str]
+    :param POSTGRES_PASSWORD: Password for PostgreSQL authentication, Optional.
+    :type POSTGRES_PASSWORD: Optional[str]
 
-    :param READ_SECONDARY: Boolean to decide whether to read from secondary. Default is 'False'.
-    :type READ_SECONDARY: bool
+    :param POSTGRES_PORT: Port for PostgreSQL connection, Optional. Default is 5432.
+    :type POSTGRES_PORT: Optional[int]
 
-    :returns: This class does not return any values, it merely holds configuration parameters for the MongoDB database.
+    :returns: This class does not return any values, it merely holds configuration parameters for the PostgreSQL database.
     """
 
-    MONGO_DB_NAME: str = "ai_mf_backend"
-    MONGO_HOST: str
-    MONGO_USERNAME: Optional[str] = None
-    MONGO_PASSWORD: Optional[str] = None
-    READ_SECONDARY: bool = False
+    POSTGRES_DB_NAME: str = "your_database_name"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_USERNAME: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
+    POSTGRES_PORT: Optional[int] = 5432
 
 
-mongo_config = MongoConfig()
+postgres_config = PostgresConfig()
