@@ -18,7 +18,7 @@ pipeline {
                 script {
                     sh """
                         echo Build Docker Image $DOCKER_IMAGE
-                        docker build -t $DOCKER_IMAGE -f ./dockerfiles/Dockerfile.ai_mf_backend .
+                        docker build -t $DOCKER_IMAGE -f ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend .
                     """
                 }
             }

@@ -4,7 +4,7 @@ DOCKER_IMAGE=avisoft/ai-mf-backend:latest
 K8S_NAMESPACE=ai-mf-backend
 
 echo Build Docker Image $DOCKER_IMAGE
-docker build -t $DOCKER_IMAGE -f ./dockerfiles/Dockerfile.ai_mf_backend .
+docker build -t $DOCKER_IMAGE -f ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend .
 
 echo Push Docker Image $DOCKER_IMAGE
 docker push $DOCKER_IMAGE
