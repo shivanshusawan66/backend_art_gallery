@@ -42,7 +42,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     Parameters:
     -----------
     request : ForgotPasswordRequest
-        A Pydantic model instance containing the user's email or mobile number for initiating the password reset 
+        A Pydantic model instance containing the user's email or mobile number for initiating the password reset
         process.
 
     Logic:
@@ -169,7 +169,11 @@ async def forgot_password(request: ForgotPasswordRequest):
             return ForgotPasswordResponse(
                 status=True,
                 message=f"OTP has been sent to {request.mobile_no}. Please check.",
-                data={"token": jwt_token, "userdata": {"email": request.mobile_no}, "otp":otp},
+                data={
+                    "token": jwt_token,
+                    "userdata": {"email": request.mobile_no},
+                    "otp": otp,
+                },
             )
         else:
             return ForgotPasswordResponse(
