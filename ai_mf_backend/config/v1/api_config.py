@@ -22,7 +22,7 @@ class APIConfig(BaseSettingsWrapper):
     :return type: APIConfig
     """
 
-    PROJECT_NAME: str = "ai-mf-backend"
+    PROJECT_NAME: str = "ai_mf_backend"
     BACKEND_CORS_ORIGINS: Optional[str] = None
     API_VER_STR_V1: str = "/api/v1"
 

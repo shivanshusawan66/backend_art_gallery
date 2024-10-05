@@ -1,3 +1,4 @@
+import os
 import logging
 
 from celery import Celery
@@ -11,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 create_connections()
 check_connections()
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
+)
 
 connect_router = APIRouter()
 

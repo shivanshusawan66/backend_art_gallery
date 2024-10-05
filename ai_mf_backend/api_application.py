@@ -11,8 +11,14 @@ from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
+import django
 from django.contrib import admin
 from django.core.asgi import get_asgi_application
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
+)
+django.setup()
 
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
@@ -25,8 +31,6 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
 )
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.v1.django_settings")
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +100,9 @@ django_application = get_asgi_application()
 application.mount("/django", django_application)
 
 application.mount(
-    "/static", StaticFiles(directory="utils/v1/staticfiles"), name="static"
+    "/static",
+    StaticFiles(directory=os.path.abspath("./ai_mf_backend/utils/v1/staticfiles")),
+    name="static",
 )
 
 
