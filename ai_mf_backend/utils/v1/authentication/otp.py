@@ -1,8 +1,8 @@
+import os
 import random
 import logging
 import smtplib
 from email.mime.text import MIMEText
-import os
 
 logger = logging.getLogger(__name__)
 

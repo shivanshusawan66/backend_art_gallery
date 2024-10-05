@@ -31,4 +31,7 @@ ADD . /AIMFBackend/
 
 ENV C_FORCE_ROOT="true"
 
+# RUN python3 ai_mf_backend/django_manage.py makemigrations ai_mf_backend
+# RUN python3 ai_mf_backend/django_manage.py migrate ai_mf_backend   
+
 # CMD ["sleep", "infinity"]

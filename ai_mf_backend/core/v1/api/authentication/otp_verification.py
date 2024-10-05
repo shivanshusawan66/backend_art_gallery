@@ -3,18 +3,18 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
-from app.schemas.v1.authentication import (
+from ai_mf_backend.models.v1.api.user_authentication import (
     OTPVerificationRequest,
     OTPVerificationResponse,
     ResendOTPRequest,
     ResendOTPResponse,
 )
-from app.models import UserManagement
+from ai_mf_backend.models.v1.database.user_authentication import UserManagement
 
-from utils.v1.authentication.otp import (
+from ai_mf_backend.utils.v1.authentication.otp import (
     send_email_otp,
 )
-from utils.v1.authentication.secrets import (
+from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
 )
@@ -222,7 +222,7 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
     """
-    Resends an OTP (One-Time Password) to the user's email or mobile number for verification purposes. 
+    Resends an OTP (One-Time Password) to the user's email or mobile number for verification purposes.
     The OTP is valid for 15 minutes from the time it is generated. If the user is not found, a 404 error is returned.
 
     Parameters:
@@ -321,7 +321,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
         return ResendOTPResponse(
             status=True,
             message=f"OTP has been sent to {request.email}. Please check.",
-            data={"userdata": {"name": user_doc.email, "otp":otp}},
+            data={"userdata": {"name": user_doc.email, "otp": otp}},
         )
     elif request.mobile_no:
         otp = send_email_otp()
@@ -343,5 +343,5 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
         return ResendOTPResponse(
             status=True,
             message=f"OTP has been sent to {request.mobile_no}. Please check.",
-            data={"userdata": {"name": user_doc.mobile_number, "otp":otp}},
+            data={"userdata": {"name": user_doc.mobile_number, "otp": otp}},
         )

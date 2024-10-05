@@ -1,13 +1,9 @@
 from typing import Optional, Dict
 from pydantic import BaseModel
-from enum import Enum
 
-from app.schemas.v1 import Response
+from ai_mf_backend.models.v1.api import Response
 
-
-class SignUpType(str, Enum):
-    otp = "otp"
-    password = "password"
+from ai_mf_backend.utils.v1.enums import SignUpType
 
 
 class LoginRequest(BaseModel):

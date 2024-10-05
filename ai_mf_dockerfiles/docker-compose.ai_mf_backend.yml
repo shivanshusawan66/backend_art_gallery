@@ -5,8 +5,8 @@ services:
     image: ai_mf_pipe:latest
     build:
       context: ../
-      dockerfile: ./dockerfiles/Dockerfile.ai_mf_backend
-    command: celery -A ai_mf_backend.celery_tasks worker --autoscale=${CELERY_AUTOSCALE_UPPER_LIMIT},${CELERY_AUTOSCALE_LOWER_LIMIT} --loglevel=${LOG_LEVEL}
+      dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
+    command: celery -A ai_mf_backend.celery_tasks multi start worker_with_beat --autoscale=${CELERY_AUTOSCALE_UPPER_LIMIT},${CELERY_AUTOSCALE_LOWER_LIMIT} --loglevel=${LOG_LEVEL}
     container_name: ai_mf_pipe
     restart: always
     environment:
@@ -21,8 +21,8 @@ services:
     image: ai_mf_api:latest
     build:
       context: ../
-      dockerfile: ./dockerfiles/Dockerfile.ai_mf_backend
-    command: gunicorn -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers ${APPLICATION_WORKERS} --threads ${APPLICATION_THREADS} ai_mf_backend.fastapi_application --timeout 400 --log-level=${LOG_LEVEL}
+      dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
+    command: gunicorn -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers ${APPLICATION_WORKERS} --threads ${APPLICATION_THREADS} ai_mf_backend.api_application --timeout 400 --log-level=${LOG_LEVEL}
     container_name: ai_mf_api
     restart: always
     ports:

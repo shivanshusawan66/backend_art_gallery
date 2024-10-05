@@ -1,6 +1,8 @@
 from typing import Optional
 
-from config.v1 import BaseSettingsWrapper
+from django.apps import AppConfig
+
+from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
 
 class APIConfig(BaseSettingsWrapper):
@@ -20,9 +22,13 @@ class APIConfig(BaseSettingsWrapper):
     :return type: APIConfig
     """
 
-    PROJECT_NAME: str = "ai-mf-backend"
+    PROJECT_NAME: str = "ai_mf_backend"
     BACKEND_CORS_ORIGINS: Optional[str] = None
     API_VER_STR_V1: str = "/api/v1"
 
 
 api_config = APIConfig()
+
+
+class DjangoAppConfig(AppConfig):
+    name = api_config.PROJECT_NAME

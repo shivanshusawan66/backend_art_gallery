@@ -5,15 +5,15 @@ from fastapi import APIRouter, Response
 from asgiref.sync import sync_to_async
 from fastapi import Header, Request
 from typing import Annotated
-from app.schemas.v1.authentication import (
+from ai_mf_backend.models.v1.api.user_authentication import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     ChangePasswordRequest,
     ChangePasswordResponse,
 )
-from app.models import UserManagement
-from utils.v1.authentication.otp import send_email_otp
-from utils.v1.authentication.secrets import (
+from ai_mf_backend.models.v1.database.user_authentication import UserManagement
+from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
+from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
     login_checker,
@@ -42,7 +42,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     Parameters:
     -----------
     request : ForgotPasswordRequest
-        A Pydantic model instance containing the user's email or mobile number for initiating the password reset 
+        A Pydantic model instance containing the user's email or mobile number for initiating the password reset
         process.
 
     Logic:
@@ -169,7 +169,11 @@ async def forgot_password(request: ForgotPasswordRequest):
             return ForgotPasswordResponse(
                 status=True,
                 message=f"OTP has been sent to {request.mobile_no}. Please check.",
-                data={"token": jwt_token, "userdata": {"email": request.mobile_no}, "otp":otp},
+                data={
+                    "token": jwt_token,
+                    "userdata": {"email": request.mobile_no},
+                    "otp": otp,
+                },
             )
         else:
             return ForgotPasswordResponse(
