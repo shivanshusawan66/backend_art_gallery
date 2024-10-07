@@ -1,9 +1,9 @@
 from django.contrib import admin
 from .models import (
-                    Gender, MaritalStatus, Occupation, AnnualIncome, MonthlySavingCapacity, 
-                    InvestmentAmountPerYear, UserPersonalDetails, UserContactInfo, UserOTP, 
-                    UserFinancialDetails, Section, Question, Response, UserResponse,
-                    )
+    Gender, MaritalStatus, Occupation, AnnualIncome, MonthlySavingCapacity, 
+    InvestmentAmountPerYear, UserPersonalDetails, UserContactInfo, UserOTP, 
+    UserFinancialDetails, Section, Question, Response, UserResponse, ConditionalQuestion, UserLogs
+)
 
 @admin.register(Gender)
 class GenderAdmin(admin.ModelAdmin):
@@ -57,22 +57,22 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
 
 @admin.register(UserContactInfo)
 class UserContactInfoAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone_number', 'add_date', 'update_date')
-    search_fields = ('email', 'phone_number')
+    list_display = ('email', 'mobile_number', 'add_date', 'update_date')
+    search_fields = ('email', 'mobile_number')
     ordering = ('email',)
 
 
 @admin.register(UserOTP)
 class UserOTPAdmin(admin.ModelAdmin):
     list_display = ('user', 'otp', 'otp_valid', 'add_date', 'update_date')
-    search_fields = ('user__name', 'otp')
+    search_fields = ('user__email', 'otp')
     ordering = ('-add_date',)
 
 
 @admin.register(UserFinancialDetails)
 class UserFinancialDetailsAdmin(admin.ModelAdmin):
     list_display = ('user', 'occupation', 'annual_income', 'monthly_saving_capacity', 'investment_amount_per_year', 'add_date', 'update_date')
-    search_fields = ('user__name',)
+    search_fields = ('user__email',)
     list_filter = ('occupation', 'annual_income', 'monthly_saving_capacity', 'investment_amount_per_year')
     ordering = ('user',)
 
@@ -103,6 +103,22 @@ class ResponseAdmin(admin.ModelAdmin):
 @admin.register(UserResponse)
 class UserResponseAdmin(admin.ModelAdmin):
     list_display = ('user', 'question', 'response', 'section', 'add_date', 'update_date')
-    search_fields = ('user__name', 'question__question')
+    search_fields = ('user__email', 'question__question')
     list_filter = ('section', 'question')
     ordering = ('user',)
+
+
+@admin.register(ConditionalQuestion)
+class ConditionalQuestionAdmin(admin.ModelAdmin):
+    list_display = ('question', 'dependent_question', 'condition', 'visibility', 'add_date', 'update_date')
+    search_fields = ('question__question', 'dependent_question__question')
+    list_filter = ('visibility',)
+    ordering = ('question',)
+
+
+@admin.register(UserLogs)
+class UserLogsAdmin(admin.ModelAdmin):
+    list_display = ('user', 'device_type', 'last_access', 'action')
+    search_fields = ('user__email', 'device_type', 'action')
+    list_filter = ('action', 'device_type')
+    ordering = ('-last_access',)
