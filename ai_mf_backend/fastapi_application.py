@@ -11,15 +11,19 @@ from starlette.middleware.cors import CORSMiddleware
 
 
 from config.v1.api_config import api_config
-from core.v1.api.authentication.authentication import (
-    router as authentication_router_v1,
-)
-from core.v1.api.authentication.forget_password import (
-    router as forget_password_router_v1,
-)
-from core.v1.api.authentication.otp_verification import (
-    router as otp_verification_router_v1,
-)
+# from core.v1.api.authentication.authentication import (
+#     router as authentication_router_v1,
+# )
+# from core.v1.api.authentication.forget_password import (
+#     router as forget_password_router_v1,
+# )
+# from core.v1.api.authentication.otp_verification import (
+#     router as otp_verification_router_v1,
+# )
+
+from core.v1.api.questionaire_api.questionaire_api import (
+   router as questionaire_api_router_v1,
+ )
 
 from utils.v1.errors import (
     InternalServerException,
@@ -68,9 +72,10 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-application.include_router(authentication_router_v1)
-application.include_router(forget_password_router_v1)
-application.include_router(otp_verification_router_v1)
+# application.include_router(authentication_router_v1)
+# application.include_router(forget_password_router_v1)
+# application.include_router(otp_verification_router_v1)
+application.include_router(questionaire_api_router_v1)
 application.mount("/django", django_application)
 application.mount(
     "/static", StaticFiles(directory="utils/v1/staticfiles"), name="static"
