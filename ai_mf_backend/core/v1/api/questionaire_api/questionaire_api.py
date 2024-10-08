@@ -1,135 +1,95 @@
-import uuid
-from fastapi import APIRouter, HTTPException, Request
+import logging
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from app.schemas.v1.questionaire_api import UserResponseInput
-from app.models import Question, Section, Response, UserPersonalDetails, UserResponse
+from app.schemas.v1.questionaire_api import SectionRequest
+from app.models import Question, Section, Response, ConditionalQuestion
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
-# Helper function to get or create session ID
-def get_session_id(request: Request):
-    return request.headers.get('session_id', str(uuid.uuid4()))
-
-# GET endpoint to fetch the next question along with options
-@router.get("/questions/next")
-def get_next_question(request: Request):
-    session_id = get_session_id(request)
-
+# GET endpoint to fetch all sections without questions
+@router.get("/sections")
+def get_all_sections():
     try:
-        # Default user_id = 1 if not passed in the request headers
-        user_id = request.headers.get("user_id", 1)
-        user = UserPersonalDetails.objects.get(pk=user_id)
-
-        # Fetch the latest user response or default to the first section and question
-        last_response = UserResponse.objects.filter(user=user).order_by("-id").first()
-
-        if last_response:
-            # Get the next question in the same section or move to the next section
-            next_question = Question.objects.filter(
-                section=last_response.section, id__gt=last_response.question.pk
-            ).first()
-        else:
-            # Start from the first section and first question if no response exists
-            first_section = Section.objects.first()
-            next_question = Question.objects.filter(section=first_section).first()
-
-        if not next_question:
-            return JSONResponse({
-                "session_id": session_id,
-                "message": "No more questions available"
-            })
-
-        # Fetch the options (responses) for the next question
-        options = Response.objects.filter(question=next_question).values('id', 'response')
-
-        # Return the next question data along with options
+        # Fetch all sections
+        sections = Section.objects.all()
+        # Structure the response to include only sections
+        sections_data = [
+            {
+                "section_id": section.pk,
+                "section_name": section.section_name
+            }
+            for section in sections
+        ]
         return JSONResponse({
-            "session_id": session_id,
+            "data": sections_data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching sections: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch sections.")
+@router.post("/section-wise-questions/")
+def get_section_wise_questions(section_request: SectionRequest):
+    try:
+        specified_section_id = section_request.section_id
+        current_section = Section.objects.filter(pk=specified_section_id).first()
+        if not current_section:
+            raise HTTPException(status_code=404, detail="Section not found.")
+        
+        questions = Question.objects.filter(section=current_section)
+        question_data_list = []
+        
+        # To store independent questions' responses
+        independent_responses = {}
+
+        for question in questions:
+            options = Response.objects.filter(question=question).values('id', 'response')
+            conditional_infos = ConditionalQuestion.objects.filter(question=question)
+            
+            # Initialize visibility decisions
+            visibility_decisions = {"if_": []}
+            
+            # Check if the question is independent or dependent
+            if conditional_infos.exists():
+                # This question has visibility conditions
+                for conditional_info in conditional_infos:
+                    dependent_question = conditional_info.dependent_question
+                    condition_response = Response.objects.filter(pk=conditional_info.condition_id).first()
+                    
+                    # Get the response value to check for visibility
+                    condition_value = condition_response.response if condition_response else None
+
+                    # Add visibility decision logic for showing or hiding dependent questions
+                    if conditional_info.visibility == "show":
+                        visibility_decisions["if_"].append({
+                            "value": [condition_value],  # Using the response text instead of value
+                            "show": [dependent_question.id]  # Show the dependent question ID
+                        })
+                    elif conditional_info.visibility == "hide":
+                        visibility_decisions["if_"].append({
+                            "value": [condition_value],
+                            "hide": [dependent_question.id]  # Hide the dependent question ID
+                        })
+            else:
+                # If no conditions exist, treat this question as independent
+                independent_responses[question.pk] = options  # Store options for independent questions
+
+            # Create the question data object
+            question_data = {
+                "question_id": question.pk,
+                "question": question.question,
+                "options": [{"option_id": option['id'], "response": option['response']} for option in options],
+                "visibility_decisions": visibility_decisions  # Include visibility decisions
+            }
+            
+            question_data_list.append(question_data)
+        
+        return JSONResponse({
             "data": {
-                "question_id": next_question.pk,
-                "question": next_question.question,
-                "section_id": next_question.section.pk,
-                "section_name": next_question.section.section_name,
-                "options": [{"option_id": option['id'], "response": option['response']} for option in options]
+                "section_id": current_section.pk,
+                "section_name": current_section.section_name,
+                "questions": question_data_list
             }
         })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    except UserPersonalDetails.DoesNotExist:
-        raise HTTPException(status_code=404, detail="User not found")
-
-# POST endpoint to save user's response
-@router.post("/user-responses/")
-def create_user_response(user_response: UserResponseInput, request: Request):
-    session_id = get_session_id(request)
-
-    try:
-        # Default user_id = 1 if not passed in the request headers
-        user_id = request.headers.get("user_id", 1)
-        user = UserPersonalDetails.objects.get(pk=user_id)
-
-        # Fetch the latest question answered by the user
-        last_response = UserResponse.objects.filter(user=user).order_by("-id").first()
-
-        if last_response:
-            # Get the current question in the same section or move to the next section
-            current_question = Question.objects.filter(
-                section=last_response.section, id__gt=last_response.question.pk
-            ).first()
-        else:
-            # Start from the first question of the first section if no previous response
-            first_section = Section.objects.first()
-            current_question = Question.objects.filter(section=first_section).first()
-
-        if not current_question:
-            raise HTTPException(status_code=404, detail="No question found to answer")
-
-        # Validate that the response corresponds to the current question
-        response = Response.objects.filter(pk=user_response.response_id, question=current_question).first()
-        if not response:
-            raise HTTPException(status_code=404, detail="Invalid response")
-
-        # Save the user's response
-        UserResponse.objects.create(
-            user=user,
-            question=current_question,
-            response=response,
-            section=current_question.section
-        )
-
-        # Fetch the next question after saving the response
-        next_question = Question.objects.filter(
-            section=current_question.section, id__gt=current_question.pk
-        ).first()
-
-        # If no next question in the current section, move to the next section
-        if not next_question:
-            next_question = Question.objects.filter(section__pk__gt=current_question.section.pk).first()
-
-        # Check if there are no more questions left in any section
-        if not next_question:
-            return JSONResponse({
-                "session_id": session_id,
-                "message": "Well done! You have completed all questions.",
-            })
-
-        # Fetch the options for the next question
-        options = Response.objects.filter(question=next_question).values('id', 'response')
-
-        # Success response after saving the user response
-        return JSONResponse({
-            "session_id": session_id,
-            "message": "Your response has been saved.",
-            "next_question": {
-                "question_id": next_question.pk,
-                "question": next_question.question,
-                "section_id": next_question.section.pk,
-                "section_name": next_question.section.section_name,
-                "options": [{"option_id": option['id'], "response": option['response']} for option in options]
-            }
-        })
-
-    except UserPersonalDetails.DoesNotExist:
-        raise HTTPException(status_code=404, detail="User not found")
-    except (Question.DoesNotExist, Response.DoesNotExist, Section.DoesNotExist) as e:
-        raise HTTPException(status_code=404, detail=str(e))
- 
