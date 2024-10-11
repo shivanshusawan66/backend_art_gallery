@@ -11,81 +11,94 @@ def validate_mobile_number(value):
 
 
 class Gender(models.Model):
-    gender = models.CharField(max_length=50)
+    gender = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "gender"
-    
+        verbose_name = "Gender"
+        verbose_name_plural = "Gender"
+
     def __str__(self):
         return self.gender
 
 
 class MaritalStatus(models.Model):
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "marital_status"
-    
+        verbose_name = "Marital Status"
+        verbose_name_plural = "Marital Status"
+
     def __str__(self):
         return self.status
 
 
 class Occupation(models.Model):
-    occupation = models.CharField(max_length=100)
+    occupation = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "occupation"
-    
+        verbose_name = "Occupation"
+        verbose_name_plural = "Occupation"
+
     def __str__(self):
         return self.occupation
 
 
 class AnnualIncome(models.Model):
-    income_category = models.CharField(max_length=100)
+    income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "annual_income"
-    
+        verbose_name = "Annual Income"
+        verbose_name_plural = "Annual Income"
+
     def __str__(self):
         return self.income_category
 
 
 class MonthlySavingCapacity(models.Model):
-    saving_category = models.CharField(max_length=100)
+    saving_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "monthly_saving_capacity"
-    
+        verbose_name = "Monthly Saving Capacity"
+        verbose_name_plural = "Monthly Saving Capacity"
+
     def __str__(self):
         return self.saving_category
 
 
 class InvestmentAmountPerYear(models.Model):
-    investment_amount_per_year = models.CharField(max_length=100)
+    investment_amount_per_year = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "investment_amount_per_year"
-    
+        verbose_name = "Investment Amount Per Year"
+        verbose_name_plural = "Investment Amount Per Year"
+
     def __str__(self):
         return self.investment_amount_per_year
 
+
 class UserContactInfo(models.Model):
     user_id = models.AutoField(primary_key=True)
-    email = models.EmailField(unique=True,blank=True,null=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
     mobile_number = models.CharField(
-        max_length=10, validators=[validate_mobile_number], blank=True, null=True,unique=True
+        max_length=10, validators=[validate_mobile_number], blank=True, null=True, unique=True
     )
     password = models.CharField(max_length=100, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -97,9 +110,12 @@ class UserContactInfo(models.Model):
             models.Index(fields=["email"]),
             models.Index(fields=["mobile_number"]),
         ]
+        verbose_name = "User Contact Info"
+        verbose_name_plural = "User Contact Info"
 
     def __str__(self):
         return self.email
+
 
 class UserLogs(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
@@ -109,7 +125,7 @@ class UserLogs(models.Model):
     ACTION_CHOICES = [
         ("logged_in", "Logged In"),
         ("logged_out", "Logged Out"),
-        ("signed_up","Signed Up"),
+        ("signed_up", "Signed Up"),
         ("invalid", "invalid_action"),
     ]
     action = models.CharField(
@@ -119,13 +135,16 @@ class UserLogs(models.Model):
     )
 
     class Meta:
-        db_table = "user_logs"  # Equivalent to Mongo's collection
+        db_table = "user_logs"
         indexes = [
             models.Index(fields=["user"]),
         ]
+        verbose_name = "User Logs"
+        verbose_name_plural = "User Logs"
 
     def __str__(self):
-        return self.user
+        return str(self.user)
+
 
 class UserPersonalDetails(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
@@ -138,12 +157,14 @@ class UserPersonalDetails(models.Model):
 
     class Meta:
         db_table = "user_personal_details"
-    
+        verbose_name = "User Personal Detail"
+        verbose_name_plural = "User Personal Detail"
+
     def __str__(self):
         return self.name
 
 
-class UserOTP(models.Model):
+class OTPlogs(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     otp = models.IntegerField()
     otp_valid = models.DateTimeField()
@@ -151,8 +172,10 @@ class UserOTP(models.Model):
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "user_otp"
-    
+        db_table = "otp_logs"
+        verbose_name = "OTP Logs"
+        verbose_name_plural = "OTP Logs"
+
     def __str__(self):
         return f"OTP for {self.user.name}"
 
@@ -171,7 +194,9 @@ class UserFinancialDetails(models.Model):
 
     class Meta:
         db_table = "user_financial_details"
-    
+        verbose_name = "User Financial Detail"
+        verbose_name_plural = "User Financial Details"
+
     def __str__(self):
         return f"Financial Details for {self.user.name}"
 
@@ -183,7 +208,9 @@ class Section(models.Model):
 
     class Meta:
         db_table = "section"
-    
+        verbose_name = "Section"
+        verbose_name_plural = "Section"
+
     def __str__(self):
         return self.section_name
 
@@ -196,12 +223,14 @@ class Question(models.Model):
 
     class Meta:
         db_table = "question"
-    
+        verbose_name = "Question"
+        verbose_name_plural = "Question"
+
     def __str__(self):
         return self.question
 
 
-class Response(models.Model):
+class Allowed_Response(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     response = models.CharField(max_length=500)
@@ -209,22 +238,27 @@ class Response(models.Model):
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "response"
-    
+        db_table = "allowed_response"
+        verbose_name = "Allowed Response"
+        verbose_name_plural = "Allowed Response"
+
     def __str__(self):
         return self.response
+
 
 class ConditionalQuestion(models.Model):
     id = models.AutoField(primary_key=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='main_question')
     dependent_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='dependent_question')
-    condition = models.ForeignKey(Response, on_delete=models.CASCADE)
+    condition = models.ForeignKey(Allowed_Response, on_delete=models.CASCADE)
     visibility = models.CharField(max_length=50)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "conditional_question"
+        verbose_name = "Conditional Question"
+        verbose_name_plural = "Conditional Question"
 
     def __str__(self):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
@@ -233,13 +267,15 @@ class ConditionalQuestion(models.Model):
 class UserResponse(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    response = models.ForeignKey(Response, on_delete=models.CASCADE)
+    response = models.ForeignKey(Allowed_Response, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "user_response"
-    
+        verbose_name = "User Response"
+        verbose_name_plural = "User Response"
+
     def __str__(self):
         return f"Response by {self.user.name} for {self.question.question}"
