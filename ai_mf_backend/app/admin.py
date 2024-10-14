@@ -1,23 +1,9 @@
 from django.contrib import admin
 from .models import (
-    Gender,
-    MaritalStatus,
-    Occupation,
-    AnnualIncome,
-    MonthlySavingCapacity,
-    InvestmentAmountPerYear,
-    UserPersonalDetails,
-    UserContactInfo,
-    UserOTP,
-    UserFinancialDetails,
-    Section,
-    Question,
-    Response,
-    UserResponse,
-    ConditionalQuestion,
-    UserLogs,
-)
-
+                    Gender, MaritalStatus, Occupation, AnnualIncome, MonthlySavingCapacity, 
+                    InvestmentAmountPerYear, UserPersonalDetails, UserContactInfo, UserOTP, 
+                    UserFinancialDetails, Section, Question, Allowed_Response, UserResponse, ConditionalQuestion, UserLogs
+                    )
 
 @admin.register(Gender)
 class GenderAdmin(admin.ModelAdmin):
@@ -126,8 +112,8 @@ class QuestionAdmin(admin.ModelAdmin):
     ordering = ("section",)
 
 
-@admin.register(Response)
-class ResponseAdmin(admin.ModelAdmin):
+@admin.register(Allowed_Response)
+class AllowedResponseAdmin(admin.ModelAdmin):
     list_display = ("question", "section", "response", "add_date", "update_date")
     search_fields = ("response",)
     list_filter = ("section", "question")

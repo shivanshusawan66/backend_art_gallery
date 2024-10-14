@@ -110,11 +110,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = 'Asia/Kolkata'  # Set this to your desired timezone
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = True  # Keep this as True to store timestamps in UTC and convert them to the local time zone
 
 
 # Static files (CSS, JavaScript, Images)
