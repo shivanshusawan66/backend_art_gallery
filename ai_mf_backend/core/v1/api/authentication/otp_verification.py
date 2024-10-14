@@ -222,7 +222,7 @@
 # @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 # async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
 #     """
-#     Resends an OTP (One-Time Password) to the user's email or mobile number for verification purposes. 
+#     Resends an OTP (One-Time Password) to the user's email or mobile number for verification purposes.
 #     The OTP is valid for 15 minutes from the time it is generated. If the user is not found, a 404 error is returned.
 
 #     Parameters:

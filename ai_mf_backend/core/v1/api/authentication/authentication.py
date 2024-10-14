@@ -33,15 +33,15 @@
 
 #     This endpoint validates a user's OTP for account login using either an email or a mobile number.
 #     It also generates a JWT token upon successful login and logs the user's login activities.
-    
+
 #     The OTP is checked against the `UserManagement` database to ensure the OTP is valid and unexpired.
 
 #     Parameters:
 #     ----------
 #     request : LoginRequest
-#         A Pydantic model instance containing the user's email or mobile number, OTP, 
+#         A Pydantic model instance containing the user's email or mobile number, OTP,
 #         `remember_me` flag, IP details, and device type.
-    
+
 #     response : Response
 #         A FastAPI response object used to return the login response.
 
@@ -58,7 +58,7 @@
 #          - Returns a success response with the JWT token.
 #        - If the OTP does not match or is expired, returns an appropriate error response.
 #        - If no account is found with the provided email, returns a 403 response.
-    
+
 #     2. If the user provides a mobile number:
 #        - Follows a similar flow as the email logic but uses the mobile number for fetching the account.
 #        - The same validation, token generation, and logging logic is applied for mobile number login.
@@ -68,7 +68,7 @@
 #     loginResponse : JSON
 #         A structured response indicating whether the login was successful or failed.
 #         Includes the JWT token and user data in case of success, or an error message in case of failure.
-    
+
 #     Possible Status Codes:
 #     ----------------------
 #     - 200: Successful login (JWT token returned).
@@ -244,11 +244,11 @@
 #     1. Password-based authentication.
 #     2. OTP-based authentication.
 
-#     If the user logs in with a password, the system will check if the user already exists, validate their 
-#     password, and generate a JWT token if the credentials are correct. If the user signs up for the first time, 
+#     If the user logs in with a password, the system will check if the user already exists, validate their
+#     password, and generate a JWT token if the credentials are correct. If the user signs up for the first time,
 #     a new account will be created, a JWT token will be generated, and the login logs will be updated.
 
-#     For OTP-based authentication, the system generates an OTP and redirects the user to an OTP verification 
+#     For OTP-based authentication, the system generates an OTP and redirects the user to an OTP verification
 #     endpoint (`/signup_otp`).
 
 #     Parameters:
@@ -507,7 +507,7 @@
 #             otp = send_email_otp()
 #             user_doc.otp=otp
 #             user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
-#             await sync_to_async(user_doc.save)() 
+#             await sync_to_async(user_doc.save)()
 #             return SignUpResponse(
 #                 status=True,
 #                 message=f"We have sent a 6 digit OTP to your email",
@@ -533,7 +533,7 @@
 #             otp=send_email_otp()
 #             user_doc.otp=otp
 #             user_doc.otp_valid_till=timezone.now() + timedelta(minutes=15)
-#             await sync_to_async(user_doc.save)() 
+#             await sync_to_async(user_doc.save)()
 #             return SignUpResponse(
 #                 status=True,
 #                 message=f"We have sent a 6 digit OTP to your email",

@@ -11,6 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 
 from config.v1.api_config import api_config
+
 # from core.v1.api.authentication.authentication import (
 #     router as authentication_router_v1,
 # )
@@ -22,8 +23,8 @@ from config.v1.api_config import api_config
 # )
 
 from core.v1.api.questionaire_api.questionaire_api import (
-   router as questionaire_api_router_v1,
- )
+    router as questionaire_api_router_v1,
+)
 
 from utils.v1.errors import (
     InternalServerException,

@@ -42,7 +42,7 @@
 #     Parameters:
 #     -----------
 #     request : ForgotPasswordRequest
-#         A Pydantic model instance containing the user's email or mobile number for initiating the password reset 
+#         A Pydantic model instance containing the user's email or mobile number for initiating the password reset
 #         process.
 
 #     Logic:

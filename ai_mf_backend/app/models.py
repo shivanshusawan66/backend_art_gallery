@@ -17,7 +17,7 @@ class Gender(models.Model):
 
     class Meta:
         db_table = "gender"
-    
+
     def __str__(self):
         return self.gender
 
@@ -29,7 +29,7 @@ class MaritalStatus(models.Model):
 
     class Meta:
         db_table = "marital_status"
-    
+
     def __str__(self):
         return self.status
 
@@ -41,7 +41,7 @@ class Occupation(models.Model):
 
     class Meta:
         db_table = "occupation"
-    
+
     def __str__(self):
         return self.occupation
 
@@ -53,7 +53,7 @@ class AnnualIncome(models.Model):
 
     class Meta:
         db_table = "annual_income"
-    
+
     def __str__(self):
         return self.income_category
 
@@ -65,7 +65,7 @@ class MonthlySavingCapacity(models.Model):
 
     class Meta:
         db_table = "monthly_saving_capacity"
-    
+
     def __str__(self):
         return self.saving_category
 
@@ -77,15 +77,20 @@ class InvestmentAmountPerYear(models.Model):
 
     class Meta:
         db_table = "investment_amount_per_year"
-    
+
     def __str__(self):
         return self.investment_amount_per_year
 
+
 class UserContactInfo(models.Model):
     user_id = models.AutoField(primary_key=True)
-    email = models.EmailField(unique=True,blank=True,null=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
     mobile_number = models.CharField(
-        max_length=10, validators=[validate_mobile_number], blank=True, null=True,unique=True
+        max_length=10,
+        validators=[validate_mobile_number],
+        blank=True,
+        null=True,
+        unique=True,
     )
     password = models.CharField(max_length=100, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -101,6 +106,7 @@ class UserContactInfo(models.Model):
     def __str__(self):
         return self.email
 
+
 class UserLogs(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     ip_details = models.JSONField()
@@ -109,7 +115,7 @@ class UserLogs(models.Model):
     ACTION_CHOICES = [
         ("logged_in", "Logged In"),
         ("logged_out", "Logged Out"),
-        ("signed_up","Signed Up"),
+        ("signed_up", "Signed Up"),
         ("invalid", "invalid_action"),
     ]
     action = models.CharField(
@@ -127,6 +133,7 @@ class UserLogs(models.Model):
     def __str__(self):
         return self.user
 
+
 class UserPersonalDetails(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -138,7 +145,7 @@ class UserPersonalDetails(models.Model):
 
     class Meta:
         db_table = "user_personal_details"
-    
+
     def __str__(self):
         return self.name
 
@@ -152,7 +159,7 @@ class UserOTP(models.Model):
 
     class Meta:
         db_table = "user_otp"
-    
+
     def __str__(self):
         return f"OTP for {self.user.name}"
 
@@ -161,17 +168,27 @@ class UserFinancialDetails(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     occupation = models.ForeignKey(Occupation, on_delete=models.PROTECT)
     annual_income = models.ForeignKey(AnnualIncome, on_delete=models.PROTECT)
-    monthly_saving_capacity = models.ForeignKey(MonthlySavingCapacity, on_delete=models.PROTECT)
-    investment_amount_per_year = models.ForeignKey(InvestmentAmountPerYear, on_delete=models.PROTECT)
-    regular_source_of_income = models.BooleanField(choices=[(True, 'Yes'), (False, 'No')], default=False)
-    lock_in_period_accepted = models.BooleanField(choices=[(True, 'Yes'), (False, 'No')], default=False)
-    investment_style = models.CharField(max_length=10, choices=[('SIP', 'SIP'), ('Lump-Sum', 'Lump-Sum')], default='SIP')
+    monthly_saving_capacity = models.ForeignKey(
+        MonthlySavingCapacity, on_delete=models.PROTECT
+    )
+    investment_amount_per_year = models.ForeignKey(
+        InvestmentAmountPerYear, on_delete=models.PROTECT
+    )
+    regular_source_of_income = models.BooleanField(
+        choices=[(True, "Yes"), (False, "No")], default=False
+    )
+    lock_in_period_accepted = models.BooleanField(
+        choices=[(True, "Yes"), (False, "No")], default=False
+    )
+    investment_style = models.CharField(
+        max_length=10, choices=[("SIP", "SIP"), ("Lump-Sum", "Lump-Sum")], default="SIP"
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "user_financial_details"
-    
+
     def __str__(self):
         return f"Financial Details for {self.user.name}"
 
@@ -183,7 +200,7 @@ class Section(models.Model):
 
     class Meta:
         db_table = "section"
-    
+
     def __str__(self):
         return self.section_name
 
@@ -196,7 +213,7 @@ class Question(models.Model):
 
     class Meta:
         db_table = "question"
-    
+
     def __str__(self):
         return self.question
 
@@ -210,14 +227,19 @@ class Response(models.Model):
 
     class Meta:
         db_table = "response"
-    
+
     def __str__(self):
         return self.response
 
+
 class ConditionalQuestion(models.Model):
     id = models.AutoField(primary_key=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='main_question')
-    dependent_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='dependent_question')
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="main_question"
+    )
+    dependent_question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="dependent_question"
+    )
     condition = models.ForeignKey(Response, on_delete=models.CASCADE)
     visibility = models.CharField(max_length=50)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -240,6 +262,6 @@ class UserResponse(models.Model):
 
     class Meta:
         db_table = "user_response"
-    
+
     def __str__(self):
         return f"Response by {self.user.name} for {self.question.question}"
