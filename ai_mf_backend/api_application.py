@@ -15,6 +15,10 @@ import django
 from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
+
+
+
+
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
 )
@@ -30,6 +34,22 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
+)
+from ai_mf_backend.models.v1.database.user import (
+    Gender, MaritalStatus, Occupation, UserPersonalDetails, UserContactInfo, UserOTP, 
+    
+)
+from ai_mf_backend.models.v1.database.financial_details import (
+    AnnualIncome, MonthlySavingCapacity, 
+    InvestmentAmountPerYear,UserFinancialDetails
+
+)
+from ai_mf_backend.models.v1.database.questions import ( Section, Question, Response, UserResponse, ConditionalQuestion
+)
+
+from ai_mf_backend.models.v1.database.user_authentication import (
+    UserLogs,
+    UserManagement,
 )
 
 logger = logging.getLogger(__name__)
@@ -78,12 +98,13 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
 
+
 @admin.register(UserLogs)
 class UserLogsAdmin(admin.ModelAdmin):
-    list_display = ("mobile_number", "email_id", "last_access", "action")
-    search_fields = ("email_id", "mobile_number")
-    list_filter = ("action", "device_type")
-    ordering = ("-last_access",)
+    list_display = ('user', 'device_type', 'last_access', 'action')
+    search_fields = ('user__email', 'device_type', 'action')
+    list_filter = ('action', 'device_type')
+    ordering = ('-last_access',)
 
 
 @admin.register(UserManagement)
@@ -92,6 +113,7 @@ class UserManagementAdmin(admin.ModelAdmin):
     search_fields = ("email", "mobile_number")
     list_filter = ("updated_at",)
     ordering = ("-created_at",)
+
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/

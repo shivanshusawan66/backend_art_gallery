@@ -1,5 +1,5 @@
 from django.db import models
-from user import UserContactInfo
+from ai_mf_backend.models.v1.database.user import UserContactInfo
 class Section(models.Model):
     section_name = models.CharField(max_length=100)
     add_date = models.DateTimeField(auto_now_add=True)

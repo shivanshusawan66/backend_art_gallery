@@ -26,6 +26,7 @@ class UserLogs(models.Model):
         ("logged_in", "Logged In"),
         ("logged_out", "Logged Out"),
         ("invalid", "invalid_action"),
+        ("signed_up","signed_up"),
     ]
     action = models.CharField(
         max_length=10,

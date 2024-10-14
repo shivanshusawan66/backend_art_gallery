@@ -1,5 +1,5 @@
 from django.db import models
-from user import UserContactInfo, Occupation
+from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 
 class AnnualIncome(models.Model):
     income_category = models.CharField(max_length=100)
