@@ -51,6 +51,16 @@ from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
     UserManagement,
 )
+from ai_mf_backend.models.v1.database.mutual_fund import (
+    MutualFund,
+    HistoricalData,
+    PerformanceData,
+    TrailingReturn,
+    AnnualReturn,
+    FundData,
+    RiskStatistics,
+    FundOverview,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +124,69 @@ class UserManagementAdmin(admin.ModelAdmin):
     list_filter = ("updated_at",)
     ordering = ("-created_at",)
 
+
+@admin.register(MutualFund)
+class MutualFundAdmin(admin.ModelAdmin):
+    list_display = ("scheme_name", "symbol", "net_asset_value", "date")
+    search_fields = ("scheme_name", "symbol")
+    list_filter = ("date",)
+
+
+@admin.register(HistoricalData)
+class HistoricalDataAdmin(admin.ModelAdmin):
+    list_display = ("fund", "date", "open", "close", "volume")
+    list_filter = ("fund", "date")
+    date_hierarchy = "date"
+
+
+@admin.register(PerformanceData)
+class PerformanceDataAdmin(admin.ModelAdmin):
+    list_display = (
+        "fund",
+        "morningstar_return_rating",
+        "ytd_return",
+        "average_return_5y",
+    )
+    list_filter = ("morningstar_return_rating",)
+
+
+@admin.register(TrailingReturn)
+class TrailingReturnAdmin(admin.ModelAdmin):
+    list_display = ("fund", "metric", "fund_return", "benchmark_return")
+    list_filter = ("metric", "fund")
+
+
+@admin.register(AnnualReturn)
+class AnnualReturnAdmin(admin.ModelAdmin):
+    list_display = ("fund", "year", "fund_return", "category_return")
+    list_filter = ("year", "fund")
+
+
+@admin.register(FundData)
+class FundDataAdmin(admin.ModelAdmin):
+    list_display = ("fund", "min_initial_investment", "min_subsequent_investment")
+
+
+@admin.register(RiskStatistics)
+class RiskStatisticsAdmin(admin.ModelAdmin):
+    list_display = ("fund", "period", "alpha", "beta", "sharpe_ratio")
+    list_filter = ("period", "fund")
+
+
+@admin.register(FundOverview)
+class FundOverviewAdmin(admin.ModelAdmin):
+    list_display = (
+        "fund",
+        "category",
+        "fund_family",
+        "net_assets",
+        "ytd_return",
+        "yield_value",
+        "morningstar_rating",
+        "inception_date",
+    )
+    search_fields = ("fund__scheme_name", "category", "fund_family")
+    list_filter = ("category", "fund_family")
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
