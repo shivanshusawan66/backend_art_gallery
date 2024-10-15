@@ -3,6 +3,9 @@
 import os
 import sys
 
+import sys
+sys.path.append('C:/Users/DELL/OneDrive/Desktop/ai_mf/ai-mf-platform')
+
 
 def main():
     """Run administrative tasks."""

@@ -1,6 +1,7 @@
 import os
 import logging
 
+
 from celery import Celery
 
 from fastapi import APIRouter
