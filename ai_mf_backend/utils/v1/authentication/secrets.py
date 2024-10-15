@@ -9,7 +9,7 @@ from ai_mf_backend.utils.v1.errors import (
     PasswordNotValidException,
     MalformedJWTRequestException,
 )
-from ai_mf_backend.models.v1.database.user import UserContactInfo,UserOTP
+from ai_mf_backend.models.v1.database.user import UserContactInfo,OTPlogs
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from asgiref.sync import sync_to_async
 
