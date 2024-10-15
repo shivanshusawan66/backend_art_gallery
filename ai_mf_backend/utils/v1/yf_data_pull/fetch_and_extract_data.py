@@ -1,12 +1,10 @@
 import requests
-
 import csv
 from io import StringIO
 import logging
-
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
-
+from typing import Dict, Any
 
 # Configure logging
 logging.basicConfig(
@@ -18,8 +16,7 @@ session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
-
-def fetch_and_extract_data(api_url, limit=20):
+def fetch_and_extract_data(api_url: str, limit: int = 20) -> Dict[str, Dict[str, Any]]:
     logging.info(f"Fetching data from {api_url}")
     response = requests.get(api_url)
 
@@ -31,7 +28,7 @@ def fetch_and_extract_data(api_url, limit=20):
         data = StringIO(response.text)
         reader = csv.DictReader(data, delimiter=";")
 
-        results = {}
+        results: Dict[str, Dict[str, Any]] = {}
         count = 0
 
         for row in reader:
