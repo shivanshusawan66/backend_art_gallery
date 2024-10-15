@@ -13,7 +13,7 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
 )
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
-    UserOTP,
+    OTPlogs,
     
 )
 from asgiref.sync import sync_to_async
@@ -61,7 +61,7 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
             )
         await sync_to_async(user_doc.save)()
 
-        user_otp=UserOTP(
+        user_otp=OTPlogs(
             user=user_doc,
             )
         
@@ -184,7 +184,7 @@ async def auth_otp(request: Auth_OTP_Request):
     
     if user_doc:
         user_otp=await sync_to_async(
-            UserOTP.objects.filter(user=user_doc.user_id).first
+            OTPlogs.objects.filter(user=user_doc.user_id).first
             )()
         if user_otp:
             otp=send_email_otp()
@@ -243,7 +243,7 @@ async def auth_otp(request: Auth_OTP_Request):
         
         otp=send_email_otp()
 
-        user_otp=UserOTP(
+        user_otp=OTPlogs(
             user=user_doc,
             otp=otp,
             otp_valid=timezone.now() + timedelta(minutes=15)

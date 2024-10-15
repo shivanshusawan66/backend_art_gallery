@@ -9,7 +9,7 @@ from ai_mf_backend.models.v1.api.user_authentication import (
     ResendOTPRequest,
     ResendOTPResponse,
 )
-from ai_mf_backend.models.v1.database.user import UserContactInfo,UserOTP
+from ai_mf_backend.models.v1.database.user import UserContactInfo,OTPlogs
 
 from ai_mf_backend.utils.v1.authentication.otp import (
     send_email_otp,
@@ -38,14 +38,14 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 UserContactInfo.objects.filter(email=payload["email"]).first
             )()
             user_otp=await sync_to_async(
-                UserOTP.objects.filter(user=user_doc).first
+                OTPlogs.objects.filter(user=user_doc).first
             )()
         elif "mobile_no" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(mobile_number=payload["mobile_no"]).first
             )()
             user_otp=await sync_to_async(
-                UserOTP.objects.filter(user=user_doc).first
+                OTPlogs.objects.filter(user=user_doc).first
             )()
         else:
             return OTPVerificationResponse(
@@ -101,14 +101,14 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 UserContactInfo.objects.filter(email=payload["email"]).first
             )()
             user_otp=await sync_to_async(
-                UserOTP.objects.filter(user=user_doc).first
+                OTPlogs.objects.filter(user=user_doc).first
             )()
         elif "mobile_no" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(mobile_number=payload["mobile_no"]).first
             )()
             user_otp=await sync_to_async(
-                UserOTP.objects.filter(user=user_doc).first
+                OTPlogs.objects.filter(user=user_doc).first
             )()
         else:
             return OTPVerificationResponse(
@@ -176,7 +176,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
         )()
         if user_doc:
             user_otp = await sync_to_async(
-            UserOTP.objects.filter(user=user_doc).first
+            OTPlogs.objects.filter(user=user_doc).first
             )()
 
             if user_otp:
@@ -209,7 +209,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
         )()
         if user_doc:
             user_otp = await sync_to_async(
-                UserOTP.objects.filter(user=user_doc.user_id).first
+                OTPlogs.objects.filter(user=user_doc.user_id).first
             )()
             if user_otp:
                 user_otp.otp = otp

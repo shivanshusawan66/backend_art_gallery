@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from ai_mf_backend.models.v1.api.questionaire import SectionRequest
-from ai_mf_backend.models.v1.database.questions import Question, Section, Response, ConditionalQuestion
+from ai_mf_backend.models.v1.database.questions import Question, Section, Allowed_Response, ConditionalQuestion
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def get_section_wise_questions(section_request: SectionRequest):
         independent_responses = {}
 
         for question in questions:
-            options = Response.objects.filter(question=question).values(
+            options = Allowed_Response.objects.filter(question=question).values(
                 "id", "response"
             )
             conditional_infos = ConditionalQuestion.objects.filter(question=question)
@@ -53,7 +53,7 @@ def get_section_wise_questions(section_request: SectionRequest):
                 # This question has visibility conditions
                 for conditional_info in conditional_infos:
                     dependent_question = conditional_info.dependent_question
-                    condition_response = Response.objects.filter(
+                    condition_response = Allowed_Response.objects.filter(
                         pk=conditional_info.condition_id
                     ).first()
 

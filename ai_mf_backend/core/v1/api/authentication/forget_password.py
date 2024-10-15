@@ -11,7 +11,7 @@ from ai_mf_backend.models.v1.api.user_authentication import (
     ChangePasswordRequest,
     ChangePasswordResponse,
 )
-from ai_mf_backend.models.v1.database.user import UserContactInfo,UserOTP
+from ai_mf_backend.models.v1.database.user import UserContactInfo,OTPlogs
 from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
 from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
@@ -45,7 +45,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
             jwt_token = jwt_token_checker(payload=payload, encode=True)
 
-            user_otp=await sync_to_async(UserOTP.objects.filter(user=user_doc).first)()
+            user_otp=await sync_to_async(OTPlogs.objects.filter(user=user_doc).first)()
 
             if user_otp:
                 user_otp.otp = otp
@@ -82,7 +82,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
             jwt_token = jwt_token_checker(payload=payload, encode=True)
 
-            user_otp=await sync_to_async(UserOTP.objects.filter(user=user_doc).first)()
+            user_otp=await sync_to_async(OTPlogs.objects.filter(user=user_doc).first)()
 
             if user_otp:
                 user_otp.otp = otp

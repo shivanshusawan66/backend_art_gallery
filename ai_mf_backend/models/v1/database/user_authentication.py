@@ -39,6 +39,8 @@ class UserLogs(models.Model):
         indexes = [
             models.Index(fields=["email_id"]),
         ]
+        verbose_name = "User Logs"
+        verbose_name_plural = "User Logs"
 
     def __str__(self):
         return self.email_id

@@ -2,37 +2,42 @@ from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 
 class AnnualIncome(models.Model):
-    income_category = models.CharField(max_length=100)
+    income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "annual_income"
-    
+        verbose_name = "Annual Income"
+        verbose_name_plural = "Annual Income"
+
     def __str__(self):
         return self.income_category
 
 
 class MonthlySavingCapacity(models.Model):
-    saving_category = models.CharField(max_length=100)
+    saving_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "monthly_saving_capacity"
-    
+        verbose_name = "Monthly Saving Capacity"
+        verbose_name_plural = "Monthly Saving Capacity"
+
     def __str__(self):
         return self.saving_category
 
-
 class InvestmentAmountPerYear(models.Model):
-    investment_amount_per_year = models.CharField(max_length=100)
+    investment_amount_per_year = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "investment_amount_per_year"
-    
+        verbose_name = "Investment Amount Per Year"
+        verbose_name_plural = "Investment Amount Per Year"
+
     def __str__(self):
         return self.investment_amount_per_year
 
@@ -50,6 +55,8 @@ class UserFinancialDetails(models.Model):
 
     class Meta:
         db_table = "user_financial_details"
-    
+        verbose_name = "User Financial Detail"
+        verbose_name_plural = "User Financial Details"
+
     def __str__(self):
         return f"Financial Details for {self.user.name}"
