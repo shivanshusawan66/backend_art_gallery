@@ -111,8 +111,18 @@ async def forgot_password(request: ForgotPasswordRequest):
 
 
 @router.post("/change_password", response_model=ChangePasswordResponse, status_code=200)
-async def change_password(request: ChangePasswordRequest):
-    jwt_token = await login_checker(request.token)
+async def change_password(request: ChangePasswordRequest,authorization: str = Header(...),):
+    token_type, _, token = authorization.partition(" ")
+    
+    if token_type.lower() != "bearer":
+        return ChangePasswordResponse(
+            status=False,
+            message="Invalid token type. Please use Bearer token.",
+            data={"error": "Invalid token type. Please use Bearer token."},
+            status_code=401,
+        )
+    
+    jwt_token = await login_checker(authorization)
     decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
     if "email" in decoded_payload:
         user_doc = await sync_to_async(
