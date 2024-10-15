@@ -1,12 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-
 import logging
-
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import time
-
+from typing import Dict, Any
 
 # Configure logging
 logging.basicConfig(
@@ -19,29 +17,48 @@ retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 50
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
 
-def scrape_fund_data(symbol):
+def scrape_fund_data(symbol: str) -> Dict[str, Any]:
+    """Scrapes fund data from Yahoo Finance for a given symbol.
+
+    Args:
+        symbol (str): The stock symbol for the fund to scrape data for.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the scraped fund data.
+    """
     base_url = f"https://finance.yahoo.com/quote/{symbol}"
-    urls = {"purchase_info": f"{base_url}/purchase-info", "risk": f"{base_url}/risk"}
+    urls = {
+        "purchase_info": f"{base_url}/purchase-info",
+        "risk": f"{base_url}/risk"
+    }
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
 
-    fund_data = {}
+    fund_data: Dict[str, Any] = {}
 
-    def extract_purchase_info(soup):
+    def extract_purchase_info(soup: BeautifulSoup) -> None:
+        """Extracts purchase information from the BeautifulSoup object.
+
+        Args:
+            soup (BeautifulSoup): The BeautifulSoup object for the purchase info page.
+        """
         items = soup.find_all("div", class_="item yf-1rkv3ys")
         for item in items:
             label = item.find("dt", class_="yf-1rkv3ys").text.strip()
             value = item.find("dd", class_="yf-1rkv3ys").text.strip()
             fund_data[label] = value
 
-    def extract_risk_data(soup):
-        risk_statistics = {"3_Years": {}, "5_Years": {}, "10_Years": {}}
+    def extract_risk_data(soup: BeautifulSoup) -> None:
+        """Extracts risk data from the BeautifulSoup object.
 
-        statistics_section = soup.find(
-            "section", {"data-testid": "risk-statistics-table"}
-        )
+        Args:
+            soup (BeautifulSoup): The BeautifulSoup object for the risk data page.
+        """
+        risk_statistics: Dict[str, Dict[str, str]] = {"3_Years": {}, "5_Years": {}, "10_Years": {}}
+
+        statistics_section = soup.find("section", {"data-testid": "risk-statistics-table"})
         if statistics_section:
             rows = statistics_section.find_all("tr")[1:]  # Skip the header row
             for row in rows:

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ai_mf_backend.core.v1.tasks.yf_data_pull.yf_main import Command
+from ai_mf_backend.utils.v1.yf_data_pull.yf_main import Command
 
 router = APIRouter()
 
