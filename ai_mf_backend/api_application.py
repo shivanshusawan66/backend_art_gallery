@@ -60,6 +60,7 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
     FundData,
     RiskStatistics,
     FundOverview,
+    AMFIMutualFund
 )
 
 logger = logging.getLogger(__name__)
@@ -187,6 +188,12 @@ class FundOverviewAdmin(admin.ModelAdmin):
     )
     search_fields = ("fund__scheme_name", "category", "fund_family")
     list_filter = ("category", "fund_family")
+    
+@admin.register(AMFIMutualFund)
+class AMFIMutualFundAdmin(admin.ModelAdmin):
+    list_display = ('scheme_name', 'q_param', 'created_at', 'updated_at')
+    search_fields = ('scheme_name', 'q_param')
+    list_filter = ('created_at', 'updated_at')
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
