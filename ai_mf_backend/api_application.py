@@ -11,18 +11,9 @@ from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
-import django
 from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
-
-
-
-
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
-)
-django.setup()
 
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1

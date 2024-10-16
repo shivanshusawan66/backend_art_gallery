@@ -1,6 +1,8 @@
 import os
 import logging
 
+import django
+
 from celery import Celery
 
 from fastapi import APIRouter
@@ -16,6 +18,8 @@ check_connections()
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
 )
+
+django.setup()
 
 connect_router = APIRouter()
 
