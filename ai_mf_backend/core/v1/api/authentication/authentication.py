@@ -42,8 +42,10 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
 
     if email:
         user_doc = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+        print(email)
     elif mobile_no:
         user_doc = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_no).first)()
+        print(mobile_no)
     else:
         return Sign_up_in_password_response(
             status=False,
@@ -51,8 +53,66 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
             data={},
             status_code=404,
         )
-    
-    if not user_doc:
+      
+    if user_doc and user_doc.password:
+        if password_checker(password, user_doc.password):
+            if user_doc.email:
+                new_payload = {
+                    "email": user_doc.email,
+                    "token_type": "logged_in",
+                    "creation_time": timezone.now().timestamp(),
+                    "expiry": (
+                        (
+                            timezone.now() + timedelta(hours=5)
+                        ).timestamp()  # Fixed to 5 hours
+                        if not request.remember_me
+                        else (timezone.now() + timedelta(days=365)).timestamp()
+                    ),
+                }
+            else:
+                new_payload = {
+                    "mobile_number": user_doc.mobile_number,
+                    "token_type": "logged_in",
+                    "creation_time": timezone.now().timestamp(),
+                    "expiry": (
+                        (
+                            timezone.now() + timedelta(hours=5)
+                        ).timestamp()  # Fixed to 5 hours
+                        if not request.remember_me
+                        else (timezone.now() + timedelta(days=365)).timestamp()
+                    ),
+                }
+            jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+
+            user_logs = UserLogs(
+                user=user_doc,
+                ip_details=request.ip_details,
+                device_type=request.device_type,
+                last_access=timezone.now(),
+                action="logged_in",
+            )
+
+            await sync_to_async(user_logs.save)()
+            return Sign_up_in_password_response(
+                status=True,
+                message=f"Successfully logged in to the Dashboard",
+                data={"token": jwt_token, "userdata": {"email_or_mobile_no": email if email else mobile_no}},
+            )
+        else:
+            return Sign_up_in_password_response(
+                status=False,
+                message=f"Please check your id password",
+                data={"email": "Invalid login credentials."},
+                status_code=403,
+            )
+    elif user_doc and not user_doc.password :
+        return Sign_up_in_password_response(
+            status=False,
+            message=f"User found but you have to login though otp as you have done in the past",
+            data={"email_or_mobile_no": email if email else mobile_no},
+            status_code=404,
+        )
+    else:
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
                 email=email,
@@ -107,59 +167,7 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
             message=f"welcome you are the first time time user",
             data={"token": jwt_token, "userdata": {"email_or_mobile_no": email if email else mobile_no}},
         )
-    else:
-        if password_checker(password, user_doc.password):
-            if user_doc.email:
-                new_payload = {
-                    "email": user_doc.email,
-                    "token_type": "logged_in",
-                    "creation_time": timezone.now().timestamp(),
-                    "expiry": (
-                        (
-                            timezone.now() + timedelta(hours=5)
-                        ).timestamp()  # Fixed to 5 hours
-                        if not request.remember_me
-                        else (timezone.now() + timedelta(days=365)).timestamp()
-                    ),
-                }
-            else:
-                new_payload = {
-                    "mobile_number": user_doc.mobile_number,
-                    "token_type": "logged_in",
-                    "creation_time": timezone.now().timestamp(),
-                    "expiry": (
-                        (
-                            timezone.now() + timedelta(hours=5)
-                        ).timestamp()  # Fixed to 5 hours
-                        if not request.remember_me
-                        else (timezone.now() + timedelta(days=365)).timestamp()
-                    ),
-                }
-            jwt_token = jwt_token_checker(payload=new_payload, encode=True)
-
-            user_logs = UserLogs(
-                user=user_doc,
-                ip_details=request.ip_details,
-                device_type=request.device_type,
-                last_access=timezone.now(),
-                action="logged_in",
-            )
-
-            await sync_to_async(user_logs.save)()
-            return Sign_up_in_password_response(
-                status=True,
-                message=f"Successfully logged in to the Dashboard",
-                data={"token": jwt_token, "userdata": {"email_or_mobile_no": email if email else mobile_no}},
-            )
-        else:
-            return Sign_up_in_password_response(
-                status=False,
-                message=f"Please check your id password",
-                data={"email": "Invalid login credentials."},
-                status_code=403,
-            )
         
-
 
 @router.post(
     "/auth_send_otp",
@@ -177,12 +185,12 @@ async def auth_otp(request: Auth_OTP_Request):
     else:
         return Auth_OTP_Response(
             status=False,
-            message="User Not Found",
+            message="Invalid email or mobile number",
             data={"email_or_mobile_no": "Invalid login credentials."},
             status_code=404,
         )
     
-    if user_doc:
+    if user_doc :
         user_otp=await sync_to_async(
             OTPlogs.objects.filter(user=user_doc.user_id).first
             )()

@@ -20,7 +20,7 @@ from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_rout
 
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
-    UserManagement,
+    
 )
 
 from ai_mf_backend.utils.v1.errors import (
@@ -39,8 +39,7 @@ from ai_mf_backend.models.v1.database.questions import ( Section, Question, Allo
 )
 
 from ai_mf_backend.models.v1.database.user_authentication import (
-    UserLogs,
-    UserManagement,
+    UserLogs
 )
 from ai_mf_backend.models.v1.database.mutual_fund import (
     MutualFund,
@@ -218,12 +217,7 @@ class UserLogsAdmin(admin.ModelAdmin):
     ordering = ('-last_access',)
 
 
-@admin.register(UserManagement)
-class UserManagementAdmin(admin.ModelAdmin):
-    list_display = ("mobile_number", "email", "created_at")
-    search_fields = ("email", "mobile_number")
-    list_filter = ("updated_at",)
-    ordering = ("-created_at",)
+
 
 
 @admin.register(MutualFund)

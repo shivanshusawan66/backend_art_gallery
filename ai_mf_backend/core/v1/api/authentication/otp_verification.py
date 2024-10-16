@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from django.utils import timezone
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response,Header
 from asgiref.sync import sync_to_async
 from ai_mf_backend.models.v1.api.user_authentication import (
     OTPVerificationRequest,
@@ -27,24 +27,41 @@ router = APIRouter()
 @router.post(
     "/otp_verification", response_model=OTPVerificationResponse, status_code=200
 )
-async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationResponse:
+async def otp_verification(
+    request: OTPVerificationRequest,
+    Authorization:str = Header(...),  # Expect token in the Authorization header
+) -> OTPVerificationResponse:
+    
+    
+    jwt_token = Authorization  
     otp_sent = request.otp
-    jwt_token = request.token
+    print(jwt_token)
     payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
-    if payload["token_type"] =="logged_in" or payload['token_type']=='signed_up':
+
+    if payload["token_type"] == "forgot_password":
+        if not request.password:
+            return OTPVerificationResponse(
+                status=False,
+                message="Password is required for password reset.",
+                data={"error": "Password is required."},
+                status_code=400,
+            )
+
+    if payload["token_type"] in ["logged_in", "signed_up"]:
+        # Retrieve user based on email or mobile number from the payload
         if "email" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(email=payload["email"]).first
             )()
-            user_otp=await sync_to_async(
+            user_otp = await sync_to_async(
                 OTPlogs.objects.filter(user=user_doc).first
             )()
         elif "mobile_no" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(mobile_number=payload["mobile_no"]).first
             )()
-            user_otp=await sync_to_async(
+            user_otp = await sync_to_async(
                 OTPlogs.objects.filter(user=user_doc).first
             )()
         else:
@@ -63,7 +80,7 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                             status=True,
                             message="Welcome to the Dashboard",
                             data={
-                                "userdata": {"email_or_mobile_no": user_doc.email if "email" in payload else user_doc.mobile_number },
+                                "userdata": {"email_or_mobile_no": user_doc.email if "email" in payload else user_doc.mobile_number},
                                 "otp_verified": True,
                             },
                         )
@@ -77,14 +94,14 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 else:
                     return OTPVerificationResponse(
                         status=False,
-                        message="expired OTP.",
+                        message="Expired OTP.",
                         data={"error": "OTP verification failed."},
                         status_code=403,
                     )
             else:
                 return OTPVerificationResponse(
                     status=False,
-                    message="user not found in otp table",
+                    message="User not found in OTP table.",
                     data={"error": "OTP verification failed."},
                     status_code=403,
                 ) 
@@ -95,19 +112,20 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 data={"error": "User not found."},
                 status_code=404,
             )
-    elif payload["token_type"] =="forgot_password" and request.password:
+    elif payload["token_type"] == "forgot_password" and request.password:
+        # The password reset logic remains the same
         if "email" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(email=payload["email"]).first
             )()
-            user_otp=await sync_to_async(
+            user_otp = await sync_to_async(
                 OTPlogs.objects.filter(user=user_doc).first
             )()
         elif "mobile_no" in payload:
             user_doc = await sync_to_async(
                 UserContactInfo.objects.filter(mobile_number=payload["mobile_no"]).first
             )()
-            user_otp=await sync_to_async(
+            user_otp = await sync_to_async(
                 OTPlogs.objects.filter(user=user_doc).first
             )()
         else:
@@ -117,7 +135,7 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 data={"error": "User data not found."},
                 status_code=403,
             )
-        
+
         if user_doc:
             if user_otp:
                 if timezone.now().timestamp() <= user_otp.otp_valid.timestamp():
@@ -127,9 +145,9 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                         await sync_to_async(user_doc.save)()
                         return OTPVerificationResponse(
                             status=True,
-                            message="password changed successfully",
+                            message="Password changed successfully",
                             data={
-                                "userdata": {"email_or_mobile_no": user_doc.email if "email" in payload else user_doc.mobile_number },
+                                "userdata": {"email_or_mobile_no": user_doc.email if "email" in payload else user_doc.mobile_number},
                                 "otp_verified": True,
                             },
                         )
@@ -143,14 +161,14 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 else:
                     return OTPVerificationResponse(
                         status=False,
-                        message="expired OTP.",
+                        message="Expired OTP.",
                         data={"error": "OTP verification failed."},
                         status_code=403,
                     )
             else:
                 return OTPVerificationResponse(
                     status=False,
-                    message="user not found in otp table",
+                    message="User not found in OTP table.",
                     data={"error": "OTP verification failed."},
                     status_code=403,
                 ) 
@@ -161,7 +179,13 @@ async def otp_verification(request: OTPVerificationRequest) -> OTPVerificationRe
                 data={"error": "User not found."},
                 status_code=404,
             )
-        
+    else:
+        return OTPVerificationResponse(
+            status=False,
+            message="Invalid request.",
+            data={"error": "Invalid request."},
+            status_code=400,
+        )
 
 
 
