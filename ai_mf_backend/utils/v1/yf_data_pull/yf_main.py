@@ -20,11 +20,17 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
     TrailingReturn,
     FundOverview,
 )
-from ai_mf_backend.utils.v1.yf_data_pull.fetch_and_extract_data import fetch_and_extract_data
-from ai_mf_backend.utils.v1.yf_data_pull.fetch_historical_data import fetch_historical_data
+from ai_mf_backend.utils.v1.yf_data_pull.fetch_and_extract_data import (
+    fetch_and_extract_data,
+)
+from ai_mf_backend.utils.v1.yf_data_pull.fetch_historical_data import (
+    fetch_historical_data,
+)
 from ai_mf_backend.utils.v1.yf_data_pull.fetch_symbol import fetch_symbol
 from ai_mf_backend.utils.v1.yf_data_pull.scrape_fund_data import scrape_fund_data
-from ai_mf_backend.utils.v1.yf_data_pull.scrape_fund_performance import scrape_fund_performance
+from ai_mf_backend.utils.v1.yf_data_pull.scrape_fund_performance import (
+    scrape_fund_performance,
+)
 
 
 # Configure logging

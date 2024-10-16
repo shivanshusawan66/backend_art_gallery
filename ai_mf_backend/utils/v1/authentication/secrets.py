@@ -9,7 +9,7 @@ from ai_mf_backend.utils.v1.errors import (
     PasswordNotValidException,
     MalformedJWTRequestException,
 )
-from ai_mf_backend.models.v1.database.user import UserContactInfo,OTPlogs
+from ai_mf_backend.models.v1.database.user import UserContactInfo, OTPlogs
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from asgiref.sync import sync_to_async
 
@@ -86,9 +86,7 @@ async def login_checker(token: str):
                 UserContactInfo.objects.filter(email=decoded_payload["email"]).first
             )()
             user_log = await sync_to_async(
-                UserLogs.objects.filter(user=user)
-                .order_by("-last_access")
-                .first
+                UserLogs.objects.filter(user=user).order_by("-last_access").first
             )()
             if user:
                 expiry = float(decoded_payload["expiry"])
@@ -127,9 +125,7 @@ async def login_checker(token: str):
                 ).first
             )()
             user_log = await sync_to_async(
-                UserLogs.objects.filter(user=user)
-                .order_by("-last_access")
-                .first
+                UserLogs.objects.filter(user=user).order_by("-last_access").first
             )()
             if user:
                 expiry = float(decoded_payload["expiry"])

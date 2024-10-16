@@ -15,6 +15,7 @@ session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
+
 def fetch_historical_data(symbol: str) -> Optional[List[Dict[str, Any]]]:
     logging.info(f"Fetching historical data for symbol: {symbol}")
     try:

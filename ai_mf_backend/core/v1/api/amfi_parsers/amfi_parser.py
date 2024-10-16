@@ -2,10 +2,13 @@ from fastapi import APIRouter
 from django.db import transaction
 from asgiref.sync import sync_to_async
 from ai_mf_backend.models.v1.database.mutual_fund import AMFIMutualFund
-from ai_mf_backend.utils.v1.amfi_parser.fetch_and_extract_amfi_data import fetch_and_extract_amfi_data
+from ai_mf_backend.utils.v1.amfi_parser.fetch_and_extract_amfi_data import (
+    fetch_and_extract_amfi_data,
+)
 
 
 router = APIRouter()
+
 
 # Synchronous function for database updates
 @sync_to_async
@@ -19,16 +22,18 @@ def update_or_create_mutual_funds_bulk(data_dict):
         AMFIMutualFund.objects.bulk_create(mutual_funds, ignore_conflicts=True)
     return len(data_dict)
 
+
 # Synchronous function to fetch all mutual funds
 @sync_to_async
 def get_all_mutual_funds():
     return list(AMFIMutualFund.objects.all().values("scheme_name", "q_param"))
 
+
 # Endpoint to populate data
 @router.post("/parse-amfi-data/")
 async def populate_data():
     api_url = "https://www.amfiindia.com/spages/NAVOpen.txt?t=22112019"
-    
+
     # Call fetch_and_extract_amfi_data synchronously (remove await)
     data_dict = fetch_and_extract_amfi_data(api_url)
 

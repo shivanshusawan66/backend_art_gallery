@@ -1,6 +1,7 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 
+
 class Section(models.Model):
     section_name = models.CharField(max_length=100)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -13,8 +14,6 @@ class Section(models.Model):
 
     def __str__(self):
         return self.section_name
-
-
 
 
 class Question(models.Model):
@@ -32,7 +31,6 @@ class Question(models.Model):
         return self.question
 
 
-
 class Allowed_Response(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
@@ -48,10 +46,15 @@ class Allowed_Response(models.Model):
     def __str__(self):
         return self.response
 
+
 class ConditionalQuestion(models.Model):
     id = models.AutoField(primary_key=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='main_question')
-    dependent_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='dependent_question')
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="main_question"
+    )
+    dependent_question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="dependent_question"
+    )
     condition = models.ForeignKey(Allowed_Response, on_delete=models.CASCADE)
     visibility = models.CharField(max_length=50)
     add_date = models.DateTimeField(auto_now_add=True)

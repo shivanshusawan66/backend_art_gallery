@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from ai_mf_backend.models.v1.api import Response
 from datetime import date
 
+
 # Request model for updating UserFinancialDetails
 class User_Personal_Financial_Details_Update_Request(BaseModel):
     user_id: int
@@ -17,6 +18,7 @@ class User_Personal_Financial_Details_Update_Request(BaseModel):
     regular_source_of_income: Optional[bool] = None
     lock_in_period_accepted: Optional[bool] = None
     investment_style: Optional[str] = None
+
 
 # Response model for updating UserFinancialDetails
 class User_Personal_Financial_Details_Update_Response(Response):

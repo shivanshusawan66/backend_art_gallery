@@ -27,10 +27,7 @@ def scrape_fund_data(symbol: str) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary containing the scraped fund data.
     """
     base_url = f"https://finance.yahoo.com/quote/{symbol}"
-    urls = {
-        "purchase_info": f"{base_url}/purchase-info",
-        "risk": f"{base_url}/risk"
-    }
+    urls = {"purchase_info": f"{base_url}/purchase-info", "risk": f"{base_url}/risk"}
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -56,9 +53,15 @@ def scrape_fund_data(symbol: str) -> Dict[str, Any]:
         Args:
             soup (BeautifulSoup): The BeautifulSoup object for the risk data page.
         """
-        risk_statistics: Dict[str, Dict[str, str]] = {"3_Years": {}, "5_Years": {}, "10_Years": {}}
+        risk_statistics: Dict[str, Dict[str, str]] = {
+            "3_Years": {},
+            "5_Years": {},
+            "10_Years": {},
+        }
 
-        statistics_section = soup.find("section", {"data-testid": "risk-statistics-table"})
+        statistics_section = soup.find(
+            "section", {"data-testid": "risk-statistics-table"}
+        )
         if statistics_section:
             rows = statistics_section.find_all("tr")[1:]  # Skip the header row
             for row in rows:

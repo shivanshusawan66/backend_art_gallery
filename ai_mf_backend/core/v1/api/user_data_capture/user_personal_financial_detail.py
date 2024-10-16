@@ -1,26 +1,34 @@
 from fastapi import APIRouter, HTTPException
 from ai_mf_backend.models.v1.database.user import (
-    Occupation,  UserContactInfo, Gender, MaritalStatus, UserPersonalDetails
+    Occupation,
+    UserContactInfo,
+    Gender,
+    MaritalStatus,
+    UserPersonalDetails,
 )
 from ai_mf_backend.models.v1.database.financial_details import (
-    AnnualIncome, MonthlySavingCapacity, InvestmentAmountPerYear, 
-    UserFinancialDetails
-    
+    AnnualIncome,
+    MonthlySavingCapacity,
+    InvestmentAmountPerYear,
+    UserFinancialDetails,
 )
 from ai_mf_backend.models.v1.api.user_data import (
-    User_Personal_Financial_Details_Update_Request, 
-    User_Personal_Financial_Details_Update_Response
+    User_Personal_Financial_Details_Update_Request,
+    User_Personal_Financial_Details_Update_Response,
 )
 from asgiref.sync import sync_to_async
 
 router = APIRouter()
 
+
 @router.post("/user_personal_financial_details/")
 async def update_user_personal_financial_details(
-    request: User_Personal_Financial_Details_Update_Request
-): 
-    user = await sync_to_async(UserContactInfo.objects.filter(user_id=request.user_id).first)()
-    
+    request: User_Personal_Financial_Details_Update_Request,
+):
+    user = await sync_to_async(
+        UserContactInfo.objects.filter(user_id=request.user_id).first
+    )()
+
     if not user:
         return User_Personal_Financial_Details_Update_Response(
             status=False,
@@ -28,8 +36,12 @@ async def update_user_personal_financial_details(
             data={},
         )
 
-    user_personal = await sync_to_async(UserPersonalDetails.objects.filter(user_id=request.user_id).first)()
-    user_financial = await sync_to_async(UserFinancialDetails.objects.filter(user_id=request.user_id).first)()
+    user_personal = await sync_to_async(
+        UserPersonalDetails.objects.filter(user_id=request.user_id).first
+    )()
+    user_financial = await sync_to_async(
+        UserFinancialDetails.objects.filter(user_id=request.user_id).first
+    )()
 
     # Check and fetch optional related models
     gender = None
@@ -38,9 +50,11 @@ async def update_user_personal_financial_details(
     annual_income = None
     monthly_saving_capacity = None
     investment_amount_per_year = None
-    
+
     if request.gender_id:
-        gender = await sync_to_async(Gender.objects.filter(id=request.gender_id).first)()
+        gender = await sync_to_async(
+            Gender.objects.filter(id=request.gender_id).first
+        )()
         if not gender:
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
@@ -49,25 +63,31 @@ async def update_user_personal_financial_details(
             )
 
     if request.marital_status_id:
-        marital_status = await sync_to_async(MaritalStatus.objects.filter(id=request.marital_status_id).first)()
+        marital_status = await sync_to_async(
+            MaritalStatus.objects.filter(id=request.marital_status_id).first
+        )()
         if not marital_status:
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
                 message="Marital status not found",
                 data={},
             )
-    
+
     if request.occupation_id:
-        occupation = await sync_to_async(Occupation.objects.filter(id=request.occupation_id).first)()
+        occupation = await sync_to_async(
+            Occupation.objects.filter(id=request.occupation_id).first
+        )()
         if not occupation:
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
                 message="Occupation not found",
                 data={},
             )
-    
+
     if request.annual_income_id:
-        annual_income = await sync_to_async(AnnualIncome.objects.filter(id=request.annual_income_id).first)()
+        annual_income = await sync_to_async(
+            AnnualIncome.objects.filter(id=request.annual_income_id).first
+        )()
         if not annual_income:
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
@@ -77,7 +97,9 @@ async def update_user_personal_financial_details(
 
     if request.monthly_saving_capacity_id:
         monthly_saving_capacity = await sync_to_async(
-            MonthlySavingCapacity.objects.filter(id=request.monthly_saving_capacity_id).first
+            MonthlySavingCapacity.objects.filter(
+                id=request.monthly_saving_capacity_id
+            ).first
         )()
         if not monthly_saving_capacity:
             return User_Personal_Financial_Details_Update_Response(
@@ -88,7 +110,9 @@ async def update_user_personal_financial_details(
 
     if request.investment_amount_per_year_id:
         investment_amount_per_year = await sync_to_async(
-            InvestmentAmountPerYear.objects.filter(id=request.investment_amount_per_year_id).first
+            InvestmentAmountPerYear.objects.filter(
+                id=request.investment_amount_per_year_id
+            ).first
         )()
         if not investment_amount_per_year:
             return User_Personal_Financial_Details_Update_Response(
@@ -104,7 +128,7 @@ async def update_user_personal_financial_details(
             name=request.name,
             date_of_birth=request.date_of_birth,
             gender=gender,
-            marital_status=marital_status
+            marital_status=marital_status,
         )
         await sync_to_async(user_personal.save)()
 
@@ -117,7 +141,7 @@ async def update_user_personal_financial_details(
             investment_amount_per_year=investment_amount_per_year,
             regular_source_of_income=request.regular_source_of_income,
             lock_in_period_accepted=request.lock_in_period_accepted,
-            investment_style=request.investment_style
+            investment_style=request.investment_style,
         )
         await sync_to_async(user_financial.save)()
 
@@ -128,7 +152,7 @@ async def update_user_personal_financial_details(
 
         if request.date_of_birth:
             user_personal.date_of_birth = request.date_of_birth
-            
+
         if request.gender_id:
             user_personal.gender = gender
 
@@ -137,22 +161,22 @@ async def update_user_personal_financial_details(
 
         if request.occupation_id:
             user_financial.occupation = occupation
-        
+
         if request.annual_income_id:
             user_financial.annual_income = annual_income
-        
+
         if request.monthly_saving_capacity_id:
             user_financial.monthly_saving_capacity = monthly_saving_capacity
-        
+
         if request.investment_amount_per_year_id:
             user_financial.investment_amount_per_year = investment_amount_per_year
-        
+
         if request.regular_source_of_income:
             user_financial.regular_source_of_income = request.regular_source_of_income
-        
+
         if request.lock_in_period_accepted:
             user_financial.lock_in_period_accepted = request.lock_in_period_accepted
-        
+
         if request.investment_style:
             user_financial.investment_style = request.investment_style
 
@@ -162,5 +186,5 @@ async def update_user_personal_financial_details(
     return User_Personal_Financial_Details_Update_Response(
         status=True,
         message="User personal and financial details updated successfully",
-        data={"user_id": user.user_id}
+        data={"user_id": user.user_id},
     )

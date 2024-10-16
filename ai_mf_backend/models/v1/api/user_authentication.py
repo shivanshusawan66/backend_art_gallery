@@ -4,6 +4,7 @@ from enum import Enum
 
 from ai_mf_backend.models.v1.api import Response
 
+
 class Sign_up_in_password_request(BaseModel):
     email: Optional[str] = ""
     mobile_no: Optional[str] = ""
@@ -12,8 +13,10 @@ class Sign_up_in_password_request(BaseModel):
     device_type: Optional[str] = ""
     ip_details: Optional[Dict] = dict()
 
+
 class Sign_up_in_password_response(Response):
-    pass 
+    pass
+
 
 class Auth_OTP_Request(BaseModel):
     email: Optional[str] = ""
@@ -22,8 +25,9 @@ class Auth_OTP_Request(BaseModel):
     device_type: Optional[str] = ""
     ip_details: Optional[Dict] = dict()
 
+
 class Auth_OTP_Response(Response):
-    pass 
+    pass
 
 
 class ForgotPasswordRequest(BaseModel):

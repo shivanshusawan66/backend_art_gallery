@@ -13,6 +13,7 @@ session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
+
 def fetch_symbol(q_param: str) -> str:
     """Fetches the stock symbol for a given query parameter.
 
@@ -52,6 +53,8 @@ def fetch_symbol(q_param: str) -> str:
         )
 
     return "N/A"
+
+
 import requests
 import logging
 from requests.adapters import HTTPAdapter
@@ -66,6 +69,7 @@ logging.basicConfig(
 session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount("https://", HTTPAdapter(max_retries=retries))
+
 
 def fetch_symbol(q_param: str) -> str:
     """Fetches the stock symbol for a given query parameter.

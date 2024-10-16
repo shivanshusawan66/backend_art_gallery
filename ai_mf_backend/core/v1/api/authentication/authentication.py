@@ -14,7 +14,6 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
     OTPlogs,
-    
 )
 from asgiref.sync import sync_to_async
 from django.utils import timezone
@@ -24,11 +23,11 @@ from ai_mf_backend.models.v1.api.user_authentication import (
     Sign_up_in_password_request,
     Sign_up_in_password_response,
     Auth_OTP_Request,
-    Auth_OTP_Response
+    Auth_OTP_Response,
 )
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
 
 
 @router.post(
@@ -36,15 +35,19 @@ router = APIRouter()
     status_code=200,
 )
 async def sign_up_in_password(request: Sign_up_in_password_request):
-    email=request.email
-    mobile_no=request.mobile_no
-    password=request.password
+    email = request.email
+    mobile_no = request.mobile_no
+    password = request.password
 
     if email:
-        user_doc = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(email=email).first
+        )()
         print(email)
     elif mobile_no:
-        user_doc = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_no).first)()
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
+        )()
         print(mobile_no)
     else:
         return Sign_up_in_password_response(
@@ -53,7 +56,7 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
             data={},
             status_code=404,
         )
-      
+
     if user_doc and user_doc.password:
         if password_checker(password, user_doc.password):
             if user_doc.email:
@@ -96,7 +99,10 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
             return Sign_up_in_password_response(
                 status=True,
                 message=f"Successfully logged in to the Dashboard",
-                data={"token": jwt_token, "userdata": {"email_or_mobile_no": email if email else mobile_no}},
+                data={
+                    "token": jwt_token,
+                    "userdata": {"email_or_mobile_no": email if email else mobile_no},
+                },
             )
         else:
             return Sign_up_in_password_response(
@@ -105,7 +111,7 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
                 data={"email": "Invalid login credentials."},
                 status_code=403,
             )
-    elif user_doc and not user_doc.password :
+    elif user_doc and not user_doc.password:
         return Sign_up_in_password_response(
             status=False,
             message=f"User found but you have to login though otp as you have done in the past",
@@ -115,29 +121,29 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
     else:
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
-                email=email,
-                mobile_number=mobile_no,
-                password=password,
-            )
+            email=email,
+            mobile_number=mobile_no,
+            password=password,
+        )
         await sync_to_async(user_doc.save)()
 
-        user_otp=OTPlogs(
+        user_otp = OTPlogs(
             user=user_doc,
-            )
-        
+        )
+
         await sync_to_async(user_otp.save)()
 
         user_logs = UserLogs(
-                user=user_doc,
-                ip_details=request.ip_details,
-                device_type=request.device_type,
-                last_access=timezone.now(),
-                action="signed_up",
-            )
+            user=user_doc,
+            ip_details=request.ip_details,
+            device_type=request.device_type,
+            last_access=timezone.now(),
+            action="signed_up",
+        )
         await sync_to_async(user_logs.save)()
-        if email: 
+        if email:
             payload = {
-                "email": email ,
+                "email": email,
                 "token_type": "signup",
                 "creation_time": timezone.now().timestamp(),
                 "expiry": (
@@ -165,23 +171,29 @@ async def sign_up_in_password(request: Sign_up_in_password_request):
         return Sign_up_in_password_response(
             status=True,
             message=f"welcome you are the first time time user",
-            data={"token": jwt_token, "userdata": {"email_or_mobile_no": email if email else mobile_no}},
+            data={
+                "token": jwt_token,
+                "userdata": {"email_or_mobile_no": email if email else mobile_no},
+            },
         )
-        
+
 
 @router.post(
     "/auth_send_otp",
     status_code=200,
 )
 async def auth_otp(request: Auth_OTP_Request):
-    email=request.email
-    mobile_no=request.mobile_no
-
+    email = request.email
+    mobile_no = request.mobile_no
 
     if email:
-        user_doc = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(email=email).first
+        )()
     elif mobile_no:
-        user_doc = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_no).first)()
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
+        )()
     else:
         return Auth_OTP_Response(
             status=False,
@@ -189,24 +201,25 @@ async def auth_otp(request: Auth_OTP_Request):
             data={"email_or_mobile_no": "Invalid login credentials."},
             status_code=404,
         )
-    
-    if user_doc :
-        user_otp=await sync_to_async(
+
+    if user_doc:
+        user_otp = await sync_to_async(
             OTPlogs.objects.filter(user=user_doc.user_id).first
-            )()
+        )()
         if user_otp:
-            otp=send_email_otp()
-    
-            user_otp.otp=otp
-            user_otp.otp_valid=timezone.now() + timedelta(minutes=15)
+            otp = send_email_otp()
+
+            user_otp.otp = otp
+            user_otp.otp_valid = timezone.now() + timedelta(minutes=15)
             await sync_to_async(user_otp.save)()
         else:
             return Auth_OTP_Response(
                 status=False,
                 message="User Exist, but OTP table does not",
-                data={"email_or_mobile_no": email if email else mobile_no,
-                    }
-                )
+                data={
+                    "email_or_mobile_no": email if email else mobile_no,
+                },
+            )
         if user_doc.email:
             new_payload = {
                 "email": user_doc.email,
@@ -238,24 +251,26 @@ async def auth_otp(request: Auth_OTP_Request):
         response = Auth_OTP_Response(
             status=True,
             message=f"OTP successfully send to user ",
-            data={"token": jwt_token, "userdata": { "email_or_mobile_no": user_doc.email if email else user_doc.mobile_number},
-                    'otp':otp}
+            data={
+                "token": jwt_token,
+                "userdata": {
+                    "email_or_mobile_no": (
+                        user_doc.email if email else user_doc.mobile_number
+                    )
+                },
+                "otp": otp,
+            },
         )
         return response
     else:
-        user_doc = UserContactInfo(
-            email=email,
-            mobile_number=mobile_no
-        )
+        user_doc = UserContactInfo(email=email, mobile_number=mobile_no)
         await sync_to_async(user_doc.save)()
-        
-        otp=send_email_otp()
 
-        user_otp=OTPlogs(
-            user=user_doc,
-            otp=otp,
-            otp_valid=timezone.now() + timedelta(minutes=15)
-            )
+        otp = send_email_otp()
+
+        user_otp = OTPlogs(
+            user=user_doc, otp=otp, otp_valid=timezone.now() + timedelta(minutes=15)
+        )
         await sync_to_async(user_otp.save)()
 
         if user_doc.email:
@@ -289,8 +304,14 @@ async def auth_otp(request: Auth_OTP_Request):
         response = Auth_OTP_Response(
             status=True,
             message=f"OTP successfully send to newly created user ",
-            data={"token": jwt_token, "userdata": { "email_or_mobile_no": user_doc.email if email else user_doc.mobile_number},
-                    'otp':otp}
+            data={
+                "token": jwt_token,
+                "userdata": {
+                    "email_or_mobile_no": (
+                        user_doc.email if email else user_doc.mobile_number
+                    )
+                },
+                "otp": otp,
+            },
         )
         return response
-        

@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+
+
 def validate_mobile_number(value):
 
     if value and (len(value) != 10 or not value.isdigit()):
@@ -37,7 +39,6 @@ class MaritalStatus(models.Model):
         return self.status
 
 
-
 class Occupation(models.Model):
     occupation = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -56,7 +57,7 @@ class UserContactInfo(models.Model):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     mobile_number = models.CharField(
-     validators=[validate_mobile_number], blank=True, null=True, unique=True
+        validators=[validate_mobile_number], blank=True, null=True, unique=True
     )
     password = models.CharField(max_length=100, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -74,28 +75,31 @@ class UserContactInfo(models.Model):
     def __str__(self):
         return self.email
 
+
 class UserPersonalDetails(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100,null=True,blank=True)
-    date_of_birth = models.DateField(null=True,blank=True)
-    gender = models.ForeignKey(Gender, on_delete=models.PROTECT,null=True,blank=True)
-    marital_status = models.ForeignKey(MaritalStatus, on_delete=models.PROTECT,null=True,blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True, blank=True)
+    marital_status = models.ForeignKey(
+        MaritalStatus, on_delete=models.PROTECT, null=True, blank=True
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "user_personal_details"
-    
+
     def __str__(self):
         return self.name
 
+
 class OTPlogs(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
-    otp = models.IntegerField(null=True,blank=True)
-    otp_valid = models.DateTimeField(null=True,blank=True)
+    otp = models.IntegerField(null=True, blank=True)
+    otp_valid = models.DateTimeField(null=True, blank=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-
 
     class Meta:
         db_table = "otp_logs"

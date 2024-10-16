@@ -21,13 +21,13 @@ class FundOverview(models.Model):
     fund_family = models.CharField(max_length=255, null=True, blank=True)
     net_assets = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
-    )  
+    )
     ytd_return = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
     )
     yield_value = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
-    ) 
+    )
     morningstar_rating = models.CharField(max_length=10, null=True, blank=True)
     inception_date = models.DateField(null=True, blank=True)
 
@@ -117,7 +117,7 @@ class RiskStatistics(models.Model):
     fund = models.ForeignKey(
         MutualFund, on_delete=models.CASCADE, related_name="risk_statistics"
     )
-    period = models.CharField(max_length=10)  
+    period = models.CharField(max_length=10)
     alpha = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0.00)
     beta = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0.00)
     mean_annual_return = models.DecimalField(
@@ -138,11 +138,13 @@ class RiskStatistics(models.Model):
 
     class Meta:
         unique_together = ("fund", "period")
-        
+
+
 class AMFIMutualFund(models.Model):
     scheme_name = models.CharField(max_length=255, unique=True)
     q_param = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.scheme_name

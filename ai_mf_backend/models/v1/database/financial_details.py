@@ -1,6 +1,7 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 
+
 class AnnualIncome(models.Model):
     income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -28,6 +29,7 @@ class MonthlySavingCapacity(models.Model):
     def __str__(self):
         return self.saving_category
 
+
 class InvestmentAmountPerYear(models.Model):
     investment_amount_per_year = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -41,15 +43,34 @@ class InvestmentAmountPerYear(models.Model):
     def __str__(self):
         return self.investment_amount_per_year
 
+
 class UserFinancialDetails(models.Model):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
-    occupation = models.ForeignKey(Occupation, on_delete=models.PROTECT,null=True,blank=True)
-    annual_income = models.ForeignKey(AnnualIncome, on_delete=models.PROTECT,null=True,blank=True)
-    monthly_saving_capacity = models.ForeignKey(MonthlySavingCapacity, on_delete=models.PROTECT,null=True,blank=True)
-    investment_amount_per_year = models.ForeignKey(InvestmentAmountPerYear, on_delete=models.PROTECT,null=True,blank=True)
-    regular_source_of_income = models.BooleanField(choices=[(True, 'Yes'), (False, 'No')], default=False,null=True,blank=True)
-    lock_in_period_accepted = models.BooleanField(choices=[(True, 'Yes'), (False, 'No')], default=False,null=True,blank=True)
-    investment_style = models.CharField(max_length=10, choices=[('SIP', 'SIP'), ('Lump-Sum', 'Lump-Sum')], default='SIP',null=True,blank=True)
+    occupation = models.ForeignKey(
+        Occupation, on_delete=models.PROTECT, null=True, blank=True
+    )
+    annual_income = models.ForeignKey(
+        AnnualIncome, on_delete=models.PROTECT, null=True, blank=True
+    )
+    monthly_saving_capacity = models.ForeignKey(
+        MonthlySavingCapacity, on_delete=models.PROTECT, null=True, blank=True
+    )
+    investment_amount_per_year = models.ForeignKey(
+        InvestmentAmountPerYear, on_delete=models.PROTECT, null=True, blank=True
+    )
+    regular_source_of_income = models.BooleanField(
+        choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
+    )
+    lock_in_period_accepted = models.BooleanField(
+        choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
+    )
+    investment_style = models.CharField(
+        max_length=10,
+        choices=[("SIP", "SIP"), ("Lump-Sum", "Lump-Sum")],
+        default="SIP",
+        null=True,
+        blank=True,
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 

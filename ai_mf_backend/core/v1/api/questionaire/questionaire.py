@@ -2,7 +2,12 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from ai_mf_backend.models.v1.api.questionaire import SectionRequest
-from ai_mf_backend.models.v1.database.questions import Question, Section, Allowed_Response, ConditionalQuestion
+from ai_mf_backend.models.v1.database.questions import (
+    Question,
+    Section,
+    Allowed_Response,
+    ConditionalQuestion,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
