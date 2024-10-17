@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "ai_mf_backend.config.v1.api_config.DjangoAppConfig",
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +99,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -118,6 +122,8 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 
 USE_TZ = True
+
+PHONENUMBER_DEFAULT_REGION = "IN"
 
 # LOGGING_CONFIG = "INFO"
 

@@ -1,11 +1,14 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from phonenumber_field.validators import validate_international_phonenumber
 
 
-def validate_mobile_number(value):
+def validate_mobile_number(mobile_no: str) -> None:
 
-    if value and (len(value) != 10 or not value.isdigit()):
+    # We expect phone number in the format of +91 8473829478
+    try:
+        _ = validate_international_phonenumber(mobile_no)
+    except ValidationError:
         raise ValidationError(
             "Mobile number must be exactly 10 digits long and contain only numbers."
         )
@@ -60,6 +63,9 @@ class UserContactInfo(models.Model):
         validators=[validate_mobile_number], blank=True, null=True, unique=True
     )
     password = models.CharField(max_length=100, blank=True, null=True)
+
+    is_verified = models.BooleanField(default=False)
+
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 

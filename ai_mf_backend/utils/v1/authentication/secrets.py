@@ -76,7 +76,7 @@ async def login_checker(token: str):
 
     if token:
         decoded_payload = jwt_token_checker(jwt_token=token, encode=False)
-        if decoded_payload["token_type"] != "logged_in":
+        if decoded_payload["token_type"] != "login":
             raise HTTPException(
                 status_code=401,
                 detail="Token is not valid for this request.",
@@ -94,10 +94,10 @@ async def login_checker(token: str):
                 if current_time < expiry:
                     return token
                 else:
-                    if user_log.action == "logged_in":
+                    if user_log.action == "login":
                         new_payload = {
                             "email": user.email,
-                            "token_type": "logged_in",
+                            "token_type": "login",
                             "creation_time": timezone.now().timestamp(),
                             "expiry": (
                                 timezone.now() + timedelta(minutes=30)
@@ -133,10 +133,10 @@ async def login_checker(token: str):
                 if current_time < expiry:
                     return token
                 else:
-                    if user_log.action == "logged_in":
+                    if user_log.action == "login":
                         new_payload = {
                             "email": user.mobile_number,
-                            "token_type": "logged_in",
+                            "token_type": "login",
                             "creation_time": timezone.now().timestamp(),
                             "expiry": (
                                 timezone.now() + timedelta(minutes=30)

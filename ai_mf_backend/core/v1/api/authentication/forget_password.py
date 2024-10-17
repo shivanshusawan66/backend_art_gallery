@@ -12,7 +12,7 @@ from ai_mf_backend.models.v1.api.user_authentication import (
     ChangePasswordResponse,
 )
 from ai_mf_backend.models.v1.database.user import UserContactInfo, OTPlogs
-from ai_mf_backend.utils.v1.authentication.otp import send_email_otp
+from ai_mf_backend.utils.v1.authentication.otp import send_otp
 from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
@@ -33,7 +33,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         )()
 
         if user_doc:
-            otp = send_email_otp()
+            otp = send_otp()
             current_time = timezone.now()
 
             payload = {
@@ -76,7 +76,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         )()
 
         if user_doc:
-            otp = send_email_otp()
+            otp = send_otp()
             current_time = timezone.now()
 
             payload = {

@@ -8,9 +8,9 @@ class UserLogs(models.Model):
     device_type = models.CharField(max_length=100)
     last_access = models.DateTimeField()
     ACTION_CHOICES = [
-        ("logged_in", "Logged In"),
+        ("login", "Logged In"),
         ("logged_out", "Logged Out"),
-        ("signed_up", "Signed Up"),
+        ("signup", "Signed Up"),
         ("invalid", "invalid_action"),
     ]
     action = models.CharField(

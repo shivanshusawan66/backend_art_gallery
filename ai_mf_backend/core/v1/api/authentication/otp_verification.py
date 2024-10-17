@@ -1,7 +1,7 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
-from fastapi import APIRouter, Response, Header
+from fastapi import APIRouter, Header
 from asgiref.sync import sync_to_async
 from ai_mf_backend.models.v1.api.user_authentication import (
     OTPVerificationRequest,
@@ -12,7 +12,7 @@ from ai_mf_backend.models.v1.api.user_authentication import (
 from ai_mf_backend.models.v1.database.user import UserContactInfo, OTPlogs
 
 from ai_mf_backend.utils.v1.authentication.otp import (
-    send_email_otp,
+    send_otp,
 )
 from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
@@ -34,19 +34,27 @@ async def otp_verification(
 
     jwt_token = Authorization
     otp_sent = request.otp
-    print(jwt_token)
+
     payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
+
+    if not isinstance(otp_sent, int) or len(str(otp_sent)) != 6:
+        return OTPVerificationResponse(
+            status=False,
+            message="OTP format is not valid.",
+            data={"credentials": payload.get("email") or payload.get("mobile_no")},
+            status_code=422,
+        )
 
     if payload["token_type"] == "forgot_password":
         if not request.password:
             return OTPVerificationResponse(
                 status=False,
                 message="Password is required for password reset.",
-                data={"error": "Password is required."},
-                status_code=400,
+                data={"credentials": payload.get("email") or payload.get("mobile_no")},
+                status_code=422,
             )
 
-    if payload["token_type"] in ["logged_in", "signed_up"]:
+    elif payload["token_type"] in ["login", "signup"]:
         # Retrieve user based on email or mobile number from the payload
         if "email" in payload:
             user_doc = await sync_to_async(
@@ -201,7 +209,7 @@ async def otp_verification(
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
     if request.email:
-        otp = send_email_otp()
+        otp = send_otp()
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(email=request.email).first
         )()
@@ -234,7 +242,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
             data={"userdata": {"name": user_doc.email, "otp": otp}},
         )
     elif request.mobile_no:
-        otp = send_email_otp()
+        otp = send_otp()
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(mobile_number=request.mobile_no).first
         )()
