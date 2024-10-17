@@ -11,25 +11,53 @@ from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
-import django
 from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
-)
-django.setup()
 
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
-    UserManagement,
 )
 
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
+)
+from ai_mf_backend.models.v1.database.user import (
+    Gender,
+    MaritalStatus,
+    Occupation,
+    UserPersonalDetails,
+    UserContactInfo,
+    OTPlogs,
+)
+from ai_mf_backend.models.v1.database.financial_details import (
+    AnnualIncome,
+    MonthlySavingCapacity,
+    InvestmentAmountPerYear,
+    UserFinancialDetails,
+)
+from ai_mf_backend.models.v1.database.questions import (
+    Section,
+    Question,
+    Allowed_Response,
+    UserResponse,
+    ConditionalQuestion,
+)
+
+from ai_mf_backend.models.v1.database.user_authentication import UserLogs
+from ai_mf_backend.models.v1.database.mutual_fund import (
+    MutualFund,
+    HistoricalData,
+    PerformanceData,
+    TrailingReturn,
+    AnnualReturn,
+    FundData,
+    RiskStatistics,
+    FundOverview,
+    AMFIMutualFund,
 )
 
 logger = logging.getLogger(__name__)
@@ -78,20 +106,228 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
 
+@admin.register(Gender)
+class GenderAdmin(admin.ModelAdmin):
+    list_display = ("gender", "add_date", "update_date")
+    search_fields = ("gender",)
+    ordering = ("gender",)
+
+
+@admin.register(MaritalStatus)
+class MaritalStatusAdmin(admin.ModelAdmin):
+    list_display = ("status", "add_date", "update_date")
+    search_fields = ("status",)
+    ordering = ("status",)
+
+
+@admin.register(Occupation)
+class OccupationAdmin(admin.ModelAdmin):
+    list_display = ("occupation", "add_date", "update_date")
+    search_fields = ("occupation",)
+    ordering = ("occupation",)
+
+
+@admin.register(AnnualIncome)
+class AnnualIncomeAdmin(admin.ModelAdmin):
+    list_display = ("income_category", "add_date", "update_date")
+    search_fields = ("income_category",)
+    ordering = ("income_category",)
+
+
+@admin.register(MonthlySavingCapacity)
+class MonthlySavingCapacityAdmin(admin.ModelAdmin):
+    list_display = ("saving_category", "add_date", "update_date")
+    search_fields = ("saving_category",)
+    ordering = ("saving_category",)
+
+
+@admin.register(InvestmentAmountPerYear)
+class InvestmentAmountPerYearAdmin(admin.ModelAdmin):
+    list_display = ("investment_amount_per_year", "add_date", "update_date")
+    search_fields = ("investment_amount_per_year",)
+    ordering = ("investment_amount_per_year",)
+
+
+@admin.register(UserPersonalDetails)
+class UserPersonalDetailsAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "date_of_birth",
+        "gender",
+        "marital_status",
+        "add_date",
+        "update_date",
+    )
+    search_fields = ("name",)
+    list_filter = ("gender", "marital_status")
+    ordering = ("name",)
+
+
+@admin.register(UserContactInfo)
+class UserContactInfoAdmin(admin.ModelAdmin):
+    list_display = ("email", "mobile_number", "add_date", "update_date")
+    search_fields = ("email", "mobile_number")
+    ordering = ("email",)
+
+
+@admin.register(OTPlogs)
+class OTPlogsAdmin(admin.ModelAdmin):
+    list_display = ("user", "otp", "otp_valid", "add_date", "update_date")
+    search_fields = ("user__email", "otp")
+    ordering = ("-add_date",)
+
+
+@admin.register(UserFinancialDetails)
+class UserFinancialDetailsAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "occupation",
+        "annual_income",
+        "monthly_saving_capacity",
+        "investment_amount_per_year",
+        "add_date",
+        "update_date",
+    )
+    search_fields = ("user__email",)
+    list_filter = (
+        "occupation",
+        "annual_income",
+        "monthly_saving_capacity",
+        "investment_amount_per_year",
+    )
+    ordering = ("user",)
+
+
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ("section_name", "add_date", "update_date")
+    search_fields = ("section_name",)
+    ordering = ("section_name",)
+
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ("section", "question", "add_date", "update_date")
+    search_fields = ("question",)
+    list_filter = ("section",)
+    ordering = ("section",)
+
+
+@admin.register(Allowed_Response)
+class AllowedResponseAdmin(admin.ModelAdmin):
+    list_display = ("question", "section", "response", "add_date", "update_date")
+    search_fields = ("response",)
+    list_filter = ("section", "question")
+    ordering = ("question",)
+
+
+@admin.register(UserResponse)
+class UserResponseAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "question",
+        "response",
+        "section",
+        "add_date",
+        "update_date",
+    )
+    search_fields = ("user__email", "question__question")
+    list_filter = ("section", "question")
+    ordering = ("user",)
+
+
+@admin.register(ConditionalQuestion)
+class ConditionalQuestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "question",
+        "dependent_question",
+        "condition",
+        "visibility",
+        "add_date",
+        "update_date",
+    )
+    search_fields = ("question__question", "dependent_question__question")
+    list_filter = ("visibility",)
+    ordering = ("question",)
+
+
 @admin.register(UserLogs)
 class UserLogsAdmin(admin.ModelAdmin):
-    list_display = ("mobile_number", "email_id", "last_access", "action")
-    search_fields = ("email_id", "mobile_number")
+    list_display = ("user", "device_type", "last_access", "action")
+    search_fields = ("user__email", "device_type", "action")
     list_filter = ("action", "device_type")
     ordering = ("-last_access",)
 
 
-@admin.register(UserManagement)
-class UserManagementAdmin(admin.ModelAdmin):
-    list_display = ("mobile_number", "email", "created_at")
-    search_fields = ("email", "mobile_number")
-    list_filter = ("updated_at",)
-    ordering = ("-created_at",)
+@admin.register(MutualFund)
+class MutualFundAdmin(admin.ModelAdmin):
+    list_display = ("scheme_name", "symbol", "net_asset_value", "date")
+    search_fields = ("scheme_name", "symbol")
+    list_filter = ("date",)
+
+
+@admin.register(HistoricalData)
+class HistoricalDataAdmin(admin.ModelAdmin):
+    list_display = ("fund", "date", "open", "close", "volume")
+    list_filter = ("fund", "date")
+    date_hierarchy = "date"
+
+
+@admin.register(PerformanceData)
+class PerformanceDataAdmin(admin.ModelAdmin):
+    list_display = (
+        "fund",
+        "morningstar_return_rating",
+        "ytd_return",
+        "average_return_5y",
+    )
+    list_filter = ("morningstar_return_rating",)
+
+
+@admin.register(TrailingReturn)
+class TrailingReturnAdmin(admin.ModelAdmin):
+    list_display = ("fund", "metric", "fund_return", "benchmark_return")
+    list_filter = ("metric", "fund")
+
+
+@admin.register(AnnualReturn)
+class AnnualReturnAdmin(admin.ModelAdmin):
+    list_display = ("fund", "year", "fund_return", "category_return")
+    list_filter = ("year", "fund")
+
+
+@admin.register(FundData)
+class FundDataAdmin(admin.ModelAdmin):
+    list_display = ("fund", "min_initial_investment", "min_subsequent_investment")
+
+
+@admin.register(RiskStatistics)
+class RiskStatisticsAdmin(admin.ModelAdmin):
+    list_display = ("fund", "period", "alpha", "beta", "sharpe_ratio")
+    list_filter = ("period", "fund")
+
+
+@admin.register(FundOverview)
+class FundOverviewAdmin(admin.ModelAdmin):
+    list_display = (
+        "fund",
+        "category",
+        "fund_family",
+        "net_assets",
+        "ytd_return",
+        "yield_value",
+        "morningstar_rating",
+        "inception_date",
+    )
+    search_fields = ("fund__scheme_name", "category", "fund_family")
+    list_filter = ("category", "fund_family")
+
+
+@admin.register(AMFIMutualFund)
+class AMFIMutualFundAdmin(admin.ModelAdmin):
+    list_display = ("scheme_name", "q_param", "created_at", "updated_at")
+    search_fields = ("scheme_name", "q_param")
+    list_filter = ("created_at", "updated_at")
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/

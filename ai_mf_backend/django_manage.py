@@ -3,6 +3,10 @@
 import os
 import sys
 
+import sys
+
+sys.path.append("D:/ai-mf-platform")
+
 
 def main():
     """Run administrative tasks."""

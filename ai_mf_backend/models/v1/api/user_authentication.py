@@ -1,35 +1,32 @@
 from typing import Optional, Dict
 from pydantic import BaseModel
+from enum import Enum
 
 from ai_mf_backend.models.v1.api import Response
 
-from ai_mf_backend.utils.v1.enums import SignUpType
 
-
-class LoginRequest(BaseModel):
+class Sign_up_in_password_request(BaseModel):
     email: Optional[str] = ""
     mobile_no: Optional[str] = ""
-    otp: Optional[int]
+    password: str
     remember_me: Optional[bool] = False
     device_type: Optional[str] = ""
     ip_details: Optional[Dict] = dict()
 
 
-class loginResponse(Response):
+class Sign_up_in_password_response(Response):
     pass
 
 
-class SignUpRequest(BaseModel):
+class Auth_OTP_Request(BaseModel):
     email: Optional[str] = ""
-    password: Optional[str] = ""
     mobile_no: Optional[str] = ""
     remember_me: Optional[bool] = False
     device_type: Optional[str] = ""
     ip_details: Optional[Dict] = dict()
-    type: SignUpType
 
 
-class SignUpResponse(Response):
+class Auth_OTP_Response(Response):
     pass
 
 
