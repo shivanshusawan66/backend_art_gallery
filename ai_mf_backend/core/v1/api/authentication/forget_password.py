@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
 @limiter.limit("5/minute")
+@router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
 async def forgot_password(request: ForgotPasswordRequest):
 
     email = request.email
@@ -160,6 +160,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     )
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/change_password",
     response_model=ChangePasswordResponse,
@@ -168,7 +169,6 @@ async def forgot_password(request: ForgotPasswordRequest):
     ],
     status_code=200,
 )
-@limiter.limit("5/minute")
 async def change_password(
     request: ChangePasswordRequest,
     Authorization: str = Header(...),  # Expect token in the Authorization header

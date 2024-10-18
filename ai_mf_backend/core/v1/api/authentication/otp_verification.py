@@ -35,10 +35,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/otp_verification", response_model=OTPVerificationResponse, status_code=200
 )
-@limiter.limit("5/minute")
 async def otp_verification(
     request: OTPVerificationRequest,
     Authorization: str = Header(...),  # Expect token in the Authorization header
@@ -225,8 +225,8 @@ async def otp_verification(
         )
 
 
-@router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 @limiter.limit("5/minute")
+@router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
 
     email = request.email

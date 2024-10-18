@@ -38,11 +38,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/password_user_auth",
     status_code=200,
 )
-@limiter.limit("5/minute")
 async def user_authentication_password(request: UserAuthenticationPasswordRequest):
     email = request.email
     mobile_no = request.mobile_no
@@ -60,25 +60,6 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         return UserAuthenticationPasswordResponse(
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
-            data={"credentials": email if email else mobile_no},
-            status_code=422,
-        )
-
-    if not password:
-        return UserAuthenticationPasswordResponse(
-            status=False,
-            message="Password is required to proceed with this request",
-            data={"credentials": email if email else mobile_no},
-            status_code=422,
-        )
-
-    try:
-        # Password validators are defined in Django Settings
-        _ = validate_password(password=password)
-    except ValidationError as error_response:
-        return UserAuthenticationPasswordResponse(
-            status=False,
-            message=f"Bad Password provided: {error_response}",
             data={"credentials": email if email else mobile_no},
             status_code=422,
         )
@@ -105,6 +86,25 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 data={"credentials": email if email else mobile_no},
                 status_code=422,
             )
+
+    if not password:
+        return UserAuthenticationPasswordResponse(
+            status=False,
+            message="Password is required to proceed with this request",
+            data={"credentials": email if email else mobile_no},
+            status_code=422,
+        )
+
+    try:
+        # Password validators are defined in Django Settings
+        _ = validate_password(password=password)
+    except ValidationError as error_response:
+        return UserAuthenticationPasswordResponse(
+            status=False,
+            message=f"Bad Password provided: {error_response}",
+            data={"credentials": email if email else mobile_no},
+            status_code=422,
+        )
 
     if email:
         user_doc = await sync_to_async(
@@ -232,11 +232,11 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         )
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/otp_user_auth",
     status_code=200,
 )
-@limiter.limit("5/minute")
 async def user_authentication_otp(request: UserAuthenticationOTPRequest):
     email = request.email
     mobile_no = request.mobile_no
