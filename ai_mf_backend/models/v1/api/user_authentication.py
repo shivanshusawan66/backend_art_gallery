@@ -55,6 +55,8 @@ class OTPVerificationRequest(BaseModel):
     otp: int
     password: Optional[str] = ""
 
+    remember_me: Optional[bool] = False
+
 
 class OTPVerificationResponse(Response):
     pass

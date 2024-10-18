@@ -6,8 +6,9 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.logger import logger as fastapi_logger
-from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+from slowapi.errors import RateLimitExceeded
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,7 @@ from django.core.asgi import get_asgi_application
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
+from ai_mf_backend.models.v1.api import Response
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
 )
@@ -67,12 +69,22 @@ fastapi_logger.handlers = logger.handlers
 application = FastAPI(title=api_config.PROJECT_NAME)
 
 
+@application.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return Response(
+        status=False,
+        message="Rate limit exceeded. Try again later.",
+        data={},
+        status_code=429,
+    )
+
+
 @application.exception_handler(InternalServerException)
 async def internal_server_exception_handler(
     _request: Request, exception: InternalServerException
 ):
     message = exception.message or "Internal Server Error"
-    return JSONResponse(status_code=500, content={"message": message})
+    return Response(status=False, message=message, data={}, status_code=500)
 
 
 @application.middleware("http")

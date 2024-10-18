@@ -27,6 +27,7 @@ numpy = "^2.1.1"
 django = "^5.1.1"
 yfinance = "^0.2.44"
 django-phonenumber-field = {extras = ["phonenumbers"], version = "^8.0.0"}
+slowapi = "^0.1.9"
 
 
 [build-system]

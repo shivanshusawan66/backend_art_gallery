@@ -1,14 +1,18 @@
 import logging
 from datetime import timedelta
 
+from asgiref.sync import sync_to_async
+
 from fastapi import APIRouter
 
+from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from phonenumber_field.validators import validate_international_phonenumber
 
+from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from ai_mf_backend.utils.v1.authentication.otp import send_otp
@@ -17,12 +21,11 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     password_checker,
     password_encoder,
 )
+from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
     OTPlogs,
 )
-from asgiref.sync import sync_to_async
-from django.utils import timezone
 
 from ai_mf_backend.models.v1.api.user_authentication import (
     UserAuthenticationPasswordRequest,
@@ -39,6 +42,7 @@ router = APIRouter()
     "/password_user_auth",
     status_code=200,
 )
+@limiter.limit("5/minute")
 async def user_authentication_password(request: UserAuthenticationPasswordRequest):
     email = request.email
     mobile_no = request.mobile_no
@@ -104,7 +108,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email=email).first
+            UserContactInfo.objects.filter(email__iexact=email).first
         )()
 
     elif mobile_no:
@@ -176,7 +180,10 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
     else:
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
-            email=email, mobile_number=mobile_no, password=password, is_verified=False
+            email__iexact=email,
+            mobile_number=mobile_no,
+            password=password,
+            is_verified=False,
         )
         await sync_to_async(user_doc.save)()
 
@@ -218,8 +225,8 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status=True,
             message=f"welcome you are the first time time user",
             data={
-                    "credentials": email if email else mobile_no,
-                    "token": jwt_token,
+                "credentials": email if email else mobile_no,
+                "token": jwt_token,
             },
             status_code=200,
         )
@@ -229,6 +236,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
     "/otp_user_auth",
     status_code=200,
 )
+@limiter.limit("5/minute")
 async def user_authentication_otp(request: UserAuthenticationOTPRequest):
     email = request.email
     mobile_no = request.mobile_no
@@ -274,7 +282,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email=email).first
+            UserContactInfo.objects.filter(email__iexact=email).first
         )()
     elif mobile_no:
         user_doc = await sync_to_async(
@@ -282,6 +290,17 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         )()
 
     if user_doc:
+
+        user_id = user_doc.user_id
+        can_request, error_message = throttle_otp_requests(user_id)
+        if not can_request:
+            return UserAuthenticationOTPResponse(
+                status=False,
+                message=error_message,
+                data={"credentials": email or mobile_no},
+                status_code=429,
+            )
+
         # Login Route
         user_otp_document = await sync_to_async(
             OTPlogs.objects.filter(user=user_doc.user_id).first
@@ -290,6 +309,24 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             user_otp_document = OTPlogs(
                 user=user_doc,
             )
+        elif user_otp_document:
+            # validation to check and stop user from requesting too many OTPs
+            updated_date = user_otp_document.update_date
+            # Get the current time
+            current_time = timezone.now()
+
+            # Calculate the time difference
+            time_diff = current_time - updated_date
+
+            # Check if the update_date is within 15 seconds
+            if time_diff <= timedelta(seconds=15):
+                return UserAuthenticationOTPResponse(
+                    status=False,
+                    message=f"Please wait for {time_diff} seconds before sending another request.",
+                    data={"credentials": email if email else mobile_no},
+                    status_code=429,
+                )
+
         otp = send_otp()
 
         user_otp_document.otp = otp
@@ -321,6 +358,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
                     ),
                     "token": jwt_token,
                 },
+                # TODO: this needs to be removed once we implement sending OTP logic
                 "otp": otp,
             },
             status_code=200,
@@ -328,7 +366,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         return response
     else:
         user_doc = UserContactInfo(
-            email=email, mobile_number=mobile_no, is_verified=False
+            email__iexact=email, mobile_number=mobile_no, is_verified=False
         )
         await sync_to_async(user_doc.save)()
 
