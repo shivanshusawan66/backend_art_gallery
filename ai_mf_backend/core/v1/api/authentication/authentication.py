@@ -63,7 +63,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             data={"credentials": email if email else mobile_no},
             status_code=422,
         )
-
+    
     if email:
         try:
             _ = validate_email(value=email)
@@ -108,7 +108,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email__iexact=email).first
+            UserContactInfo.objects.filter(email=email).first
         )()
 
     elif mobile_no:
@@ -178,9 +178,10 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status_code=403,
         )
     else:
+        print(mobile_no)
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
-            email__iexact=email,
+            email=email,
             mobile_number=mobile_no,
             password=password,
             is_verified=False,
@@ -227,8 +228,10 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             data={
                 "credentials": email if email else mobile_no,
                 "token": jwt_token,
+                'otp':otp,
             },
             status_code=200,
+            
         )
 
 
@@ -282,7 +285,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email__iexact=email).first
+            UserContactInfo.objects.filter(email=email).first
         )()
     elif mobile_no:
         user_doc = await sync_to_async(
@@ -366,7 +369,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         return response
     else:
         user_doc = UserContactInfo(
-            email__iexact=email, mobile_number=mobile_no, is_verified=False
+            email=email, mobile_number=mobile_no, is_verified=False
         )
         await sync_to_async(user_doc.save)()
 

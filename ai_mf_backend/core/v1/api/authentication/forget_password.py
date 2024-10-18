@@ -83,7 +83,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email__iexact=email).first
+            UserContactInfo.objects.filter(email=email).first
         )()
     elif mobile_no:
         user_doc = await sync_to_async(
@@ -243,7 +243,7 @@ async def change_password(
 
     if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email__iexact=email).first
+            UserContactInfo.objects.filter(email=email).first
         )()
 
     elif mobile_no:

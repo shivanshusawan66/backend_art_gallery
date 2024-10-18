@@ -8,7 +8,7 @@ from ai_mf_backend.models.v1.api import Response
 class UserAuthenticationPasswordRequest(BaseModel):
     email: Optional[str] = ""
     mobile_no: Optional[str] = ""
-    password: str
+    password: Optional[str] = ""
 
     remember_me: Optional[bool] = False
 
