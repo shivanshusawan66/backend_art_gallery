@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
@@ -49,13 +50,47 @@ async def otp_verification(
 
     payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
-    if "email" not in payload or "mobile_no" not in payload:
+    email = payload.get("email")
+    mobile_no = payload.get("mobile_no")
+
+    if not any([email, mobile_no]):
         return OTPVerificationResponse(
             status=False,
             message="Invalid JWT token is provided, no email or mobile number found.",
             data={},
             status_code=422,
         )
+
+    if all([email, mobile_no]):
+        return OTPVerificationResponse(
+            status=False,
+            message="Invalid JWT token is provided, email and mobile number both found.",
+            data={},
+            status_code=422,
+        )
+
+    if email:
+        try:
+            _ = validate_email(value=email)
+        except ValidationError as error_response:
+            return OTPVerificationResponse(
+                status=False,
+                message=f"Bad Email provided: {error_response}",
+                data={"credentials": email if email else mobile_no},
+                status_code=422,
+            )
+
+    elif mobile_no:
+        # We expect the number to be of the format +91 8389273829
+        try:
+            _ = validate_international_phonenumber(value=mobile_no)
+        except ValidationError as error_response:
+            return OTPVerificationResponse(
+                status=False,
+                message=f"Bad phone number provided: {error_response}",
+                data={"credentials": email if email else mobile_no},
+                status_code=422,
+            )
 
     if not isinstance(otp_sent, int) or not (100000 <= otp_sent <= 999999):
         return OTPVerificationResponse(
@@ -72,6 +107,23 @@ async def otp_verification(
             data={"credentials": payload.get("email") or payload.get("mobile_no")},
             status_code=422,
         )
+
+    if request.password:
+        # validate the password
+        try:
+            # Password validators are defined in Django Settings
+            _ = validate_password(password=request.password)
+        except ValidationError as error_response:
+            return OTPVerificationResponse(
+                status=False,
+                message=f"Bad Password provided: {error_response}",
+                data={
+                    "credentials": (
+                        user_doc.email if "email" in payload else user_doc.mobile_number
+                    ),
+                },
+                status_code=422,
+            )
 
     # Retrieve user based on email or mobile number from the payload
     if "email" in payload:
@@ -149,7 +201,7 @@ async def otp_verification(
                 "token": new_token,
             },
         )
-    elif payload["token_type"] == "forgot_password" and request.password:
+    elif payload["token_type"] == "forgot_password":
 
         password_encoded = password_encoder(request.password)
         user_doc.password = password_encoded

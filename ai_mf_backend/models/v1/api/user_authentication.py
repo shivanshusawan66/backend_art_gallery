@@ -42,9 +42,8 @@ class ForgotPasswordResponse(Response):
 
 
 class ChangePasswordRequest(BaseModel):
-    token: str
     old_password: str
-    password: str
+    new_password: str
 
 
 class ChangePasswordResponse(Response):

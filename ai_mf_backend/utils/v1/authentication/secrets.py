@@ -1,17 +1,25 @@
 from typing import Annotated, Dict, Union
-from datetime import datetime, timedelta
+
 import jwt
+
 import bcrypt
-from fastapi import HTTPException, Header
+
+from asgiref.sync import sync_to_async
+
+from fastapi import Header
+
 from django.utils import timezone
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
+from phonenumber_field.validators import validate_international_phonenumber
+
+
 from ai_mf_backend.config.v1.authentication_config import authentication_config
 from ai_mf_backend.utils.v1.errors import (
-    PasswordNotValidException,
     MalformedJWTRequestException,
 )
-from ai_mf_backend.models.v1.database.user import UserContactInfo, OTPlogs
-from ai_mf_backend.models.v1.database.user_authentication import UserLogs
-from asgiref.sync import sync_to_async
+from ai_mf_backend.models.v1.database.user import UserContactInfo
 
 
 def jwt_token_checker(
@@ -72,92 +80,66 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-async def login_checker(token: str):
+async def login_checker(Authorization: Annotated[str | None, Header()]):
 
-    if token:
-        decoded_payload = jwt_token_checker(jwt_token=token, encode=False)
-        if decoded_payload["token_type"] != "login":
-            raise HTTPException(
-                status_code=401,
-                detail="Token is not valid for this request.",
-            )
-        if "email" in decoded_payload:
-            user = await sync_to_async(
-                UserContactInfo.objects.filter(email=decoded_payload["email"]).first
-            )()
-            user_log = await sync_to_async(
-                UserLogs.objects.filter(user=user).order_by("-last_access").first
-            )()
-            if user:
-                expiry = float(decoded_payload["expiry"])
-                current_time = float(timezone.now().timestamp())
-                if current_time < expiry:
-                    return token
-                else:
-                    if user_log.action == "login":
-                        new_payload = {
-                            "email": user.email,
-                            "token_type": "login",
-                            "creation_time": timezone.now().timestamp(),
-                            "expiry": (
-                                timezone.now() + timedelta(minutes=30)
-                            ).timestamp(),  # Extend expiry
-                        }
-                        new_token = jwt_token_checker(payload=new_payload, encode=True)
-
-                        return new_token  # Return the new token
-                    else:
-
-                        raise HTTPException(
-                            status_code=401,
-                            detail="Token is expired, and user is not logged in.",
-                        )
-            else:
-                raise HTTPException(
-                    status_code=401,
-                    detail="This user does not exist.",
-                )
-
-        elif "mobile_no" in decoded_payload:
-            user = await sync_to_async(
-                UserContactInfo.objects.filter(
-                    mobile_number=decoded_payload["mobile_no"]
-                ).first
-            )()
-            user_log = await sync_to_async(
-                UserLogs.objects.filter(user=user).order_by("-last_access").first
-            )()
-            if user:
-                expiry = float(decoded_payload["expiry"])
-                current_time = float(timezone.now().timestamp())
-                if current_time < expiry:
-                    return token
-                else:
-                    if user_log.action == "login":
-                        new_payload = {
-                            "email": user.mobile_number,
-                            "token_type": "login",
-                            "creation_time": timezone.now().timestamp(),
-                            "expiry": (
-                                timezone.now() + timedelta(minutes=30)
-                            ).timestamp(),  # Extend expiry
-                        }
-                        new_token = jwt_token_checker(payload=new_payload, encode=True)
-
-                        return new_token  # Return the new token
-                    else:
-
-                        raise HTTPException(
-                            status_code=401,
-                            detail="Token is expired, and user is not logged in.",
-                        )
-            else:
-                raise HTTPException(
-                    status_code=401,
-                    detail="This user does not exist.",
-                )
-    else:
-        raise HTTPException(
-            status_code=401,
-            detail="Token is not provided.",
+    if not Authorization:
+        raise MalformedJWTRequestException(
+            "A Valid token is required to work with this request"
         )
+
+    decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+
+    if decoded_payload["token_type"] != "login":
+        raise MalformedJWTRequestException(
+            "Login token type is required to work with this request"
+        )
+
+    email = decoded_payload.get("email")
+    mobile_no = decoded_payload.get("mobile_no")
+
+    if not any([email, mobile_no]):
+        raise MalformedJWTRequestException(
+            "A Valid token is required to work with this request"
+        )
+
+    if all([email, mobile_no]):
+        raise MalformedJWTRequestException(
+            "A Valid token is required to work with this request"
+        )
+
+    if email:
+        try:
+            _ = validate_email(value=email)
+        except ValidationError as error_response:
+            raise MalformedJWTRequestException(
+                f"A Valid token is required to work with this request -> {error_response}"
+            )
+
+    elif mobile_no:
+        # We expect the number to be of the format +91 8389273829
+        try:
+            _ = validate_international_phonenumber(value=mobile_no)
+        except ValidationError as error_response:
+            raise MalformedJWTRequestException(
+                f"A Valid token is required to work with this request -> {error_response}"
+            )
+
+    if email:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(email__iexact=email).first
+        )()
+
+    elif mobile_no:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
+        )()
+
+    if not user_doc:
+        raise MalformedJWTRequestException("This user does not exist.")
+
+    expiry = float(decoded_payload["expiry"])
+    current_time = float(timezone.now().timestamp())
+    if current_time < expiry:
+        return Authorization
+    else:
+        raise MalformedJWTRequestException("The provided Auth token has expired")
