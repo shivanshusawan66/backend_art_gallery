@@ -8,7 +8,7 @@ from ai_mf_backend.models.v1.api import Response
 class UserAuthenticationPasswordRequest(BaseModel):
     email: Optional[str] = ""
     mobile_no: Optional[str] = ""
-    password: str
+    password: Optional[str] = ""
 
     remember_me: Optional[bool] = False
 
@@ -42,9 +42,8 @@ class ForgotPasswordResponse(Response):
 
 
 class ChangePasswordRequest(BaseModel):
-    token: str
     old_password: str
-    password: str
+    new_password: str
 
 
 class ChangePasswordResponse(Response):
@@ -54,6 +53,8 @@ class ChangePasswordResponse(Response):
 class OTPVerificationRequest(BaseModel):
     otp: int
     password: Optional[str] = ""
+
+    remember_me: Optional[bool] = False
 
 
 class OTPVerificationResponse(Response):

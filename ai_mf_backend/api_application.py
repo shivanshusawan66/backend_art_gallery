@@ -5,9 +5,11 @@ import string
 import logging
 
 from fastapi import FastAPI, Request
-from fastapi.logger import logger as fastapi_logger
 from fastapi.responses import JSONResponse
+from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
+
+from slowapi.errors import RateLimitExceeded
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -25,6 +27,7 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
 )
+from ai_mf_backend.models.v1.api.exception_handler import ExceptionHandlerResponse
 from ai_mf_backend.models.v1.database.user import (
     Gender,
     MaritalStatus,
@@ -67,12 +70,35 @@ fastapi_logger.handlers = logger.handlers
 application = FastAPI(title=api_config.PROJECT_NAME)
 
 
+@application.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
+    api_response = ExceptionHandlerResponse(
+        status=False,
+        message="Rate limit exceeded. Try again later.",
+        data={},
+        status_code=429,
+    )
+
+    return JSONResponse(
+        content=api_response.model_dump(), status_code=api_response.status_code
+    )
+
+
 @application.exception_handler(InternalServerException)
 async def internal_server_exception_handler(
     _request: Request, exception: InternalServerException
 ):
     message = exception.message or "Internal Server Error"
-    return JSONResponse(status_code=500, content={"message": message})
+    api_response = ExceptionHandlerResponse(
+        status=False,
+        status_code=500,
+        message=f"Failed to initialize the task, Error: {message}",
+        data={},
+    )
+
+    return JSONResponse(
+        content=api_response.model_dump(), status_code=api_response.status_code
+    )
 
 
 @application.middleware("http")

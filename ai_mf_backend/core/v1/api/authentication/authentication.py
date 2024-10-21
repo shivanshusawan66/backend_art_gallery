@@ -1,14 +1,18 @@
 import logging
 from datetime import timedelta
 
+from asgiref.sync import sync_to_async
+
 from fastapi import APIRouter
 
+from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from phonenumber_field.validators import validate_international_phonenumber
 
+from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from ai_mf_backend.utils.v1.authentication.otp import send_otp
@@ -17,12 +21,11 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     password_checker,
     password_encoder,
 )
+from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
     OTPlogs,
 )
-from asgiref.sync import sync_to_async
-from django.utils import timezone
 
 from ai_mf_backend.models.v1.api.user_authentication import (
     UserAuthenticationPasswordRequest,
@@ -35,6 +38,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/password_user_auth",
     status_code=200,
@@ -59,26 +63,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             data={"credentials": email if email else mobile_no},
             status_code=422,
         )
-
-    if not password:
-        return UserAuthenticationPasswordResponse(
-            status=False,
-            message="Password is required to proceed with this request",
-            data={"credentials": email if email else mobile_no},
-            status_code=422,
-        )
-
-    try:
-        # Password validators are defined in Django Settings
-        _ = validate_password(password=password)
-    except ValidationError as error_response:
-        return UserAuthenticationPasswordResponse(
-            status=False,
-            message=f"Bad Password provided: {error_response}",
-            data={"credentials": email if email else mobile_no},
-            status_code=422,
-        )
-
+    
     if email:
         try:
             _ = validate_email(value=email)
@@ -101,6 +86,25 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 data={"credentials": email if email else mobile_no},
                 status_code=422,
             )
+
+    if not password:
+        return UserAuthenticationPasswordResponse(
+            status=False,
+            message="Password is required to proceed with this request",
+            data={"credentials": email if email else mobile_no},
+            status_code=422,
+        )
+
+    try:
+        # Password validators are defined in Django Settings
+        _ = validate_password(password=password)
+    except ValidationError as error_response:
+        return UserAuthenticationPasswordResponse(
+            status=False,
+            message=f"Bad Password provided: {error_response}",
+            data={"credentials": email if email else mobile_no},
+            status_code=422,
+        )
 
     if email:
         user_doc = await sync_to_async(
@@ -174,9 +178,13 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status_code=403,
         )
     else:
+        print(mobile_no)
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
-            email=email, mobile_number=mobile_no, password=password, is_verified=False
+            email=email,
+            mobile_number=mobile_no,
+            password=password,
+            is_verified=False,
         )
         await sync_to_async(user_doc.save)()
 
@@ -218,13 +226,16 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status=True,
             message=f"welcome you are the first time time user",
             data={
-                    "credentials": email if email else mobile_no,
-                    "token": jwt_token,
+                "credentials": email if email else mobile_no,
+                "token": jwt_token,
+                'otp':otp,
             },
             status_code=200,
+            
         )
 
 
+@limiter.limit("5/minute")
 @router.post(
     "/otp_user_auth",
     status_code=200,
@@ -282,6 +293,17 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         )()
 
     if user_doc:
+
+        user_id = user_doc.user_id
+        can_request, error_message = throttle_otp_requests(user_id)
+        if not can_request:
+            return UserAuthenticationOTPResponse(
+                status=False,
+                message=error_message,
+                data={"credentials": email or mobile_no},
+                status_code=429,
+            )
+
         # Login Route
         user_otp_document = await sync_to_async(
             OTPlogs.objects.filter(user=user_doc.user_id).first
@@ -290,6 +312,24 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             user_otp_document = OTPlogs(
                 user=user_doc,
             )
+        elif user_otp_document:
+            # validation to check and stop user from requesting too many OTPs
+            updated_date = user_otp_document.update_date
+            # Get the current time
+            current_time = timezone.now()
+
+            # Calculate the time difference
+            time_diff = current_time - updated_date
+
+            # Check if the update_date is within 15 seconds
+            if time_diff <= timedelta(seconds=15):
+                return UserAuthenticationOTPResponse(
+                    status=False,
+                    message=f"Please wait for {time_diff} seconds before sending another request.",
+                    data={"credentials": email if email else mobile_no},
+                    status_code=429,
+                )
+
         otp = send_otp()
 
         user_otp_document.otp = otp
@@ -321,6 +361,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
                     ),
                     "token": jwt_token,
                 },
+                # TODO: this needs to be removed once we implement sending OTP logic
                 "otp": otp,
             },
             status_code=200,

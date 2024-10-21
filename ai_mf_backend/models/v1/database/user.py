@@ -69,6 +69,14 @@ class UserContactInfo(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.mobile_number == "":
+            self.mobile_number = None
+        if self.email == "":
+            self.email = None
+        super(UserContactInfo, self).save(*args, **kwargs)
+
+
     class Meta:
         db_table = "user_contact_info"
         indexes = [
