@@ -53,7 +53,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -61,7 +61,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
     
     if email:
@@ -167,7 +167,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 status=False,
                 message=f"Invalid Credentials. Please check your credentials",
                 data={"credentials": email if email else mobile_no},
-                status_code=403,
+                status_code=401,
             )
 
     elif user_doc and not user_doc.password:
@@ -175,7 +175,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status=False,
             message=f"User password was not registered, please try login using OTP.",
             data={"credentials": email if email else mobile_no},
-            status_code=403,
+            status_code=400,
         )
     else:
         print(mobile_no)
@@ -230,7 +230,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 "token": jwt_token,
                 'otp':otp,
             },
-            status_code=200,
+            status_code=201,
             
         )
 
@@ -249,7 +249,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -257,7 +257,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if email:

@@ -29,6 +29,7 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     password_encoder,
 )
+from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ async def otp_verification(
             status=False,
             message="Invalid JWT token is provided, no email or mobile number found.",
             data={},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -66,7 +67,7 @@ async def otp_verification(
             status=False,
             message="Invalid JWT token is provided, email and mobile number both found.",
             data={},
-            status_code=422,
+            status_code=400,
         )
 
     if email:
@@ -139,7 +140,7 @@ async def otp_verification(
             status=False,
             message="This user does not exist.",
             data={"credentials": payload.get("email") or payload.get("mobile_no")},
-            status_code=403,
+            status_code=404,
         )
 
     user_otp_doc = await sync_to_async(OTPlogs.objects.filter(user=user_doc).first)()
@@ -149,7 +150,7 @@ async def otp_verification(
             status=False,
             message="No OTP found for this user.",
             data={"credentials": payload.get("email") or payload.get("mobile_no")},
-            status_code=403,
+            status_code=404,
         )
 
     if timezone.now().timestamp() >= user_otp_doc.otp_valid.timestamp():
@@ -237,7 +238,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -245,7 +246,7 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if email:
@@ -270,6 +271,8 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
                 data={"credentials": email if email else mobile_no},
                 status_code=422,
             )
+    
+
 
     if email:
         user_doc = await sync_to_async(
@@ -286,18 +289,43 @@ async def resend_otp(request: ResendOTPRequest) -> ResendOTPResponse:
             status=False,
             message="This user does not exist.",
             data={"credentials": request.email or request.mobile_no},
-            status_code=403,
+            status_code=404,
         )
 
+    user_id = user_doc.user_id
+    can_request, error_message = throttle_otp_requests(user_id)
+    if not can_request:
+        return ResendOTPResponse(
+            status=False,
+            message=error_message,
+            data={"credentials": email or mobile_no},
+            status_code=429,
+        )
+
+    
     user_otp_doc = await sync_to_async(OTPlogs.objects.filter(user=user_doc).first)()
 
     if not user_otp_doc:
-        return OTPVerificationResponse(
-            status=False,
-            message="No OTP found for this user.",
-            data={"credentials": request.email or request.mobile_no},
-            status_code=403,
-        )
+            user_otp_doc = OTPlogs(
+                user=user_doc,
+            )
+    elif user_otp_doc:
+        # validation to check and stop user from requesting too many OTPs
+        updated_date = user_otp_doc.update_date
+        # Get the current time
+        current_time = timezone.now()
+
+        # Calculate the time difference
+        time_diff = current_time - updated_date
+
+        # Check if the update_date is within 15 seconds
+        if time_diff <= timedelta(seconds=15):
+            return ResendOTPResponse(
+                status=False,
+                message=f"Please wait for {time_diff} seconds before sending another request.",
+                data={"credentials": email if email else mobile_no},
+                status_code=429,
+            )
 
     otp = send_otp()
     user_otp_doc.otp = otp

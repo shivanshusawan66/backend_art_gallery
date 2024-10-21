@@ -47,7 +47,7 @@ async def forgot_password(request: ForgotPasswordRequest):
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -55,7 +55,7 @@ async def forgot_password(request: ForgotPasswordRequest):
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
             data={"credentials": email if email else mobile_no},
-            status_code=422,
+            status_code=400,
         )
 
     if email:
@@ -95,7 +95,7 @@ async def forgot_password(request: ForgotPasswordRequest):
             status=False,
             message="This user does not exist.",
             data={"credentials": email or mobile_no},
-            status_code=403,
+            status_code=404,
         )
 
     user_id = user_doc.user_id
@@ -114,7 +114,7 @@ async def forgot_password(request: ForgotPasswordRequest):
             status=False,
             message="The password for this user does not exist. Please login using OTP",
             data={"credentials": email or mobile_no},
-            status_code=403,
+            status_code=401,
         )
 
     user_otp_document = await sync_to_async(
@@ -122,12 +122,27 @@ async def forgot_password(request: ForgotPasswordRequest):
     )()
 
     if not user_otp_document:
-        return ForgotPasswordResponse(
-            status=False,
-            message="Someone probably tampered with the DB, no previous OTP logs available. Please login using OTP first.",
-            data={"credentials": email or mobile_no},
-            status_code=403,
-        )
+            user_otp_document = OTPlogs(
+                user=user_doc,
+            )
+    elif user_otp_document:
+        # validation to check and stop user from requesting too many OTPs
+        updated_date = user_otp_document.update_date
+        # Get the current time
+        current_time = timezone.now()
+
+        # Calculate the time difference
+        time_diff = current_time - updated_date
+
+        # Check if the update_date is within 15 seconds
+        if time_diff <= timedelta(seconds=15):
+            return ForgotPasswordResponse(
+                status=False,
+                message=f"Please wait for {time_diff} seconds before sending another request.",
+                data={"credentials": email if email else mobile_no},
+                status_code=429,
+            )
+
 
     otp = send_otp()
     current_time = timezone.now()
@@ -182,7 +197,7 @@ async def change_password(
             status=False,
             message="This request cannot proceed without a new password being provided.",
             data={},
-            status_code=403,
+            status_code=422,
         )
 
     try:
@@ -207,7 +222,7 @@ async def change_password(
             status=False,
             message="Invalid JWT token is provided, no email or mobile number found.",
             data={},
-            status_code=422,
+            status_code=400,
         )
 
     if all([email, mobile_no]):
@@ -215,7 +230,7 @@ async def change_password(
             status=False,
             message="Invalid JWT token is provided, email and mobile number both found.",
             data={},
-            status_code=422,
+            status_code=400,
         )
 
     if email:
@@ -256,7 +271,7 @@ async def change_password(
             status=False,
             message=f"This User does not exist.",
             data={"credentials": email if email else mobile_no},
-            status_code=403,
+            status_code=404,
         )
 
     if password_checker(old_password, user_doc.password):
@@ -272,5 +287,5 @@ async def change_password(
             status=False,
             message="Old Password didn't match. Please provide the correct Old Password.",
             data={},
-            status_code=403,
+            status_code=401,
         )
