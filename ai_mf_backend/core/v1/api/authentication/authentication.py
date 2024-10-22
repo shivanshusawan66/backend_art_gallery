@@ -364,7 +364,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
                 # TODO: this needs to be removed once we implement sending OTP logic
                 "otp": otp,
             },
-            status_code=200,
+            status_code=202,
         )
         return response
     else:
@@ -407,6 +407,6 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
                 },
                 "otp": otp,
             },
-            status_code=200,
+            status_code=202,
         )
         return response

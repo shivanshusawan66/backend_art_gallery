@@ -201,6 +201,7 @@ async def otp_verification(
                 ),
                 "token": new_token,
             },
+            status_code=201
         )
     elif payload["token_type"] == "forgot_password":
 
