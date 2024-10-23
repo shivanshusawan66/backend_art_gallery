@@ -86,7 +86,7 @@ class UserContactInfo(models.Model):
         verbose_name_plural = "User Contact Info"
 
     def __str__(self):
-        return self.email
+        return self.email or self.mobile_no or "Unknown User"
 
 
 class UserPersonalDetails(models.Model):
