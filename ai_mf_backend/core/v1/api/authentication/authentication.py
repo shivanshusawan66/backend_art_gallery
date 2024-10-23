@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 
-from fastapi import APIRouter
+from fastapi import APIRouter,Response
 
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
@@ -43,12 +43,13 @@ router = APIRouter()
     "/password_user_auth",
     status_code=200,
 )
-async def user_authentication_password(request: UserAuthenticationPasswordRequest):
+async def user_authentication_password(request: UserAuthenticationPasswordRequest, response: Response):
     email = request.email
     mobile_no = request.mobile_no
     password = request.password
 
     if not any([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
@@ -57,6 +58,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         )
 
     if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
@@ -68,6 +70,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         try:
             _ = validate_email(value=email)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=False,
                 message=f"Bad Email provided: {error_response}",
@@ -76,10 +79,10 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             )
 
     elif mobile_no:
-        # We expect the number to be of the format +91 8389273829
         try:
             _ = validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=False,
                 message=f"Bad phone number provided: {error_response}",
@@ -88,6 +91,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             )
 
     if not password:
+        response.status_code = 422  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
             message="Password is required to proceed with this request",
@@ -96,9 +100,9 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         )
 
     try:
-        # Password validators are defined in Django Settings
         _ = validate_password(password=password)
     except ValidationError as error_response:
+        response.status_code = 422  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
             message=f"Bad Password provided: {error_response}",
@@ -118,6 +122,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
 
     if user_doc and user_doc.password:
         if not user_doc.is_verified:
+            response.status_code = 403  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=False,
                 message=f"This User is not verified yet.",
@@ -125,7 +130,6 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 status_code=403,
             )
         if password_checker(password, user_doc.password):
-            # starting login_route
             new_payload = {
                 "token_type": "login",
                 "creation_time": timezone.now().timestamp(),
@@ -153,6 +157,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
 
             await sync_to_async(user_logs.save)()
 
+            response.status_code = 200  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=True,
                 message=f"Successfully logged in to the Dashboard",
@@ -163,6 +168,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 status_code=200,
             )
         else:
+            response.status_code = 401  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=False,
                 message=f"Invalid Credentials. Please check your credentials",
@@ -171,6 +177,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             )
 
     elif user_doc and not user_doc.password:
+        response.status_code = 400  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
             message=f"User password was not registered, please try login using OTP.",
@@ -178,7 +185,6 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             status_code=400,
         )
     else:
-        print(mobile_no)
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
             email=email,
@@ -222,29 +228,34 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         else:
             signup_payload["mobile_number"] = mobile_no
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
+
+        response.status_code = 201  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=True,
-            message=f"welcome you are the first time time user",
+            message=f"Welcome, you are a first-time user",
             data={
                 "credentials": email if email else mobile_no,
                 "token": jwt_token,
-                'otp':otp,
+                'otp': otp,
             },
             status_code=201,
-            
         )
 
+
+
+from fastapi import Response
 
 @limiter.limit("5/minute")
 @router.post(
     "/otp_user_auth",
     status_code=200,
 )
-async def user_authentication_otp(request: UserAuthenticationOTPRequest):
+async def user_authentication_otp(request: UserAuthenticationOTPRequest, response: Response):
     email = request.email
     mobile_no = request.mobile_no
 
     if not any([email, mobile_no]):
+        response.status_code = 400  # Set status code in the header
         return UserAuthenticationOTPResponse(
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
@@ -253,6 +264,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         )
 
     if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the header
         return UserAuthenticationOTPResponse(
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
@@ -264,6 +276,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         try:
             _ = validate_email(value=email)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the header
             return UserAuthenticationOTPResponse(
                 status=False,
                 message=f"Bad Email provided: {error_response}",
@@ -272,10 +285,10 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             )
 
     elif mobile_no:
-        # We expect the number to be of the format +91 8389273829
         try:
             _ = validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the header
             return UserAuthenticationOTPResponse(
                 status=False,
                 message=f"Bad phone number provided: {error_response}",
@@ -293,10 +306,10 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         )()
 
     if user_doc:
-
         user_id = user_doc.user_id
         can_request, error_message = throttle_otp_requests(user_id)
         if not can_request:
+            response.status_code = 429  # Set status code in the header
             return UserAuthenticationOTPResponse(
                 status=False,
                 message=error_message,
@@ -313,16 +326,12 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
                 user=user_doc,
             )
         elif user_otp_document:
-            # validation to check and stop user from requesting too many OTPs
             updated_date = user_otp_document.update_date
-            # Get the current time
             current_time = timezone.now()
-
-            # Calculate the time difference
             time_diff = current_time - updated_date
 
-            # Check if the update_date is within 15 seconds
             if time_diff <= timedelta(seconds=15):
+                response.status_code = 429  # Set status code in the header
                 return UserAuthenticationOTPResponse(
                     status=False,
                     message=f"Please wait for {time_diff} seconds before sending another request.",
@@ -339,11 +348,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         login_payload = {
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (
-                (
-                    timezone.now() + timedelta(minutes=15)
-                ).timestamp()  # Fixed to 15 minutes
-            ),
+            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
         }
         if user_doc.email:
             login_payload["email"] = user_doc.email
@@ -351,22 +356,19 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             login_payload["mobile_number"] = user_doc.mobile_number
         jwt_token = jwt_token_checker(payload=login_payload, encode=True)
 
-        response = UserAuthenticationOTPResponse(
+        response.status_code = 202  # Set status code in the header
+        return UserAuthenticationOTPResponse(
             status=True,
-            message=f"OTP successfully send to user ",
+            message=f"OTP successfully sent to user ",
             data={
                 "data": {
-                    "credentials": (
-                        user_doc.email if email else user_doc.mobile_number
-                    ),
+                    "credentials": user_doc.email if email else user_doc.mobile_number,
                     "token": jwt_token,
                 },
-                # TODO: this needs to be removed once we implement sending OTP logic
                 "otp": otp,
             },
             status_code=202,
         )
-        return response
     else:
         user_doc = UserContactInfo(
             email=email, mobile_number=mobile_no, is_verified=False
@@ -383,11 +385,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
         signup_payload = {
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (
-                (
-                    timezone.now() + timedelta(minutes=15)
-                ).timestamp()  # Fixed to 15 minutes
-            ),
+            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
         }
         if user_doc.email:
             signup_payload["email"] = user_doc.email
@@ -395,18 +393,17 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest):
             signup_payload["mobile_number"] = user_doc.mobile_number
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
-        response = UserAuthenticationOTPResponse(
+        response.status_code = 202  # Set status code in the header
+        return UserAuthenticationOTPResponse(
             status=True,
-            message=f"OTP successfully send to newly created user ",
+            message=f"OTP successfully sent to newly created user ",
             data={
                 "data": {
-                    "credentials": (
-                        user_doc.email if email else user_doc.mobile_number
-                    ),
+                    "credentials": user_doc.email if email else user_doc.mobile_number,
                     "token": jwt_token,
                 },
                 "otp": otp,
             },
             status_code=202,
         )
-        return response
+
