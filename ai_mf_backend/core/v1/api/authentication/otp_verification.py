@@ -328,7 +328,8 @@ async def resend_otp(request: ResendOTPRequest, response: Response) -> ResendOTP
     user_otp_doc.otp = otp
     user_otp_doc.otp_valid = timezone.now() + timedelta(minutes=15)
     await sync_to_async(user_otp_doc.save)()
-
+    
+    response.status_code=202
     return ResendOTPResponse(
         status=True,
         message=f"OTP has been sent to {request.email}. Please check.",
