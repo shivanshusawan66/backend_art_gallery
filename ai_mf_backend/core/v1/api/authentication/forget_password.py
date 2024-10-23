@@ -219,6 +219,16 @@ async def change_password(
 
     email = decoded_payload.get("email")
     mobile_no = decoded_payload.get("mobile_no")
+    token_expiry = decoded_payload.get("expiry")
+
+    if token_expiry and timezone.now().timestamp() >= token_expiry:
+        response.status_code = 401  # Set response status code for expired token
+        return ChangePasswordResponse(
+            status=False,
+            message="The JWT token has expired. Please request a new token.",
+            data={},
+            status_code = 401,
+        )
 
     if not any([email, mobile_no]):
         response.status_code = 422  # Set status code in the response
