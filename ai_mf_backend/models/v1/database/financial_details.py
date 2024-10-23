@@ -1,8 +1,21 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
+from ai_mf_backend.models.v1.database import SoftDeleteModel
 
+class Occupation(SoftDeleteModel):
+    occupation = models.CharField(max_length=100, unique=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
 
-class AnnualIncome(models.Model):
+    class Meta:
+        db_table = "occupation"
+        verbose_name = "Occupation"
+        verbose_name_plural = "Occupation"
+
+    def __str__(self):
+        return self.occupation
+
+class AnnualIncome(SoftDeleteModel):
     income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -16,7 +29,7 @@ class AnnualIncome(models.Model):
         return self.income_category
 
 
-class MonthlySavingCapacity(models.Model):
+class MonthlySavingCapacity(SoftDeleteModel):
     saving_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -30,7 +43,7 @@ class MonthlySavingCapacity(models.Model):
         return self.saving_category
 
 
-class InvestmentAmountPerYear(models.Model):
+class InvestmentAmountPerYear(SoftDeleteModel):
     investment_amount_per_year = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -44,7 +57,7 @@ class InvestmentAmountPerYear(models.Model):
         return self.investment_amount_per_year
 
 
-class UserFinancialDetails(models.Model):
+class UserFinancialDetails(SoftDeleteModel):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     occupation = models.ForeignKey(
         Occupation, on_delete=models.PROTECT, null=True, blank=True

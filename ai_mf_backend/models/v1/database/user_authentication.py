@@ -1,8 +1,9 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo
+from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
-class UserLogs(models.Model):
+class UserLogs(SoftDeleteModel):
     user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
     ip_details = models.JSONField()
     device_type = models.CharField(max_length=100)
