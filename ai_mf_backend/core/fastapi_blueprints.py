@@ -24,7 +24,9 @@ from ai_mf_backend.core.v1.api.questionaire.questionaire import (
 from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
 )
-
+from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data import (
+    router as display_mf_data_router_v1
+)
 connect_router.include_router(authentication_router_v1)
 connect_router.include_router(forget_password_router_v1)
 connect_router.include_router(otp_verification_router_v1)
@@ -33,3 +35,4 @@ connect_router.include_router(user_personal_financial_detail_router_v1)
 connect_router.include_router(yf_data_pull_router_v1)
 connect_router.include_router(questionaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
+connect_router.include_router(display_mf_data_router_v1)

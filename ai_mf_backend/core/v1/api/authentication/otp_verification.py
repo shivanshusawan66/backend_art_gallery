@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 
 from phonenumber_field.validators import validate_international_phonenumber
 
-from fastapi import APIRouter, Header,Response
+from fastapi import APIRouter, Header, Response
 
 from asgiref.sync import sync_to_async
 
@@ -34,6 +34,7 @@ from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_req
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
 
 @limiter.limit("5/minute")
 @router.post(
@@ -172,7 +173,8 @@ async def otp_verification(
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
             "expiry": (
-                (timezone.now() + timedelta(hours=5)).timestamp() if not remember_me
+                (timezone.now() + timedelta(hours=5)).timestamp()
+                if not remember_me
                 else (timezone.now() + timedelta(days=365)).timestamp()
             ),
         }
@@ -188,7 +190,10 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=True,
             message="The user is verified successfully",
-            data={"credentials": user_doc.email or user_doc.mobile_number, "token": new_token},
+            data={
+                "credentials": user_doc.email or user_doc.mobile_number,
+                "token": new_token,
+            },
         )
 
     elif payload["token_type"] == "forgot_password":
@@ -197,7 +202,10 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=True,
             message="Password is changed successfully.",
-            data={"credentials": user_doc.email or user_doc.mobile_number, "token": None},
+            data={
+                "credentials": user_doc.email or user_doc.mobile_number,
+                "token": None,
+            },
         )
 
     response.status_code = 400  # Set response status code
@@ -208,10 +216,11 @@ async def otp_verification(
     )
 
 
-
 @limiter.limit("5/minute")
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
-async def resend_otp(request: ResendOTPRequest, response: Response) -> ResendOTPResponse:
+async def resend_otp(
+    request: ResendOTPRequest, response: Response
+) -> ResendOTPResponse:
 
     email = request.email
     mobile_no = request.mobile_no

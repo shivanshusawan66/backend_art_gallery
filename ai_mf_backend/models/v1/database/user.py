@@ -76,7 +76,6 @@ class UserContactInfo(models.Model):
             self.email = None
         super(UserContactInfo, self).save(*args, **kwargs)
 
-
     class Meta:
         db_table = "user_contact_info"
         indexes = [
