@@ -120,4 +120,4 @@ class OTPlogs(models.Model):
         verbose_name_plural = "OTP Logs"
 
     def __str__(self):
-        return f"OTP for {self.user.name}"
+        return f"OTP for {self.user}"

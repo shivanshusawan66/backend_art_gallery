@@ -5,7 +5,7 @@ import sys
 
 import sys
 
-sys.path.append("D:/ai-mf-platform")
+sys.path.append("C:/Users/Vanshika/OneDrive/Documents/ai-mf-platform")
 
 
 def main():
