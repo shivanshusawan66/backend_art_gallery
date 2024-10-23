@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter,Response
 
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
@@ -43,9 +43,7 @@ router = APIRouter()
     "/password_user_auth",
     status_code=200,
 )
-async def user_authentication_password(
-    request: UserAuthenticationPasswordRequest, response: Response
-):
+async def user_authentication_password(request: UserAuthenticationPasswordRequest, response: Response):
     email = request.email
     mobile_no = request.mobile_no
     password = request.password
@@ -67,7 +65,7 @@ async def user_authentication_password(
             data={"credentials": email if email else mobile_no},
             status_code=400,
         )
-
+    
     if email:
         try:
             _ = validate_email(value=email)
@@ -219,9 +217,7 @@ async def user_authentication_password(
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
             "expiry": (
-                (timezone.now() + timedelta(hours=5)).timestamp()  # Fixed to 5 hours
-                if not request.remember_me
-                else (timezone.now() + timedelta(days=365)).timestamp()
+                (timezone.now() + timedelta(minutes=15)).timestamp()  
             ),
         }
 
@@ -238,23 +234,21 @@ async def user_authentication_password(
             data={
                 "credentials": email if email else mobile_no,
                 "token": jwt_token,
-                "otp": otp,
+                'otp': otp,
             },
             status_code=201,
         )
 
 
-from fastapi import Response
 
+from fastapi import Response
 
 @limiter.limit("5/minute")
 @router.post(
     "/otp_user_auth",
     status_code=200,
 )
-async def user_authentication_otp(
-    request: UserAuthenticationOTPRequest, response: Response
-):
+async def user_authentication_otp(request: UserAuthenticationOTPRequest, response: Response):
     email = request.email
     mobile_no = request.mobile_no
 
@@ -410,3 +404,4 @@ async def user_authentication_otp(
             },
             status_code=202,
         )
+

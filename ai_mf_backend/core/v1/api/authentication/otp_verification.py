@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 
 from phonenumber_field.validators import validate_international_phonenumber
 
-from fastapi import APIRouter, Header, Response
+from fastapi import APIRouter, Header,Response
 
 from asgiref.sync import sync_to_async
 
@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
 @limiter.limit("5/minute")
 @router.post(
     "/otp_verification", response_model=OTPVerificationResponse, status_code=200
@@ -53,7 +52,8 @@ async def otp_verification(
     payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
     email = payload.get("email")
-    mobile_no = payload.get("mobile_no")
+    mobile_no = payload.get("mobile_number")
+    token_expiry = payload.get("expiry")
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set response status code
@@ -92,13 +92,22 @@ async def otp_verification(
                 message=f"Bad phone number provided: {error_response}",
                 data={"credentials": email if email else mobile_no},
             )
+    
+    if token_expiry and timezone.now().timestamp() >= token_expiry:
+        response.status_code = 401  # Set response status code for expired token
+        return OTPVerificationResponse(
+            status=False,
+            message="The JWT token has expired. Please request a new token.",
+            data={},
+        )
+
 
     if not isinstance(otp_sent, int) or not (100000 <= otp_sent <= 999999):
         response.status_code = 422  # Set response status code
         return OTPVerificationResponse(
             status=False,
             message="OTP format is not valid.",
-            data={"credentials": payload.get("email") or payload.get("mobile_no")},
+            data={"credentials": payload.get("email") or payload.get("mobile_number")},
         )
 
     if payload["token_type"] == "forgot_password" and not request.password:
@@ -106,7 +115,7 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=False,
             message="Password is required for password reset.",
-            data={"credentials": payload.get("email") or payload.get("mobile_no")},
+            data={"credentials": payload.get("email") or payload.get("mobile_number")},
         )
 
     if request.password:
@@ -125,9 +134,9 @@ async def otp_verification(
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(email=payload["email"]).first
         )()
-    elif "mobile_no" in payload:
+    elif "mobile_number" in payload:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(mobile_number=payload["mobile_no"]).first
+            UserContactInfo.objects.filter(mobile_number=payload["mobile_number"]).first
         )()
 
     if not user_doc:
@@ -135,7 +144,7 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=False,
             message="This user does not exist.",
-            data={"credentials": payload.get("email") or payload.get("mobile_no")},
+            data={"credentials": payload.get("email") or payload.get("mobile_number")},
         )
 
     user_otp_doc = await sync_to_async(OTPlogs.objects.filter(user=user_doc).first)()
@@ -145,7 +154,7 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=False,
             message="No OTP found for this user.",
-            data={"credentials": payload.get("email") or payload.get("mobile_no")},
+            data={"credentials": payload.get("email") or payload.get("mobile_number")},
         )
 
     if timezone.now().timestamp() >= user_otp_doc.otp_valid.timestamp():
@@ -173,16 +182,15 @@ async def otp_verification(
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
             "expiry": (
-                (timezone.now() + timedelta(hours=5)).timestamp()
-                if not remember_me
+                (timezone.now() + timedelta(hours=5)).timestamp() if not remember_me
                 else (timezone.now() + timedelta(days=365)).timestamp()
             ),
         }
 
         if "email" in payload:
             new_payload["email"] = payload["email"]
-        elif "mobile_no" in payload:
-            new_payload["mobile_no"] = payload["mobile_no"]
+        elif "mobile_number" in payload:
+            new_payload["mobile_number"] = payload["mobile_number"]
 
         new_token = jwt_token_checker(payload=new_payload, encode=True)
 
@@ -190,10 +198,7 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=True,
             message="The user is verified successfully",
-            data={
-                "credentials": user_doc.email or user_doc.mobile_number,
-                "token": new_token,
-            },
+            data={"credentials": user_doc.email or user_doc.mobile_number, "token": new_token},
         )
 
     elif payload["token_type"] == "forgot_password":
@@ -202,10 +207,7 @@ async def otp_verification(
         return OTPVerificationResponse(
             status=True,
             message="Password is changed successfully.",
-            data={
-                "credentials": user_doc.email or user_doc.mobile_number,
-                "token": None,
-            },
+            data={"credentials": user_doc.email or user_doc.mobile_number, "token": None},
         )
 
     response.status_code = 400  # Set response status code
@@ -216,11 +218,10 @@ async def otp_verification(
     )
 
 
+
 @limiter.limit("5/minute")
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
-async def resend_otp(
-    request: ResendOTPRequest, response: Response
-) -> ResendOTPResponse:
+async def resend_otp(request: ResendOTPRequest, response: Response) -> ResendOTPResponse:
 
     email = request.email
     mobile_no = request.mobile_no
