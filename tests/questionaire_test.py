@@ -139,7 +139,8 @@ def test_get_section_wise_questions_section_not_found(mock_sections, client):
     
     # Assert
     assert response.status_code == 404
-    assert response.json() == {"detail": "Section not found."}
+    assert response.json() == {"status_code": 404,
+                    "detail": "Section not found."}
 
 @patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
@@ -227,4 +228,5 @@ def test_get_section_wise_questions_database_error(mock_sections, client):
     
     # Assert
     assert response.status_code == 500
-    assert response.json() == {"detail": "Database error"}
+    assert response.json() == {"status_code": 500,
+                "detail": "Database error"}
