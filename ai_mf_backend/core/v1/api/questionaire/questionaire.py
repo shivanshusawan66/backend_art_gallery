@@ -25,7 +25,7 @@ def get_all_sections():
             {"section_id": section.pk, "section_name": section.section_name}
             for section in sections
         ]
-        return JSONResponse({"data": sections_data})
+        return JSONResponse({"status_code": 200,"data": sections_data})
     except Exception as e:
         logger.error(f"Error fetching sections: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch sections.")
