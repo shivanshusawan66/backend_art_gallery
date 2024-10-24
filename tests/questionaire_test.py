@@ -70,14 +70,14 @@ def test_get_all_sections_database_error(mock_sections, client):
     assert response.status_code == 500
     assert response.json() == {"detail": "Failed to fetch sections."}
 
-# Tests for POST /section-wise-questions endpoint
-@pytest.mark.parametrize("section_id", [1])  # Add more test cases as needed
+# # Tests for POST /section-wise-questions endpoint
+@pytest.mark.parametrize("section_id", [1])
 @patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Question.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Section.objects')
 def test_get_section_wise_questions_success(
-    mock_sections, mock_questions, mock_allowed_responses, 
+    mock_sections, mock_questions, mock_allowed_responses,
     mock_conditional_questions, client, section_id
 ):
     # Arrange
@@ -85,21 +85,25 @@ def test_get_section_wise_questions_success(
     mock_section.pk = section_id
     mock_section.section_name = "General Information"
     mock_sections.filter.return_value.first.return_value = mock_section
-    
+   
     mock_question = MagicMock()
     mock_question.pk = 1
     mock_question.question = "What is your age?"
     mock_questions.filter.return_value = [mock_question]
-    
+   
     mock_responses = [
         {"id": 1, "response": "18-25"},
         {"id": 2, "response": "26-35"}
     ]
     mock_allowed_responses.filter.return_value.values.return_value = mock_responses
-    
-    mock_conditional_questions.filter.return_value = []
-    
+   
+    # Create a mock queryset with exists() method
+    mock_queryset = MagicMock()
+    mock_queryset.exists.return_value = False
+    mock_conditional_questions.filter.return_value = mock_queryset
+   
     expected_response = {
+        "status_code": 200,  # Added status_code to match actual response
         "data": {
             "section_id": section_id,
             "section_name": "General Information",
@@ -114,76 +118,64 @@ def test_get_section_wise_questions_success(
             }]
         }
     }
-    
+   
     # Act
     response = client.post(
         "/api/v1/section-wise-questions/",
         json={"section_id": section_id}
     )
-    
+   
     # Assert
     assert response.status_code == 200
     assert response.json() == expected_response
-
-@patch('ai_mf_backend.models.v1.database.questions.Section.objects')
-def test_get_section_wise_questions_section_not_found(mock_sections, client):
-    # Arrange
-    section_id = 999
-    mock_sections.filter.return_value.first.return_value = None
-    
-    # Act
-    response = client.post(
-        "/api/v1/section-wise-questions/",
-        json={"section_id": section_id}
-    )
-    
-    # Assert
-    assert response.status_code == 404
-    assert response.json() == {"status_code": 404,
-                    "detail": "Section not found."}
 
 @patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Question.objects')
 @patch('ai_mf_backend.models.v1.database.questions.Section.objects')
 def test_get_section_wise_questions_with_conditional_logic(
-    mock_sections, mock_questions, mock_allowed_responses, 
+    mock_sections, mock_questions, mock_allowed_responses,
     mock_conditional_questions, client
 ):
     # Arrange
     section_id = 1
-    
+   
     mock_section = MagicMock()
     mock_section.pk = section_id
     mock_section.section_name = "Medical History"
     mock_sections.filter.return_value.first.return_value = mock_section
-    
+   
     mock_question = MagicMock()
     mock_question.pk = 1
     mock_question.question = "Do you have any allergies?"
     mock_questions.filter.return_value = [mock_question]
-    
+   
     mock_responses = [
         {"id": 1, "response": "Yes"},
         {"id": 2, "response": "No"}
     ]
     mock_allowed_responses.filter.return_value.values.return_value = mock_responses
-    
+   
     mock_dependent_question = MagicMock()
     mock_dependent_question.id = 2
-    
+   
     mock_conditional = MagicMock()
     mock_conditional.dependent_question = mock_dependent_question
     mock_conditional.visibility = "show"
     mock_conditional.condition_id = 1
-    
+   
     mock_condition_response = MagicMock()
     mock_condition_response.response = "Yes"
     mock_allowed_responses.filter.return_value.first.return_value = mock_condition_response
-    
-    mock_conditional_questions.filter.return_value = [mock_conditional]
-    
+   
+    # Create a mock queryset that has both exists() and iteration capability
+    mock_queryset = MagicMock()
+    mock_queryset.exists.return_value = True
+    mock_queryset.__iter__.return_value = iter([mock_conditional])
+    mock_conditional_questions.filter.return_value = mock_queryset
+   
     expected_response = {
+        "status_code": 200,
         "data": {
             "section_id": section_id,
             "section_name": "Medical History",
@@ -203,6 +195,25 @@ def test_get_section_wise_questions_with_conditional_logic(
             }]
         }
     }
+   
+    # Act
+    response = client.post(
+        "/api/v1/section-wise-questions/",
+        json={"section_id": section_id}
+    )
+   
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+
+
+
+@patch('ai_mf_backend.models.v1.database.questions.Section.objects')
+def test_get_section_wise_questions_section_not_found(mock_sections, client):
+    # Arrange
+    section_id = 999
+    mock_sections.filter.return_value.first.return_value = None
     
     # Act
     response = client.post(
@@ -211,8 +222,9 @@ def test_get_section_wise_questions_with_conditional_logic(
     )
     
     # Assert
-    assert response.status_code == 200
-    assert response.json() == expected_response
+    assert response.status_code == 404
+    assert response.json() == {"status_code": 404,
+                    "detail": "Section not found."}
 
 @patch('ai_mf_backend.models.v1.database.questions.Section.objects')
 def test_get_section_wise_questions_database_error(mock_sections, client):
@@ -230,3 +242,5 @@ def test_get_section_wise_questions_database_error(mock_sections, client):
     assert response.status_code == 500
     assert response.json() == {"status_code": 500,
                 "detail": "Database error"}
+    
+
