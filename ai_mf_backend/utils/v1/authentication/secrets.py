@@ -95,16 +95,16 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
         )
 
     email = decoded_payload.get("email")
-    mobile_no = decoded_payload.get("mobile_no")
+    mobile_no = decoded_payload.get("mobile_number")
 
     if not any([email, mobile_no]):
         raise MalformedJWTRequestException(
-            "A Valid token is required to work with this request"
+            "A Valid token is required to work with this request 1"
         )
 
     if all([email, mobile_no]):
         raise MalformedJWTRequestException(
-            "A Valid token is required to work with this request"
+            "A Valid token is required to work with this request 2"
         )
 
     if email:
