@@ -218,7 +218,7 @@ async def change_password(
     decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
     email = decoded_payload.get("email")
-    mobile_no = decoded_payload.get("mobile_no")
+    mobile_no = decoded_payload.get("mobile_number")
     token_expiry = decoded_payload.get("expiry")
 
     if token_expiry and timezone.now().timestamp() >= token_expiry:
