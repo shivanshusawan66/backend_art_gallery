@@ -199,7 +199,7 @@ async def change_password(
             status=False,
             message="This request cannot proceed without a new password being provided.",
             data={},
-            status_code = 422 ,
+            status_code=422,
         )
 
     try:
@@ -211,7 +211,7 @@ async def change_password(
             status=False,
             message=f"Bad Password provided: {error_response}",
             data={},
-            status_code = 422,
+            status_code=422,
         )
 
     jwt_token = Authorization
@@ -227,7 +227,7 @@ async def change_password(
             status=False,
             message="The JWT token has expired. Please request a new token.",
             data={},
-            status_code = 401,
+            status_code=401,
         )
 
     if not any([email, mobile_no]):
@@ -236,7 +236,7 @@ async def change_password(
             status=False,
             message="Invalid JWT token is provided, no email or mobile number found.",
             data={},
-            status_code = 422,
+            status_code=422,
         )
 
     if all([email, mobile_no]):
@@ -245,7 +245,7 @@ async def change_password(
             status=False,
             message="Invalid JWT token is provided, email and mobile number both found.",
             data={},
-            status_code = 400,
+            status_code=400,
         )
 
     if email:
@@ -257,7 +257,7 @@ async def change_password(
                 status=False,
                 message=f"Bad Email provided: {error_response}",
                 data={},
-                status_code = 422,
+                status_code=422,
             )
 
     elif mobile_no:
@@ -269,7 +269,7 @@ async def change_password(
                 status=False,
                 message=f"Bad phone number provided: {error_response}",
                 data={},
-                status_code = 422,
+                status_code=422,
             )
 
     if email:
@@ -288,7 +288,7 @@ async def change_password(
             status=False,
             message=f"This User does not exist.",
             data={},
-            status_code = 404 ,
+            status_code=404,
         )
 
     if password_checker(old_password, user_doc.password):
@@ -299,7 +299,7 @@ async def change_password(
             status=True,
             message="Your password has been reset successfully!",
             data={},
-            status_code = 200,
+            status_code=200,
         )
     else:
         response.status_code = 401  # Set status code in the response
@@ -307,5 +307,5 @@ async def change_password(
             status=False,
             message="Old Password didn't match. Please provide the correct Old Password.",
             data={},
-            status_code = 401 ,
+            status_code=401,
         )

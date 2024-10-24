@@ -44,12 +44,12 @@ def paginate(items: List, page: int, page_size: int):
     start = (page - 1) * page_size
     end = start + page_size
     paginated_items = items[start:end]
-    
+
     return {
         "items": paginated_items,
         "total": total,
         "page": page,
-        "page_size": page_size
+        "page_size": page_size,
     }
 
 
@@ -61,7 +61,8 @@ class PaginatedResponseModel(BaseModel):
     total: int
     page: int
     page_size: int
-      # Adding a status field to the response body
+    # Adding a status field to the response body
+
 
 @router.post("/mutual-funds/", response_model=PaginatedResponseModel)
 async def read_mutual_funds(pagination: PaginatedRequestModel):
@@ -79,21 +80,21 @@ async def read_mutual_funds(pagination: PaginatedRequestModel):
 
     # Use the paginate function to get the paginated data
     paginated = paginate(mutual_funds, page, page_size)
-    
-    if not paginated['items']:  # Check if items is empty
+
+    if not paginated["items"]:  # Check if items is empty
         raise HTTPException(status_code=404, detail="No mutual funds found")
 
     # Construct the response with pagination info
     response_data = PaginatedResponseModel(
         status="200",
-        items=paginated['items'],
-        total=paginated['total'],
+        items=paginated["items"],
+        total=paginated["total"],
         page=page,
         page_size=page_size,
-        
     )
 
     return response_data  # Directly return the response model
+
 
 # API to retrieve comprehensive fund data, accepting JSON payload for fund_id
 @router.post("/fund_data with fund_id/", response_model=ComprehensiveFundDataModel)
@@ -154,8 +155,9 @@ async def read_fund_data(fund_request: FundRequestModel):
     )
 
 
-
-@router.post("/mutual-funds/historical-data", response_model=HistoricalDataResponseModel)
+@router.post(
+    "/mutual-funds/historical-data", response_model=HistoricalDataResponseModel
+)
 async def read_historical_data_by_fund_id(request: HistoricalDataRequestModel):
     fund_id = request.fund_id
     page = request.page
@@ -198,7 +200,9 @@ async def read_historical_data_by_fund_id(request: HistoricalDataRequestModel):
     return HistoricalDataResponseModel(status_code=200, historical_data=historical_data)
 
 
-@router.get("/fund-families-morningstar-rating/", response_model=FundFamiliesResponseModel)
+@router.get(
+    "/fund-families-morningstar-rating/", response_model=FundFamiliesResponseModel
+)
 async def get_fund_families():
     try:
         # Fetch distinct fund family names and Morningstar ratings
@@ -211,16 +215,23 @@ async def get_fund_families():
 
         # If no data found, return 404 error
         if not fund_families and not morningstar_ratings:
-            return FundFamiliesResponseModel(status_code=404, fund_family=[], morningstar_ratings=[])
+            return FundFamiliesResponseModel(
+                status_code=404, fund_family=[], morningstar_ratings=[]
+            )
 
         # Return the distinct lists with status code 200
-        return FundFamiliesResponseModel(status_code=200, fund_family=fund_families, morningstar_ratings=morningstar_ratings)
+        return FundFamiliesResponseModel(
+            status_code=200,
+            fund_family=fund_families,
+            morningstar_ratings=morningstar_ratings,
+        )
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail="An error occurred while fetching fund families and ratings",
         )
+
 
 @router.post("/mutual-funds/filter", response_model=FilteredFundsResponse)
 async def filter_mutual_funds(filter_request: FundFilterRequest):
