@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, conint, validator
 from typing import List, Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -172,21 +172,9 @@ class FundRequestModel(BaseModel):
 
 
 class HistoricalDataRequestModel(BaseModel):
-    fund_id: str = Field(
-        ..., min_length=1, description="Fund ID must be a non-empty string"
-    )
-    page: Optional[int] = Field(
-        1, ge=1, description="Page number must be greater than 0"
-    )
-    page_size: Optional[int] = Field(
-        10, ge=1, description="Page size must be greater than 0"
-    )
-
-    @validator("fund_id")
-    def validate_fund_id(cls, value):
-        if not value or value.strip() == "":
-            raise ValueError("Fund ID cannot be None or an empty string")
-        return value
+    fund_id: conint(ge=0)  # Ensure fund_id is a non-negative integer
+    page: int = 1
+    page_size: int = 10
 
 
 class FundFilterRequest(BaseModel):
@@ -203,13 +191,6 @@ class FundFilterRequest(BaseModel):
     page: int = Field(1, ge=1, description="Page number")
     page_size: int = Field(10, ge=1, le=100, description="Number of items per page")
 
-
-# Response model for filtered funds
-class FilteredFundsResponse(BaseModel):
-    total_count: int
-    funds: List[ComprehensiveFundDataModel]
-    current_page: int
-    total_pages: int
 # Define the error response model
 class ErrorResponseModel(BaseModel):
     status_code: int
@@ -222,3 +203,16 @@ class PaginatedRequestModel(BaseModel):
     page_size: Optional[int] = Field(
         10, ge=1, description="Page size must be greater than 0"
     )
+class HistoricalDataResponseModel(BaseModel):
+    status_code: int
+    historical_data: List[HistoricalDataModel]
+class FundFamiliesResponseModel(BaseModel):
+    status_code: int
+    fund_family: List[str]
+    morningstar_ratings: List[str]
+class FilteredFundsResponse(BaseModel):
+    status_code: int
+    total_count: int
+    funds: List[ComprehensiveFundDataModel]
+    current_page: int
+    total_pages: int
