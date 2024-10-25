@@ -164,7 +164,7 @@ async def user_authentication_password(
                 status=True,
                 message=f"Successfully logged in to the Dashboard",
                 data={
-                    "token": jwt_token,
+                    "login_token": jwt_token,
                     "data": {"credentials": email if email else mobile_no},
                 },
                 status_code=200,
@@ -218,7 +218,7 @@ async def user_authentication_password(
         signup_payload = {
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
-            "expiry": ((timezone.now() + timedelta(minutes=15)).timestamp()),
+            "expiry": ((timezone.now() + timedelta(minutes=20)).timestamp()),
         }
 
         if email:
@@ -233,7 +233,7 @@ async def user_authentication_password(
             message=f"Welcome, you are a first-time user",
             data={
                 "credentials": email if email else mobile_no,
-                "token": jwt_token,
+                "signup_token": jwt_token,
                 "otp": otp,
             },
             status_code=201,
@@ -348,7 +348,7 @@ async def user_authentication_otp(
         login_payload = {
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
+            "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
         if user_doc.email:
             login_payload["email"] = user_doc.email
@@ -363,7 +363,7 @@ async def user_authentication_otp(
             data={
                 "data": {
                     "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "token": jwt_token,
+                    "login_token": jwt_token,
                 },
                 "otp": otp,
             },
@@ -385,7 +385,7 @@ async def user_authentication_otp(
         signup_payload = {
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
+            "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
         if user_doc.email:
             signup_payload["email"] = user_doc.email
@@ -400,7 +400,7 @@ async def user_authentication_otp(
             data={
                 "data": {
                     "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "token": jwt_token,
+                    "signup_token": jwt_token,
                 },
                 "otp": otp,
             },

@@ -153,7 +153,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
         "token_type": "forgot_password",
         "creation_time": timezone.now().timestamp(),
         "expiry": (
-            (timezone.now() + timedelta(minutes=15)).timestamp()  # Fixed to 15 minutes
+            (timezone.now() + timedelta(minutes=20)).timestamp()  # Fixed to 15 minutes
         ),
     }
     if user_doc.email:
@@ -171,7 +171,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
         status=True,
         message=f"OTP has been sent. Please check.",
         data={
-            "token": jwt_token,
+            "forget_token": jwt_token,
             "data": {"credentials": email or mobile_no},
             "otp": otp,
         },

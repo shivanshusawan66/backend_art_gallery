@@ -80,4 +80,4 @@ class UserFinancialDetails(models.Model):
         verbose_name_plural = "User Financial Details"
 
     def __str__(self):
-        return f"Financial Details for {self.user.name}"
+        return f"Financial Details for {self.user}"
