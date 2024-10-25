@@ -171,7 +171,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
         status=True,
         message=f"OTP has been sent. Please check.",
         data={
-            "forget_token": jwt_token,
+            "token": jwt_token,
             "data": {"credentials": email or mobile_no},
             "otp": otp,
         },

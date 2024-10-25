@@ -164,7 +164,7 @@ async def user_authentication_password(
                 status=True,
                 message=f"Successfully logged in to the Dashboard",
                 data={
-                    "login_token": jwt_token,
+                    "token": jwt_token,
                     "data": {"credentials": email if email else mobile_no},
                 },
                 status_code=200,
@@ -233,7 +233,7 @@ async def user_authentication_password(
             message=f"Welcome, you are a first-time user",
             data={
                 "credentials": email if email else mobile_no,
-                "signup_token": jwt_token,
+                "token": jwt_token,
                 "otp": otp,
             },
             status_code=201,
@@ -363,7 +363,7 @@ async def user_authentication_otp(
             data={
                 "data": {
                     "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "login_token": jwt_token,
+                    "token": jwt_token,
                 },
                 "otp": otp,
             },
@@ -400,7 +400,7 @@ async def user_authentication_otp(
             data={
                 "data": {
                     "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "signup_token": jwt_token,
+                    "token": jwt_token,
                 },
                 "otp": otp,
             },

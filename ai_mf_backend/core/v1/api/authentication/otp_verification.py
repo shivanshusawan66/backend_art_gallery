@@ -213,7 +213,7 @@ async def otp_verification(
             message="The user is verified successfully",
             data={
                 "credentials": user_doc.email or user_doc.mobile_number,
-                "login_token": new_token,
+                "token": new_token,
             },
             status_code=201,
         )
