@@ -244,3 +244,181 @@ def test_get_section_wise_questions_database_error(mock_sections, client):
                 "detail": "Database error"}
     
 
+
+@patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Question.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Section.objects')
+def test_get_section_wise_questions_no_questions(
+    mock_sections, mock_questions, mock_allowed_responses,
+    mock_conditional_questions, client
+):
+    """Test case for a section that exists but has no questions"""
+    # Arrange
+    section_id = 1
+    mock_section = MagicMock()
+    mock_section.pk = section_id
+    mock_section.section_name = "Empty Section"
+    mock_sections.filter.return_value.first.return_value = mock_section
+    
+    # Return empty list of questions
+    mock_questions.filter.return_value = []
+    
+    expected_response = {
+        "status_code": 200,
+        "data": {
+            "section_id": section_id,
+            "section_name": "Empty Section",
+            "questions": []
+        }
+    }
+    
+    # Act
+    response = client.post(
+        "/api/v1/section-wise-questions/",
+        json={"section_id": section_id}
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+@patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Question.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Section.objects')
+def test_get_section_wise_questions_question_without_options(
+    mock_sections, mock_questions, mock_allowed_responses,
+    mock_conditional_questions, client
+):
+    """Test case for a question that has no options/allowed responses"""
+    # Arrange
+    section_id = 1
+    mock_section = MagicMock()
+    mock_section.pk = section_id
+    mock_section.section_name = "General Information"
+    mock_sections.filter.return_value.first.return_value = mock_section
+    
+    mock_question = MagicMock()
+    mock_question.pk = 1
+    mock_question.question = "Enter your name"
+    mock_questions.filter.return_value = [mock_question]
+    
+    # Return empty options
+    mock_allowed_responses.filter.return_value.values.return_value = []
+    
+    mock_queryset = MagicMock()
+    mock_queryset.exists.return_value = False
+    mock_conditional_questions.filter.return_value = mock_queryset
+    
+    expected_response = {
+        "status_code": 200,
+        "data": {
+            "section_id": section_id,
+            "section_name": "General Information",
+            "questions": [{
+                "question_id": 1,
+                "question": "Enter your name",
+                "options": [],
+                "visibility_decisions": {"if_": []}
+            }]
+        }
+    }
+    
+    # Act
+    response = client.post(
+        "/api/v1/section-wise-questions/",
+        json={"section_id": section_id}
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+@patch('ai_mf_backend.models.v1.database.questions.ConditionalQuestion.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Allowed_Response.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Question.objects')
+@patch('ai_mf_backend.models.v1.database.questions.Section.objects')
+def test_get_section_wise_questions_with_hide_conditional_logic(
+    mock_sections, mock_questions, mock_allowed_responses,
+    mock_conditional_questions, client
+):
+    """Test case for questions with 'hide' conditional logic"""
+    # Arrange
+    section_id = 1
+    mock_section = MagicMock()
+    mock_section.pk = section_id
+    mock_section.section_name = "Medical History"
+    mock_sections.filter.return_value.first.return_value = mock_section
+    
+    mock_question = MagicMock()
+    mock_question.pk = 1
+    mock_question.question = "Are you pregnant?"
+    mock_questions.filter.return_value = [mock_question]
+    
+    mock_responses = [
+        {"id": 1, "response": "Yes"},
+        {"id": 2, "response": "No"}
+    ]
+    mock_allowed_responses.filter.return_value.values.return_value = mock_responses
+    
+    mock_dependent_question = MagicMock()
+    mock_dependent_question.id = 2
+    
+    # Create a conditional with "hide" visibility
+    mock_conditional = MagicMock()
+    mock_conditional.dependent_question = mock_dependent_question
+    mock_conditional.visibility = "hide"
+    mock_conditional.condition_id = 1
+    
+    mock_condition_response = MagicMock()
+    mock_condition_response.response = "No"
+    mock_allowed_responses.filter.return_value.first.return_value = mock_condition_response
+    
+    mock_queryset = MagicMock()
+    mock_queryset.exists.return_value = True
+    mock_queryset.__iter__.return_value = iter([mock_conditional])
+    mock_conditional_questions.filter.return_value = mock_queryset
+    
+    expected_response = {
+        "status_code": 200,
+        "data": {
+            "section_id": section_id,
+            "section_name": "Medical History",
+            "questions": [{
+                "question_id": 1,
+                "question": "Are you pregnant?",
+                "options": [
+                    {"option_id": 1, "response": "Yes"},
+                    {"option_id": 2, "response": "No"}
+                ],
+                "visibility_decisions": {
+                    "if_": [{
+                        "value": ["No"],
+                        "hide": [2]
+                    }]
+                }
+            }]
+        }
+    }
+    
+    # Act
+    response = client.post(
+        "/api/v1/section-wise-questions/",
+        json={"section_id": section_id}
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+def test_get_section_wise_questions_invalid_section_id(client):
+    """Test case for invalid section ID format"""
+    # Act
+    response = client.post(
+        "/api/v1/section-wise-questions/",
+        json={"section_id": "invalid"}  # String instead of integer
+    )
+    
+    # Assert
+    assert response.status_code == 422  # FastAPI validation error
