@@ -2,19 +2,6 @@ from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 
-class Occupation(SoftDeleteModel):
-    occupation = models.CharField(max_length=100, unique=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "occupation"
-        verbose_name = "Occupation"
-        verbose_name_plural = "Occupation"
-
-    def __str__(self):
-        return self.occupation
-
 class AnnualIncome(SoftDeleteModel):
     income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -58,18 +45,18 @@ class InvestmentAmountPerYear(SoftDeleteModel):
 
 
 class UserFinancialDetails(SoftDeleteModel):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True, blank=True)
     occupation = models.ForeignKey(
-        Occupation, on_delete=models.PROTECT, null=True, blank=True
+        Occupation, on_delete=models.SET_NULL, null=True, blank=True
     )
-    annual_income = models.ForeignKey(
-        AnnualIncome, on_delete=models.PROTECT, null=True, blank=True
+    income_category = models.ForeignKey(
+        AnnualIncome, on_delete=models.SET_NULL, null=True, blank=True
     )
-    monthly_saving_capacity = models.ForeignKey(
-        MonthlySavingCapacity, on_delete=models.PROTECT, null=True, blank=True
+    saving_category = models.ForeignKey(
+        MonthlySavingCapacity, on_delete=models.SET_NULL, null=True, blank=True
     )
     investment_amount_per_year = models.ForeignKey(
-        InvestmentAmountPerYear, on_delete=models.PROTECT, null=True, blank=True
+        InvestmentAmountPerYear, on_delete=models.SET_NULL, null=True, blank=True
     )
     regular_source_of_income = models.BooleanField(
         choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
@@ -93,4 +80,4 @@ class UserFinancialDetails(SoftDeleteModel):
         verbose_name_plural = "User Financial Details"
 
     def __str__(self):
-        return f"Financial Details for {self.user.name}"
+        return f"Financial Details for {self.user}"
