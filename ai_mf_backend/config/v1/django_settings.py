@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://3e9c-203-190-154-106.ngrok-free.app',  # Add your ngrok URL here
+    "https://3e9c-203-190-154-106.ngrok-free.app",  # Add your ngrok URL here
 ]
 
 MIDDLEWARE = [

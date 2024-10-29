@@ -214,7 +214,7 @@ async def otp_verification(
             data={
                 "credentials": user_doc.email or user_doc.mobile_number,
                 "token": new_token,
-                "user_id": user_doc.user_id
+                "user_id": user_doc.user_id,
             },
             status_code=201,
         )

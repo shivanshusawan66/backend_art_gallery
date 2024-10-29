@@ -91,7 +91,9 @@ class UserContactInfo(SoftDeleteModel):
 
 
 class UserPersonalDetails(SoftDeleteModel):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True, blank=True)
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     name = models.CharField(max_length=100, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, blank=True)
@@ -109,7 +111,9 @@ class UserPersonalDetails(SoftDeleteModel):
 
 
 class OTPlogs(SoftDeleteModel):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True,blank=True)
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     otp = models.IntegerField(null=True, blank=True)
     otp_valid = models.DateTimeField(null=True, blank=True)
     add_date = models.DateTimeField(auto_now_add=True)

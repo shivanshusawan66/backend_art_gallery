@@ -165,8 +165,10 @@ async def user_authentication_password(
                 message=f"Successfully logged in to the Dashboard",
                 data={
                     "token": jwt_token,
-                    "data": {"credentials": email if email else mobile_no,
-                             "user_id": user_doc.user_id},
+                    "data": {
+                        "credentials": email if email else mobile_no,
+                        "user_id": user_doc.user_id,
+                    },
                 },
                 status_code=200,
             )
