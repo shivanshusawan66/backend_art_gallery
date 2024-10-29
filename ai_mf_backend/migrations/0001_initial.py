@@ -2,7 +2,35 @@
 
 import ai_mf_backend.models.v1.database.user
 import django.db.models.deletion
-from django.db import migrations, models
+from django.db import migrations, models, connection
+
+
+def set_default_dates(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Find all tables that have 'user_id' or 'email' columns
+        cursor.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name IN ('add_date', 'update_date')
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """
+        )
+        tables = cursor.fetchall()
+
+        # Iterate over each table and add default values to 'add_date' and 'update_date' columns
+        for (table,) in tables:
+            try:
+                cursor.execute(
+                    f"""
+                    ALTER TABLE {table}
+                    ALTER COLUMN add_date SET DEFAULT NOW(),
+                    ALTER COLUMN update_date SET DEFAULT NOW();
+                """
+                )
+            except Exception as e:
+                print(f"Skipping {table} due to error: {e}")
 
 
 class Migration(migrations.Migration):
@@ -991,4 +1019,5 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
+        migrations.RunPython(set_default_dates),
     ]
