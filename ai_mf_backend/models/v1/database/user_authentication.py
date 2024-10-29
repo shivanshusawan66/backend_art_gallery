@@ -4,7 +4,9 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
 class UserLogs(SoftDeleteModel):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True, blank=True)
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     ip_details = models.JSONField()
     device_type = models.CharField(max_length=100)
     last_access = models.DateTimeField()

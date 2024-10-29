@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ai_mf_backend', '0001_initial'),
+        ("ai_mf_backend", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='allowed_response',
-            name='deleted',
+            model_name="allowed_response",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='conditionalquestion',
-            name='deleted',
+            model_name="conditionalquestion",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='question',
-            name='deleted',
+            model_name="question",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='section',
-            name='deleted',
+            model_name="section",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='userresponse',
-            name='deleted',
+            model_name="userresponse",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
     ]

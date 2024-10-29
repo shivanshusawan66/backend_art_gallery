@@ -2,6 +2,7 @@ from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 
+
 class AnnualIncome(SoftDeleteModel):
     income_category = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -45,7 +46,9 @@ class InvestmentAmountPerYear(SoftDeleteModel):
 
 
 class UserFinancialDetails(SoftDeleteModel):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True, blank=True)
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     occupation = models.ForeignKey(
         Occupation, on_delete=models.SET_NULL, null=True, blank=True
     )

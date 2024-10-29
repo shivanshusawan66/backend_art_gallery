@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 
-from fastapi import APIRouter,Response
+from fastapi import APIRouter, Response
 
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
@@ -43,7 +43,9 @@ router = APIRouter()
     "/password_user_auth",
     status_code=200,
 )
-async def user_authentication_password(request: UserAuthenticationPasswordRequest, response: Response):
+async def user_authentication_password(
+    request: UserAuthenticationPasswordRequest, response: Response
+):
     email = request.email
     mobile_no = request.mobile_no
     password = request.password
@@ -65,7 +67,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             data={"credentials": email if email else mobile_no},
             status_code=400,
         )
-    
+
     if email:
         try:
             _ = validate_email(value=email)
@@ -163,7 +165,10 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
                 message=f"Successfully logged in to the Dashboard",
                 data={
                     "token": jwt_token,
-                    "data": {"credentials": email if email else mobile_no},
+                    "data": {
+                        "credentials": email if email else mobile_no,
+                        "user_id": user_doc.user_id,
+                    },
                 },
                 status_code=200,
             )
@@ -216,9 +221,7 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
         signup_payload = {
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (
-                (timezone.now() + timedelta(minutes=15)).timestamp()  
-            ),
+            "expiry": ((timezone.now() + timedelta(minutes=20)).timestamp()),
         }
 
         if email:
@@ -234,21 +237,23 @@ async def user_authentication_password(request: UserAuthenticationPasswordReques
             data={
                 "credentials": email if email else mobile_no,
                 "token": jwt_token,
-                'otp': otp,
+                "otp": otp,
             },
             status_code=201,
         )
 
 
-
 from fastapi import Response
+
 
 @limiter.limit("5/minute")
 @router.post(
     "/otp_user_auth",
     status_code=200,
 )
-async def user_authentication_otp(request: UserAuthenticationOTPRequest, response: Response):
+async def user_authentication_otp(
+    request: UserAuthenticationOTPRequest, response: Response
+):
     email = request.email
     mobile_no = request.mobile_no
 
@@ -346,7 +351,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest, respons
         login_payload = {
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
+            "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
         if user_doc.email:
             login_payload["email"] = user_doc.email
@@ -383,7 +388,7 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest, respons
         signup_payload = {
             "token_type": "signup",
             "creation_time": timezone.now().timestamp(),
-            "expiry": (timezone.now() + timedelta(minutes=15)).timestamp(),
+            "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
         if user_doc.email:
             signup_payload["email"] = user_doc.email
@@ -404,4 +409,3 @@ async def user_authentication_otp(request: UserAuthenticationOTPRequest, respons
             },
             status_code=202,
         )
-

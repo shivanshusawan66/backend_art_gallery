@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
         """Return only objects that are not soft deleted."""
@@ -8,6 +9,7 @@ class SoftDeleteManager(models.Manager):
     def all_with_deleted(self):
         """Return all objects, including soft deleted ones."""
         return super().get_queryset()
+
 
 class SoftDeleteModel(models.Model):
     deleted = models.BooleanField(default=False)

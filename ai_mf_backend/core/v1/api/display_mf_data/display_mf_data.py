@@ -1,18 +1,22 @@
 from decimal import Decimal
 from fastapi import APIRouter, HTTPException, Query, Path
 from typing import Dict, List, Optional
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from ai_mf_backend.models.v1.api.display_mf_data import (
     AnnualReturnModel,
     ComprehensiveFundDataModel,
     FilteredFundsResponse,
     FundDataModel,
+    FundFamiliesResponseModel,
     FundFilterRequest,
     FundOverviewModel,
     FundRequestModel,
     HistoricalDataModel,
     HistoricalDataRequestModel,
+    HistoricalDataResponseModel,
     MutualFundModel,
+    PaginatedRequestModel,
     PerformanceDataModel,
     RiskStatisticsModel,
     TrailingReturnModel,
@@ -35,25 +39,32 @@ from django.db.models import Q
 router = APIRouter()
 
 
-# Pagination helper function for Django ORM
-def paginate(queryset, page: int = 1, page_size: int = 10):
+def paginate(items: List, page: int, page_size: int):
+    total = len(items)
     start = (page - 1) * page_size
     end = start + page_size
-    return queryset[start:end]
+    paginated_items = items[start:end]
+
+    return {
+        "items": paginated_items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }
 
 
 # Pydantic model for paginated request
-class PaginatedRequestModel(BaseModel):
-    page: Optional[int] = Field(
-        1, ge=1, description="Page number must be greater than 0"
-    )
-    page_size: Optional[int] = Field(
-        10, ge=1, description="Page size must be greater than 0"
-    )
+# Define PaginatedResponseModel as a Pydantic model
+class PaginatedResponseModel(BaseModel):
+    status: str
+    items: List[MutualFundModel]
+    total: int
+    page: int
+    page_size: int
+    # Adding a status field to the response body
 
 
-# API to retrieve all mutual fund listings with pagination, using JSON payload
-@router.post("/mutual-funds/", response_model=List[MutualFundModel])
+@router.post("/mutual-funds/", response_model=PaginatedResponseModel)
 async def read_mutual_funds(pagination: PaginatedRequestModel):
     page = pagination.page
     page_size = pagination.page_size
@@ -67,11 +78,22 @@ async def read_mutual_funds(pagination: PaginatedRequestModel):
             detail="Database error occurred while fetching mutual funds",
         )
 
+    # Use the paginate function to get the paginated data
     paginated = paginate(mutual_funds, page, page_size)
-    if not paginated:
+
+    if not paginated["items"]:  # Check if items is empty
         raise HTTPException(status_code=404, detail="No mutual funds found")
 
-    return paginated
+    # Construct the response with pagination info
+    response_data = PaginatedResponseModel(
+        status="200",
+        items=paginated["items"],
+        total=paginated["total"],
+        page=page,
+        page_size=page_size,
+    )
+
+    return response_data  # Directly return the response model
 
 
 # API to retrieve comprehensive fund data, accepting JSON payload for fund_id
@@ -133,36 +155,33 @@ async def read_fund_data(fund_request: FundRequestModel):
     )
 
 
-# Enhanced validation for mutual fund ID and historical data, accepting JSON payload
-@router.post("/mutual-funds/historical-data", response_model=List[HistoricalDataModel])
+@router.post(
+    "/mutual-funds/historical-data", response_model=HistoricalDataResponseModel
+)
 async def read_historical_data_by_fund_id(request: HistoricalDataRequestModel):
     fund_id = request.fund_id
     page = request.page
     page_size = request.page_size
 
     try:
-        # Fetch the mutual fund object
+        # Fetch the mutual fund object asynchronously
         mutual_fund = await sync_to_async(MutualFund.objects.get)(id=fund_id)
-    except ObjectDoesNotExist:
+    except MutualFund.DoesNotExist:
         raise HTTPException(
             status_code=404, detail=f"Mutual Fund with ID '{fund_id}' not found"
         )
-    except DatabaseError:
-        raise HTTPException(
-            status_code=500, detail="Database error occurred while fetching mutual fund"
-        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # Fetch historical data for the mutual fund and apply pagination
+    # Fetch historical data for the mutual fund asynchronously
     historical_data_queryset = mutual_fund.historical_data.all()
-    paginated_historical_data = await sync_to_async(list)(
-        paginate(historical_data_queryset, page, page_size)
-    )
+    historical_data_list = await sync_to_async(list)(historical_data_queryset)
 
     # Check if data is available
-    if not paginated_historical_data:
-        raise HTTPException(status_code=404, detail="No historical data found")
+    if not historical_data_list:
+        return HistoricalDataResponseModel(status_code=404, historical_data=[])
 
-    # Return only the required fields
+    # Prepare the response data
     historical_data = [
         HistoricalDataModel(
             id=data.id,
@@ -175,14 +194,15 @@ async def read_historical_data_by_fund_id(request: HistoricalDataRequestModel):
             adj_close=data.adj_close,
             volume=data.volume,
         )
-        for data in paginated_historical_data
+        for data in historical_data_list
     ]
 
-    return historical_data
+    return HistoricalDataResponseModel(status_code=200, historical_data=historical_data)
 
 
-# GET API to retrieve distinct fund family names and Morningstar ratings
-@router.get("/fund-families-morningstar-rating/", response_model=Dict[str, List])
+@router.get(
+    "/fund-families-morningstar-rating/", response_model=FundFamiliesResponseModel
+)
 async def get_fund_families():
     try:
         # Fetch distinct fund family names and Morningstar ratings
@@ -195,15 +215,16 @@ async def get_fund_families():
 
         # If no data found, return 404 error
         if not fund_families and not morningstar_ratings:
-            raise HTTPException(
-                status_code=404, detail="No fund families or ratings found"
+            return FundFamiliesResponseModel(
+                status_code=404, fund_family=[], morningstar_ratings=[]
             )
 
-        # Return the distinct lists
-        return {
-            "fund_family": fund_families,
-            "morningstar_ratings": morningstar_ratings,
-        }
+        # Return the distinct lists with status code 200
+        return FundFamiliesResponseModel(
+            status_code=200,
+            fund_family=fund_families,
+            morningstar_ratings=morningstar_ratings,
+        )
 
     except Exception as e:
         raise HTTPException(
@@ -369,6 +390,7 @@ async def filter_mutual_funds(filter_request: FundFilterRequest):
                 continue
 
         return FilteredFundsResponse(
+            status_code=200,  # Adding status code 200
             total_count=total_count,
             funds=comprehensive_funds,
             current_page=filter_request.page,
