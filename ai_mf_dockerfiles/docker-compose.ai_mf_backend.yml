@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
-    command: celery -A ai_mf_backend.celery_tasks multi start worker_with_beat --autoscale=${CELERY_AUTOSCALE_UPPER_LIMIT},${CELERY_AUTOSCALE_LOWER_LIMIT} --loglevel=${LOG_LEVEL}
+    command: celery -A ai_mf_backend.celery_tasks worker --autoscale=${CELERY_AUTOSCALE_UPPER_LIMIT},${CELERY_AUTOSCALE_LOWER_LIMIT} --loglevel=${LOG_LEVEL} && celery -A ai_mf_backend.celery_tasks beat --loglevel=${LOG_LEVEL}
     container_name: ai_mf_pipe
     restart: always
     environment:
