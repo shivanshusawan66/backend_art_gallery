@@ -3,10 +3,6 @@
 import os
 import sys
 
-import sys
-
-sys.path.append("C:/Users/Waseem/Documents/GitHub/ai-mf-platform/ai_mf_backend")
-
 
 def main():
     """Run administrative tasks."""
