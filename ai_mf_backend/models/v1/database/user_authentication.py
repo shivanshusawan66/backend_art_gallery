@@ -1,16 +1,17 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo
+from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
-class UserLogs(models.Model):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
+class UserLogs(SoftDeleteModel):
+    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL,null=True, blank=True)
     ip_details = models.JSONField()
     device_type = models.CharField(max_length=100)
     last_access = models.DateTimeField()
     ACTION_CHOICES = [
-        ("logged_in", "Logged In"),
+        ("login", "Logged In"),
         ("logged_out", "Logged Out"),
-        ("signed_up", "Signed Up"),
+        ("signup", "Signed Up"),
         ("invalid", "invalid_action"),
     ]
     action = models.CharField(

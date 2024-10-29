@@ -1,9 +1,10 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo
+from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
-class Section(models.Model):
-    section_name = models.CharField(max_length=100)
+class Section(SoftDeleteModel):
+    section = models.CharField(max_length=100)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -13,11 +14,11 @@ class Section(models.Model):
         verbose_name_plural = "Section"
 
     def __str__(self):
-        return self.section_name
+        return self.section
 
 
-class Question(models.Model):
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+class Question(SoftDeleteModel):
+    section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True)
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -31,9 +32,9 @@ class Question(models.Model):
         return self.question
 
 
-class Allowed_Response(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+class Allowed_Response(SoftDeleteModel):
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True, blank=True)
+    section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True)
     response = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -47,15 +48,15 @@ class Allowed_Response(models.Model):
         return self.response
 
 
-class ConditionalQuestion(models.Model):
+class ConditionalQuestion(SoftDeleteModel):
     id = models.AutoField(primary_key=True)
     question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, related_name="main_question"
+        Question, on_delete=models.SET_NULL, null=True, blank=True, related_name="main_question"
     )
     dependent_question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, related_name="dependent_question"
+        Question, on_delete=models.SET_NULL, null=True, blank=True, related_name="dependent_question"
     )
-    condition = models.ForeignKey(Allowed_Response, on_delete=models.CASCADE)
+    response = models.ForeignKey(Allowed_Response, on_delete=models.SET_NULL, null=True, blank=True)
     visibility = models.CharField(max_length=50)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -69,11 +70,11 @@ class ConditionalQuestion(models.Model):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
 
 
-class UserResponse(models.Model):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    response = models.ForeignKey(Allowed_Response, on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+class UserResponse(SoftDeleteModel):
+    user = models.ForeignKey(UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True)
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True, blank=True)
+    response = models.ForeignKey(Allowed_Response, on_delete=models.SET_NULL, null=True, blank=True)
+    section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -83,4 +84,4 @@ class UserResponse(models.Model):
         verbose_name_plural = "User Response"
 
     def __str__(self):
-        return f"Response by {self.user.name} for {self.question.question}"
+        return f"Response by {self.user} for {self.question.question}"
