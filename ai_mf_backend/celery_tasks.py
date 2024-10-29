@@ -1,6 +1,6 @@
 import logging
 
-from ai_mf_backend.core import celery_app
+# from ai_mf_backend.core import celery_app
 
 
 logger = logging.getLogger(__name__)

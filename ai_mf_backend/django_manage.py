@@ -5,7 +5,7 @@ import sys
 
 import sys
 
-sys.path.append("D:/ai-mf-platform")
+sys.path.append("C:/Users/Waseem/Documents/GitHub/ai-mf-platform/ai_mf_backend")
 
 
 def main():
