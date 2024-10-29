@@ -25,7 +25,7 @@ def get_all_sections():
             {"section_id": section.pk, "section_name": section.section_name}
             for section in sections
         ]
-        return JSONResponse({"data": sections_data})
+        return JSONResponse({"status_code": 200, "data": sections_data})
     except Exception as e:
         logger.error(f"Error fetching sections: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch sections.")
@@ -35,7 +35,7 @@ def get_section_wise_questions(section_request: SectionRequest):
     try:
         specified_section_id = section_request.section_id
         current_section = Section.objects.filter(pk=specified_section_id).first()
-        
+
         if not current_section:
             return JSONResponse(
                 status_code=404,
@@ -60,24 +60,45 @@ def get_section_wise_questions(section_request: SectionRequest):
                     dependent_question = conditional_info.dependent_question
                     condition_response = Allowed_Response.objects.filter(pk=conditional_info.condition_id).first()
 
-                    condition_value = condition_response.response if condition_response else None
+                    condition_value = (
+                        condition_response.response if condition_response else None
+                    )
 
                     if conditional_info.visibility == "show":
-                        visibility_decisions["if_"].append({
-                            "value": [condition_value],
-                            "show": [dependent_question.id],
-                        })
+                        visibility_decisions["if_"].append(
+                            {
+                                "value": [
+                                    condition_value
+                                ],  # Using the response text instead of value
+                                "show": [
+                                    dependent_question.id
+                                ],  # Show the dependent question ID
+                            }
+                        )
                     elif conditional_info.visibility == "hide":
-                        visibility_decisions["if_"].append({
-                            "value": [condition_value],
-                            "hide": [dependent_question.id],
-                        })
+                        visibility_decisions["if_"].append(
+                            {
+                                "value": [condition_value],
+                                "hide": [
+                                    dependent_question.id
+                                ],  # Hide the dependent question ID
+                            }
+                        )
+            else:
+                # If no conditions exist, treat this question as independent
+                independent_responses[question.pk] = (
+                    options  # Store options for independent questions
+                )
 
+            # Create the question data object
             question_data = {
                 "question_id": question.pk,
                 "question": question.question,
-                "options": [{"option_id": option["id"], "response": option["response"]} for option in options],
-                "visibility_decisions": visibility_decisions,
+                "options": [
+                    {"option_id": option["id"], "response": option["response"]}
+                    for option in options
+                ],
+                "visibility_decisions": visibility_decisions,  # Include visibility decisions
             }
 
             question_data_list.append(question_data)

@@ -141,9 +141,9 @@ class GenderAdmin(admin.ModelAdmin):
 
 @admin.register(MaritalStatus)
 class MaritalStatusAdmin(admin.ModelAdmin):
-    list_display = ("status", "add_date", "update_date")
-    search_fields = ("status",)
-    ordering = ("status",)
+    list_display = ("marital_status", "add_date", "update_date")
+    search_fields = ("marital_status",)
+    ordering = ("marital_status",)
 
 
 @admin.register(Occupation)

@@ -64,6 +64,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("income_category", models.CharField(max_length=100, unique=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
@@ -86,6 +87,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("gender", models.CharField(max_length=50, unique=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
@@ -108,6 +110,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 (
                     "investment_amount_per_year",
                     models.CharField(max_length=100, unique=True),
@@ -133,7 +136,8 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("status", models.CharField(max_length=50, unique=True)),
+                ("deleted", models.BooleanField(default=False)),
+                ("marital_status", models.CharField(max_length=50, unique=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
             ],
@@ -155,6 +159,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("saving_category", models.CharField(max_length=100, unique=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
@@ -199,6 +204,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("occupation", models.CharField(max_length=100, unique=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
@@ -243,7 +249,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("section_name", models.CharField(max_length=100)),
+                ("section", models.CharField(max_length=100)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
             ],
@@ -444,16 +450,20 @@ class Migration(migrations.Migration):
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
                 (
-                    "condition",
+                    "response",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.allowed_response",
                     ),
                 ),
                 (
                     "dependent_question",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         related_name="dependent_question",
                         to="ai_mf_backend.question",
                     ),
@@ -461,7 +471,9 @@ class Migration(migrations.Migration):
                 (
                     "question",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         related_name="main_question",
                         to="ai_mf_backend.question",
                     ),
@@ -477,21 +489,30 @@ class Migration(migrations.Migration):
             model_name="allowed_response",
             name="question",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="ai_mf_backend.question"
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.question",
             ),
         ),
         migrations.AddField(
             model_name="question",
             name="section",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="ai_mf_backend.section"
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.section",
             ),
         ),
         migrations.AddField(
             model_name="allowed_response",
             name="section",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="ai_mf_backend.section"
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.section",
             ),
         ),
         migrations.CreateModel(
@@ -532,6 +553,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="UserContactInfo",
             fields=[
+                ("deleted", models.BooleanField(default=False)),
                 ("user_id", models.AutoField(primary_key=True, serialize=False)),
                 (
                     "email",
@@ -579,6 +601,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("otp", models.IntegerField(blank=True, null=True)),
                 ("otp_valid", models.DateTimeField(blank=True, null=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
@@ -586,7 +609,9 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.usercontactinfo",
                     ),
                 ),
@@ -609,6 +634,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 (
                     "regular_source_of_income",
                     models.BooleanField(
@@ -640,11 +666,11 @@ class Migration(migrations.Migration):
                 ("add_date", models.DateTimeField(auto_now_add=True)),
                 ("update_date", models.DateTimeField(auto_now=True)),
                 (
-                    "annual_income",
+                    "income_category",
                     models.ForeignKey(
                         blank=True,
                         null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.annualincome",
                     ),
                 ),
@@ -653,17 +679,8 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.investmentamountperyear",
-                    ),
-                ),
-                (
-                    "monthly_saving_capacity",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
-                        to="ai_mf_backend.monthlysavingcapacity",
                     ),
                 ),
                 (
@@ -671,14 +688,25 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.occupation",
+                    ),
+                ),
+                (
+                    "saving_category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.monthlysavingcapacity",
                     ),
                 ),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.usercontactinfo",
                     ),
                 ),
@@ -701,6 +729,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("name", models.CharField(blank=True, max_length=100, null=True)),
                 ("date_of_birth", models.DateField(blank=True, null=True)),
                 ("add_date", models.DateTimeField(auto_now_add=True)),
@@ -710,7 +739,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.gender",
                     ),
                 ),
@@ -719,14 +748,16 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         null=True,
-                        on_delete=django.db.models.deletion.PROTECT,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.maritalstatus",
                     ),
                 ),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.usercontactinfo",
                     ),
                 ),
@@ -752,28 +783,36 @@ class Migration(migrations.Migration):
                 (
                     "question",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.question",
                     ),
                 ),
                 (
                     "response",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.allowed_response",
                     ),
                 ),
                 (
                     "section",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.section",
                     ),
                 ),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.usercontactinfo",
                     ),
                 ),
@@ -911,6 +950,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                ("deleted", models.BooleanField(default=False)),
                 ("ip_details", models.JSONField()),
                 ("device_type", models.CharField(max_length=100)),
                 ("last_access", models.DateTimeField()),
@@ -930,7 +970,9 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         to="ai_mf_backend.usercontactinfo",
                     ),
                 ),

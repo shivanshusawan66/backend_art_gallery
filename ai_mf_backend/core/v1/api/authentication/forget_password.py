@@ -8,7 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from phonenumber_field.validators import validate_international_phonenumber
 
-from fastapi import Header, APIRouter, Depends
+from fastapi import Header, APIRouter, Depends, Response
 
 from asgiref.sync import sync_to_async
 
@@ -37,12 +37,13 @@ router = APIRouter()
 
 @limiter.limit("5/minute")
 @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
-async def forgot_password(request: ForgotPasswordRequest):
+async def forgot_password(request: ForgotPasswordRequest, response: Response):
 
     email = request.email
     mobile_no = request.mobile_no
 
     if not any([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
         return ForgotPasswordResponse(
             status=False,
             message="Either one of email or mobile number is required to proceed with this request.",
@@ -51,6 +52,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         )
 
     if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
         return ForgotPasswordResponse(
             status=False,
             message="Both Mobile and email cannot be processed at the same time.",
@@ -62,6 +64,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         try:
             _ = validate_email(value=email)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return ForgotPasswordResponse(
                 status=False,
                 message=f"Bad Email provided: {error_response}",
@@ -70,10 +73,10 @@ async def forgot_password(request: ForgotPasswordRequest):
             )
 
     elif mobile_no:
-        # We expect the number to be of the format +91 8389273829
         try:
             _ = validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return ForgotPasswordResponse(
                 status=False,
                 message=f"Bad phone number provided: {error_response}",
@@ -91,6 +94,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         )()
 
     if not user_doc:
+        response.status_code = 404  # Set status code in the response
         return ForgotPasswordResponse(
             status=False,
             message="This user does not exist.",
@@ -102,6 +106,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
     can_request, error_message = throttle_otp_requests(user_id)
     if not can_request:
+        response.status_code = 429  # Set status code in the response
         return ForgotPasswordResponse(
             status=False,
             message=error_message,
@@ -110,6 +115,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         )
 
     if not user_doc.password:
+        response.status_code = 401  # Set status code in the response
         return ForgotPasswordResponse(
             status=False,
             message="The password for this user does not exist. Please login using OTP",
@@ -122,27 +128,23 @@ async def forgot_password(request: ForgotPasswordRequest):
     )()
 
     if not user_otp_document:
-            user_otp_document = OTPlogs(
-                user=user_doc,
-            )
+        user_otp_document = OTPlogs(
+            user=user_doc,
+        )
     elif user_otp_document:
-        # validation to check and stop user from requesting too many OTPs
         updated_date = user_otp_document.update_date
-        # Get the current time
         current_time = timezone.now()
 
-        # Calculate the time difference
         time_diff = current_time - updated_date
 
-        # Check if the update_date is within 15 seconds
         if time_diff <= timedelta(seconds=15):
+            response.status_code = 429  # Set status code in the response
             return ForgotPasswordResponse(
                 status=False,
                 message=f"Please wait for {time_diff} seconds before sending another request.",
                 data={"credentials": email if email else mobile_no},
                 status_code=429,
             )
-
 
     otp = send_otp()
     current_time = timezone.now()
@@ -151,7 +153,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         "token_type": "forgot_password",
         "creation_time": timezone.now().timestamp(),
         "expiry": (
-            (timezone.now() + timedelta(minutes=15)).timestamp()  # Fixed to 15 minutes
+            (timezone.now() + timedelta(minutes=20)).timestamp()  # Fixed to 15 minutes
         ),
     }
     if user_doc.email:
@@ -164,6 +166,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     user_otp_document.otp_valid = current_time + timedelta(minutes=15)
     await sync_to_async(user_otp_document.save)()
 
+    response.status_code = 200  # Set status code in the response
     return ForgotPasswordResponse(
         status=True,
         message=f"OTP has been sent. Please check.",
@@ -179,20 +182,19 @@ async def forgot_password(request: ForgotPasswordRequest):
 @router.post(
     "/change_password",
     response_model=ChangePasswordResponse,
-    dependencies=[
-        Depends(login_checker),
-    ],
+    dependencies=[Depends(login_checker)],
     status_code=200,
 )
 async def change_password(
     request: ChangePasswordRequest,
+    response: Response,  # Inject FastAPI Response object
     Authorization: str = Header(...),  # Expect token in the Authorization header
 ):
-
     old_password = request.old_password
     new_password = request.new_password
 
     if not new_password:
+        response.status_code = 422  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message="This request cannot proceed without a new password being provided.",
@@ -204,10 +206,11 @@ async def change_password(
         # Password validators are defined in Django Settings
         _ = validate_password(password=new_password)
     except ValidationError as error_response:
+        response.status_code = 422  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message=f"Bad Password provided: {error_response}",
-            data={"credentials": email if email else mobile_no},
+            data={},
             status_code=422,
         )
 
@@ -215,17 +218,29 @@ async def change_password(
     decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
 
     email = decoded_payload.get("email")
-    mobile_no = decoded_payload.get("mobile_no")
+    mobile_no = decoded_payload.get("mobile_number")
+    token_expiry = decoded_payload.get("expiry")
+
+    if token_expiry and timezone.now().timestamp() >= token_expiry:
+        response.status_code = 401  # Set response status code for expired token
+        return ChangePasswordResponse(
+            status=False,
+            message="The JWT token has expired. Please request a new token.",
+            data={},
+            status_code=401,
+        )
 
     if not any([email, mobile_no]):
+        response.status_code = 422  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message="Invalid JWT token is provided, no email or mobile number found.",
             data={},
-            status_code=400,
+            status_code=422,
         )
 
     if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message="Invalid JWT token is provided, email and mobile number both found.",
@@ -237,22 +252,23 @@ async def change_password(
         try:
             _ = validate_email(value=email)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return ChangePasswordResponse(
                 status=False,
                 message=f"Bad Email provided: {error_response}",
-                data={"credentials": email if email else mobile_no},
+                data={},
                 status_code=422,
             )
 
     elif mobile_no:
-        # We expect the number to be of the format +91 8389273829
         try:
             _ = validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
             return ChangePasswordResponse(
                 status=False,
                 message=f"Bad phone number provided: {error_response}",
-                data={"credentials": email if email else mobile_no},
+                data={},
                 status_code=422,
             )
 
@@ -267,22 +283,26 @@ async def change_password(
         )()
 
     if not user_doc:
+        response.status_code = 404  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message=f"This User does not exist.",
-            data={"credentials": email if email else mobile_no},
+            data={},
             status_code=404,
         )
 
     if password_checker(old_password, user_doc.password):
         user_doc.password = password_encoder(request.new_password)
         await sync_to_async(user_doc.save)()
+        response.status_code = 200  # Set status code in the response
         return ChangePasswordResponse(
             status=True,
             message="Your password has been reset successfully!",
             data={},
+            status_code=200,
         )
     else:
+        response.status_code = 401  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
             message="Old Password didn't match. Please provide the correct Old Password.",

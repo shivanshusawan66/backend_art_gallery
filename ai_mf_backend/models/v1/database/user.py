@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
+from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
 def validate_mobile_number(mobile_no: str) -> None:
@@ -14,7 +15,7 @@ def validate_mobile_number(mobile_no: str) -> None:
         )
 
 
-class Gender(models.Model):
+class Gender(SoftDeleteModel):
     gender = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -28,8 +29,8 @@ class Gender(models.Model):
         return self.gender
 
 
-class MaritalStatus(models.Model):
-    status = models.CharField(max_length=50, unique=True)
+class MaritalStatus(SoftDeleteModel):
+    marital_status = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -39,10 +40,10 @@ class MaritalStatus(models.Model):
         verbose_name_plural = "Marital Status"
 
     def __str__(self):
-        return self.status
+        return self.marital_status
 
 
-class Occupation(models.Model):
+class Occupation(SoftDeleteModel):
     occupation = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -56,7 +57,7 @@ class Occupation(models.Model):
         return self.occupation
 
 
-class UserContactInfo(models.Model):
+class UserContactInfo(SoftDeleteModel):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     mobile_number = models.CharField(
@@ -76,7 +77,6 @@ class UserContactInfo(models.Model):
             self.email = None
         super(UserContactInfo, self).save(*args, **kwargs)
 
-
     class Meta:
         db_table = "user_contact_info"
         indexes = [
@@ -87,16 +87,18 @@ class UserContactInfo(models.Model):
         verbose_name_plural = "User Contact Info"
 
     def __str__(self):
-        return self.email
+        return self.email or self.mobile_number or "Unknown User"
 
 
-class UserPersonalDetails(models.Model):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
+class UserPersonalDetails(SoftDeleteModel):
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     name = models.CharField(max_length=100, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True, blank=True)
+    gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, blank=True)
     marital_status = models.ForeignKey(
-        MaritalStatus, on_delete=models.PROTECT, null=True, blank=True
+        MaritalStatus, on_delete=models.SET_NULL, null=True, blank=True
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -108,8 +110,10 @@ class UserPersonalDetails(models.Model):
         return self.name
 
 
-class OTPlogs(models.Model):
-    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
+class OTPlogs(SoftDeleteModel):
+    user = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
     otp = models.IntegerField(null=True, blank=True)
     otp_valid = models.DateTimeField(null=True, blank=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -121,4 +125,4 @@ class OTPlogs(models.Model):
         verbose_name_plural = "OTP Logs"
 
     def __str__(self):
-        return f"OTP for {self.user.name}"
+        return f"OTP for {self.user}"
