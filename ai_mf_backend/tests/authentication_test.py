@@ -1,16 +1,14 @@
-import os
-import sys
-import pytest
-from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
-from django.utils import timezone
+
+import pytest
+
+from unittest.mock import patch, MagicMock
+
+from fastapi.testclient import TestClient
+
 from django.contrib.auth.hashers import make_password, check_password
 
-
-# Add the project root directory to Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
+from ai_mf_backend.utils.v1.authentication.secrets import jwt_token_checker
 
 from ai_mf_backend.api_application import application
 
@@ -30,6 +28,12 @@ def mock_now():
         yield current_time
 
 
+# Import the necessary classes and functions
+from ai_mf_backend.models.v1.database.user import UserContactInfo
+from unittest.mock import MagicMock, patch
+from django.contrib.auth.hashers import make_password, check_password
+
+
 # Tests for POST /password_user_auth endpoint
 @patch("ai_mf_backend.models.v1.database.user.UserContactInfo.objects")
 @patch("ai_mf_backend.utils.v1.authentication.secrets.jwt_token_checker")
@@ -45,14 +49,11 @@ def test_password_auth_success_existing_user(
     # Generate a valid hashed password
     hashed_password = make_password(password)
 
-    mock_user = MagicMock()
-    mock_user.email = email
-    mock_user.password = hashed_password  # Set hashed password
-    mock_user.is_verified = True
-    mock_user.user_id = 1
-
+    # Create a mock UserContactInfo instance instead of using MagicMock
+    mock_user = UserContactInfo(
+        email=email, password=hashed_password, is_verified=True, user_id=1
+    )
     mock_user_contact.filter.return_value.first.return_value = mock_user
-    mock_jwt.return_value = "test_token"
 
     # Ensure password_checker compares correctly
     mock_pass_check.side_effect = (
@@ -78,7 +79,18 @@ def test_password_auth_success_existing_user(
     # Assert
     assert response.status_code == 200
     assert response.json()["status"] is True
-    assert response.json()["data"]["token"] == "test_token"
+    assert (
+        jwt_token_checker(jwt_token=response.json()["data"]["token"], encode=False)[
+            "token_type"
+        ]
+        == "login"
+    )
+    assert (
+        jwt_token_checker(jwt_token=response.json()["data"]["token"], encode=False)[
+            "email"
+        ]
+        == email
+    )
 
 
 @pytest.mark.parametrize(

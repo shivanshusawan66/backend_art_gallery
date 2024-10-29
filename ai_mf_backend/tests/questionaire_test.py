@@ -1,12 +1,6 @@
-import os
-import sys
 import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
-
-# Add the project root directory to Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
 
 from ai_mf_backend.api_application import application
 
