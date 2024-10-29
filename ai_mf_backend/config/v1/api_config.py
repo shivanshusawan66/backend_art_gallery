@@ -26,7 +26,9 @@ class APIConfig(BaseSettingsWrapper):
     BACKEND_CORS_ORIGINS: Optional[str] = None
     API_VER_STR_V1: str = "/api/v1"
 
-    MAX_OTP_REQUESTS: Optional[int] = 5
+    REQUEST_PER_MIN: Optional[str] = "20/minute"
+
+    MAX_OTP_REQUESTS: Optional[int] = 20
     THROTTLE_WINDOW_SECONDS: Optional[int] = 300  # 5 mins
 
 

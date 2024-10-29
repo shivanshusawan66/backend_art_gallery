@@ -30,12 +30,14 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
 )
 from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
 
+from ai_mf_backend.config.v1.api_config import api_config
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@limiter.limit("5/minute")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
 async def forgot_password(request: ForgotPasswordRequest, response: Response):
 
@@ -178,7 +180,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
     )
 
 
-@limiter.limit("5/minute")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/change_password",
     response_model=ChangePasswordResponse,

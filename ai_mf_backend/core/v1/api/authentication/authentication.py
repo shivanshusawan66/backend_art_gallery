@@ -34,11 +34,13 @@ from ai_mf_backend.models.v1.api.user_authentication import (
     UserAuthenticationOTPResponse,
 )
 
+from ai_mf_backend.config.v1.api_config import api_config
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@limiter.limit("5/minute")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/password_user_auth",
     status_code=200,
@@ -246,7 +248,7 @@ async def user_authentication_password(
 from fastapi import Response
 
 
-@limiter.limit("5/minute")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/otp_user_auth",
     status_code=200,

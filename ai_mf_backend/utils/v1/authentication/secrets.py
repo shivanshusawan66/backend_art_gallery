@@ -2,8 +2,6 @@ from typing import Annotated, Dict, Union
 
 import jwt
 
-import bcrypt
-
 from asgiref.sync import sync_to_async
 
 from fastapi import Header
@@ -11,6 +9,7 @@ from fastapi import Header
 from django.utils import timezone
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import make_password, check_password
 
 from phonenumber_field.validators import validate_international_phonenumber
 
@@ -64,8 +63,8 @@ def password_encoder(password: str) -> str:
         raise ValueError("Password is not valid")
 
     # Generate a salt and hash the password
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    return hashed.decode("utf-8")  # Return as a string
+    hashed = make_password(password=password)
+    return hashed  # Return as a string
 
 
 def password_checker(plain_password: str, hashed_password: str) -> bool:
@@ -75,9 +74,7 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
     :param hashed_password: the hashed password stored in the database
     :return: True if the passwords match, False otherwise
     """
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-    )
+    return check_password(password=plain_password, encoded=hashed_password)
 
 
 async def login_checker(Authorization: Annotated[str | None, Header()]):

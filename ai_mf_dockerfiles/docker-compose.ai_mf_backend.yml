@@ -14,6 +14,8 @@ services:
       ENVIRONMENT: server
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
+    depends_on:
+      - ai_mf_tests
     networks:
       - ai_mf
 
@@ -32,8 +34,24 @@ services:
       ENVIRONMENT: server
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
+    depends_on:
+      - ai_mf_tests
     networks:
       - ai_mf
+
+  # ai_mf_tests:
+  #   image: ai_mf_api:latest
+  #   build:
+  #     context: ../
+  #     dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
+  #   command: pytest
+  #   container_name: ai_mf_tests
+  #   restart: no
+  #   environment:
+  #     LOG_LEVEL: ${LOG_LEVEL}
+  #     ENVIRONMENT: server
+  #   networks:
+  #     - ai_mf
 
 networks:
   ai_mf:
