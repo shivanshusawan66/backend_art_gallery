@@ -5,17 +5,17 @@ import django.db.models.deletion
 from django.db import migrations, models, connection
 
 
-def set_default_dates(apps, schema_editor):
+def set_default_dates_delted(apps, schema_editor):
     with connection.cursor() as cursor:
         # Find all tables that have 'user_id' or 'email' columns
         cursor.execute(
-            """
+             """
             SELECT table_name
             FROM information_schema.columns
-            WHERE column_name IN ('add_date', 'update_date')
+            WHERE column_name IN ('add_date', 'update_date', 'deleted')
               AND table_schema = 'public'
             GROUP BY table_name;
-        """
+            """
         )
         tables = cursor.fetchall()
 
@@ -26,11 +26,39 @@ def set_default_dates(apps, schema_editor):
                     f"""
                     ALTER TABLE {table}
                     ALTER COLUMN add_date SET DEFAULT NOW(),
-                    ALTER COLUMN update_date SET DEFAULT NOW();
-                """
+                    ALTER COLUMN update_date SET DEFAULT NOW(),
+                    ALTER COLUMN deleted SET DEFAULT FALSE;
+                    """
                 )
             except Exception as e:
                 print(f"Skipping {table} due to error: {e}")
+
+def set_user_financial_defaults(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                """
+                ALTER TABLE user_financial_details
+                ALTER COLUMN regular_source_of_income SET DEFAULT FALSE,
+                ALTER COLUMN lock_in_period_accepted SET DEFAULT FALSE,
+                ALTER COLUMN investment_style SET DEFAULT 'SIP';
+                """
+            )
+        except Exception as e:
+            print(f"Error setting default values: {e}")
+
+def set_user_logs_defaults(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # Set default values for add_date, update_date, deleted, and action columns in the user_logs table
+            cursor.execute(
+                """
+                ALTER TABLE user_logs
+                ALTER COLUMN action SET DEFAULT 'invalid';
+                """
+            )
+        except Exception as e:
+            print(f"Skipping user_logs table due to error: {e}")
 
 
 class Migration(migrations.Migration):
@@ -1019,5 +1047,7 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
-        migrations.RunPython(set_default_dates),
+        migrations.RunPython(set_default_dates_delted),
+        migrations.RunPython(set_user_financial_defaults),
+        migrations.RunPython(set_user_logs_defaults),
     ]
