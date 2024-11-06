@@ -13,7 +13,9 @@ from fastapi import Header, APIRouter, Depends, Response
 from asgiref.sync import sync_to_async
 
 from ai_mf_backend.core.v1.api import limiter
-
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
 from ai_mf_backend.models.v1.api.user_authentication import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
@@ -217,21 +219,21 @@ async def change_password(
         )
 
     jwt_token = Authorization
-    decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
-
-    email = decoded_payload.get("email")
-    mobile_no = decoded_payload.get("mobile_number")
-    token_expiry = decoded_payload.get("expiry")
-
-    if token_expiry and timezone.now().timestamp() >= token_expiry:
-        response.status_code = 401  # Set response status code for expired token
-        return ChangePasswordResponse(
+    if jwt_token:
+        try:
+            payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
+        except MalformedJWTRequestException as e:
+            response.status_code=498
+            return ChangePasswordResponse(
             status=False,
-            message="The JWT token has expired. Please request a new token.",
-            data={},
-            status_code=401,
+            message="Invalid JWT token is provided.",
+            data={"error":str(e)},
+            status_code = 498 ,
         )
 
+    email = payload.get("email")
+    mobile_no = payload.get("mobile_number")
+    
     if not any([email, mobile_no]):
         response.status_code = 422  # Set status code in the response
         return ChangePasswordResponse(
