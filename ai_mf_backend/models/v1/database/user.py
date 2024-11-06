@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-
+import re
 
 def validate_mobile_number(mobile_no: str) -> None:
 
@@ -30,14 +30,33 @@ class Gender(SoftDeleteModel):
 
 
 class MaritalStatus(SoftDeleteModel):
-    marital_status = models.CharField(max_length=50, unique=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+
+    marital_status = models.CharField(
+        max_length=50, 
+        unique=True
+        )
+    add_date = models.DateTimeField(
+        auto_now_add=True
+        )
+    update_date = models.DateTimeField(
+        auto_now=True
+        )
 
     class Meta:
         db_table = "marital_status"
         verbose_name = "Marital Status"
         verbose_name_plural = "Marital Status"
+    
+    def clean(self):
+        if not re.match(r'^[A-Za-z\s]+$', self.marital_status):
+            raise ValidationError(f"{self.marital_status} is not a valid marital status.")
+        
+        if not self.marital_status.strip():
+            raise ValidationError(f"Marital Status cannot be empty or only whitespace.")
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.marital_status
