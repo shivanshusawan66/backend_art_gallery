@@ -232,16 +232,16 @@ async def user_authentication_password(
             signup_payload["mobile_number"] = mobile_no
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
-        response.status_code = 201  # Set status code in the response
+        response.status_code = 200  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=True,
-            message=f"Welcome, you are a first-time user",
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
             data={
                 "credentials": email if email else mobile_no,
                 "token": jwt_token,
                 "otp": otp,
             },
-            status_code=201,
+            status_code=200,
         )
 
 
