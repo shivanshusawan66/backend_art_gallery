@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
     UserContactInfo,
@@ -181,6 +182,22 @@ async def update_user_personal_financial_details(
             user_financial.investment_style = request.investment_style
 
         await sync_to_async(user_personal.save)()
+
+        try:
+            await sync_to_async(user_financial.full_clean)()
+
+        except ValidationError as e:
+
+            error_details = e.message_dict  
+            
+            raise HTTPException(
+
+                status_code=422,
+
+                detail={"status": False, "message": "Validation Error", "errors": error_details},
+
+            )
+
         await sync_to_async(user_financial.save)()
 
     return User_Personal_Financial_Details_Update_Response(
