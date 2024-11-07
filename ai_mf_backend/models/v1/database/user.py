@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.utils.v1.validators.dates import validate_not_future_date, validate_reasonable_birth_date 
-from ai_mf_backend.utils.v1.validators.status import validate_marital_status
+from ai_mf_backend.utils.v1.validators.status import validate_marital_status, validate_gender
 
 def validate_mobile_number(mobile_no: str) -> None:
 
@@ -17,7 +17,7 @@ def validate_mobile_number(mobile_no: str) -> None:
 
 
 class Gender(SoftDeleteModel):
-    gender = models.CharField(max_length=50, unique=True)
+    gender = models.CharField(max_length=50, unique=True, validators=[validate_gender])
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
