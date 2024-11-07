@@ -15,7 +15,8 @@ services:
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
     depends_on:
-      - ai_mf_tests
+      # - ai_mf_tests
+      []
     networks:
       - ai_mf
 
@@ -35,7 +36,8 @@ services:
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
     depends_on:
-      - ai_mf_tests
+      # - ai_mf_tests
+      []
     networks:
       - ai_mf
 

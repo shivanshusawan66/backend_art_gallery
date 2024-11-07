@@ -2,7 +2,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-
+from ai_mf_backend.utils.v1.validators.dates import validate_not_future_date, validate_reasonable_birth_date 
+from ai_mf_backend.utils.v1.validators.status import validate_marital_status
 
 def validate_mobile_number(mobile_no: str) -> None:
 
@@ -30,14 +31,26 @@ class Gender(SoftDeleteModel):
 
 
 class MaritalStatus(SoftDeleteModel):
-    marital_status = models.CharField(max_length=50, unique=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+
+    marital_status = models.CharField(
+        max_length=50, 
+        unique=True, 
+        validators=[validate_marital_status]
+        )
+    add_date = models.DateTimeField(
+        auto_now_add=True
+        )
+    update_date = models.DateTimeField(
+        auto_now=True
+        )
 
     class Meta:
         db_table = "marital_status"
         verbose_name = "Marital Status"
         verbose_name_plural = "Marital Status"
+    
+    
+
 
     def __str__(self):
         return self.marital_status
@@ -92,16 +105,41 @@ class UserContactInfo(SoftDeleteModel):
 
 class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+
+        UserContactInfo,
+        on_delete=models.SET_NULL,
+        null=True, blank=True
     )
-    name = models.CharField(max_length=100, null=True, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.CharField(
+        max_length=100, 
+        null=True, 
+        blank=True
+    )
+    date_of_birth = models.DateField(
+        null=True, 
+        blank=True, 
+        validators=[validate_reasonable_birth_date,validate_not_future_date]
+    )
+    gender = models.ForeignKey(
+        Gender, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
     marital_status = models.ForeignKey(
-        MaritalStatus, on_delete=models.SET_NULL, null=True, blank=True
+        MaritalStatus, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
     )
-    add_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField(
+        auto_now_add=True, 
+        validators=[validate_not_future_date]
+    )
+    update_date = models.DateTimeField(
+        auto_now=True,
+        validators=[validate_not_future_date]
+    )
 
     class Meta:
         db_table = "user_personal_details"
@@ -126,3 +164,5 @@ class OTPlogs(SoftDeleteModel):
 
     def __str__(self):
         return f"OTP for {self.user}"
+
+    
