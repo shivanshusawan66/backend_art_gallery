@@ -2,79 +2,7 @@
 
 import ai_mf_backend.models.v1.database.user
 import django.db.models.deletion
-from django.db import migrations, models, connection
-
-def create_update_date_triggers(apps, schema_editor):
-    # Dynamically retrieve all model names
-    models = apps.get_models()
-    for model in models:
-        table_name = model._meta.db_table  # Get table name for each model
-        fields = [f.name for f in model._meta.fields]
-        if 'update_date' in fields:
-            schema_editor.execute(f"""
-                CREATE OR REPLACE FUNCTION update_timestamp() 
-                RETURNS TRIGGER AS $$
-                BEGIN
-                   NEW.update_date = NOW();
-                   RETURN NEW;
-                END;
-                $$ LANGUAGE plpgsql;
-
-                CREATE TRIGGER update_update_date
-                BEFORE UPDATE ON {table_name}
-                FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-            """)
-
-def drop_update_date_triggers(apps, schema_editor):
-    # Dynamically drop triggers for all tables
-    models = apps.get_models()
-    for model in models:
-        table_name = model._meta.db_table
-        schema_editor.execute(f"""
-            DROP TRIGGER IF EXISTS update_update_date ON {table_name};
-        """)
-    schema_editor.execute("DROP FUNCTION IF EXISTS update_timestamp;")
-
-def set_default_dates_deleted(apps, schema_editor):
-    with connection.cursor() as cursor:
-        # Fetch tables that have relevant columns
-        cursor.execute("""
-            SELECT table_name
-            FROM information_schema.columns
-            WHERE column_name IN ('add_date', 'update_date', 'deleted')
-              AND table_schema = 'public'
-            GROUP BY table_name;
-        """)
-        tables = cursor.fetchall()
-
-        # Iterate over tables
-        for (table,) in tables:
-            try:
-                # Check if each column exists in the current table before altering it
-                cursor.execute(f"""
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = '{table}' 
-                      AND column_name IN ('add_date', 'update_date', 'deleted');
-                """)
-                columns = {col[0] for col in cursor.fetchall()}
-
-                # Prepare ALTER statements based on existing columns
-                alter_statements = []
-                if 'add_date' in columns:
-                    alter_statements.append("ALTER COLUMN add_date SET DEFAULT NOW()")
-                if 'update_date' in columns:
-                    alter_statements.append("ALTER COLUMN update_date SET DEFAULT NOW()")
-                if 'deleted' in columns:
-                    alter_statements.append("ALTER COLUMN deleted SET DEFAULT FALSE")
-
-                # If there are statements to execute, proceed with ALTER
-                if alter_statements:
-                    cursor.execute(f"ALTER TABLE {table} {', '.join(alter_statements)};")
-            except Exception as e:
-                # Rollback transaction to continue with next table
-                connection.rollback()
-                print(f"Skipping {table} due to error: {e}")
+from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
@@ -1062,6 +990,4 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
-        migrations.RunPython(set_default_dates_deleted),
-        migrations.RunPython(create_update_date_triggers, reverse_code=drop_update_date_triggers),
     ]
