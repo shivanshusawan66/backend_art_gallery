@@ -144,6 +144,19 @@ async def update_user_personal_financial_details(
             lock_in_period_accepted=request.lock_in_period_accepted,
             investment_style=request.investment_style,
         )
+        try:
+            sync_to_async(user_financial.full_clean)()
+
+        except ValidationError as e:
+
+            error_details = e.message_dict  
+
+            raise HTTPException(
+                
+                status_code=422,
+
+                detail={"status": False, "message": "Validation Error", "errors": error_details},
+            )
         await sync_to_async(user_financial.save)()
 
     # Update existing data if both are present

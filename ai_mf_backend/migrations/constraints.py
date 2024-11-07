@@ -6,7 +6,7 @@ def set_user_personal_details_saving_category_constraint(apps, schema_editor):
         try:
             # Alphanumeric constraint for `saving_category`
             cursor.execute("""
-                ALTER TABLE user_personal_details
+                ALTER TABLE monthly_saving_capacity
                 ADD CONSTRAINT user_personal_details_saving_category_alphanumeric
                 CHECK (saving_category ~ '^[A-Za-z0-9\\s]+$');
             """)
