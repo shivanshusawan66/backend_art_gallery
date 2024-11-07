@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-from phonenumber_field.validators import validate_international_phonenumber
+from ai_mf_backend.utils.v1.authentication.validators import custom_validate_international_phonenumber
 
 from fastapi import APIRouter, Header, Response
 
@@ -90,7 +90,7 @@ async def otp_verification(
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set response status code
             return OTPVerificationResponse(
@@ -283,7 +283,7 @@ async def resend_otp(
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set response status code
             return ResendOTPResponse(
