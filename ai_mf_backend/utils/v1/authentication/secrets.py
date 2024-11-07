@@ -5,7 +5,7 @@ import jwt
 from asgiref.sync import sync_to_async
 
 from fastapi import Header
-
+from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
 from django.utils import timezone
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -26,19 +26,21 @@ def jwt_token_checker(
 ) -> Union[str, Dict]:
     """
     This method can perform various operations on the JWT token.
-    :param payload: payload that needs to be encoded
-    :param jwt_token: token that needs to be decoded
-    :param encode: boolean on whether we want to encode a payload or decode a token
-    :return: a string of encoded payload or a dict of decoded jwt string
-    :raises: when the combinations are not correct
+    :param payload: Payload that needs to be encoded
+    :param jwt_token: Token that needs to be decoded
+    :param encode: Boolean on whether we want to encode a payload or decode a token
+    :return: A string of encoded payload or a dict of decoded JWT string
+    :raises: When the combinations are not correct
     """
     if encode and payload:
         # Encoding a new JWT
         try:
-            encode_jwt = jwt.encode(
-                payload, authentication_config.SECRET, algorithm="HS256"
-            )
+            # Validate and parse the payload using Pydantic
+            payload = JWTTokenPayload(**payload)
+            encode_jwt = jwt.encode(payload.dict(), authentication_config.SECRET, algorithm="HS256")
             return encode_jwt
+        except ValidationError as ve:
+            raise MalformedJWTRequestException(f"Payload validation error: {ve}")
         except Exception as e:
             raise MalformedJWTRequestException(f"Error encoding JWT: {e}")
 
@@ -54,12 +56,18 @@ def jwt_token_checker(
                 jwt_token, authentication_config.SECRET, algorithms=["HS256"], options={"verify_exp": False}
             )
 
+            # Validate the decoded payload using Pydantic
+            try:
+                decoded_jwt = JWTTokenPayload(**decoded_jwt)
+            except ValidationError as e:
+                raise MalformedJWTRequestException(f"Payload validation error: {ve}")
+
             # Manually check the expiry field
-            expiry = decoded_jwt.get("expiry")
+            expiry = decoded_jwt.expiry
             if expiry and datetime.now(timezone.utc).timestamp() > expiry:
                 raise MalformedJWTRequestException("Token has expired.")
 
-            return decoded_jwt
+            return decoded_jwt.dict()
 
         except jwt.DecodeError:
             raise MalformedJWTRequestException("Malformed token. Please check the token format.")

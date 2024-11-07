@@ -133,6 +133,7 @@ async def user_authentication_password(
                 data={"credentials": email if email else mobile_no},
                 status_code=403,
             )
+        
         if password_checker(password, user_doc.password):
             new_payload = {
                 "token_type": "login",
@@ -230,6 +231,8 @@ async def user_authentication_password(
             signup_payload["email"] = email
         else:
             signup_payload["mobile_number"] = mobile_no
+        
+        
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
         response.status_code = 201  # Set status code in the response
@@ -245,7 +248,7 @@ async def user_authentication_password(
         )
 
 
-from fastapi import Response
+
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
