@@ -153,4 +153,4 @@ class OTPlogs(SoftDeleteModel):
     def __str__(self):
         return f"OTP for {self.user}"
 
-    from django.core import validators
+    

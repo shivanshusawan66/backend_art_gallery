@@ -2,8 +2,8 @@
 
 import ai_mf_backend.models.v1.database.user
 import django.db.models.deletion
-from django.db import migrations, models
-
+from django.db import migrations, models, connection
+from django.db.migrations import RunPython
 
 class Migration(migrations.Migration):
 
@@ -990,5 +990,38 @@ class Migration(migrations.Migration):
                     models.Index(fields=["user"], name="user_logs_user_id_2c9228_idx")
                 ],
             },
+        ),
+        
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="add_date",
+            field=models.DateTimeField(
+                auto_now_add=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="date_of_birth",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_reasonable_birth_date,
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date,
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="update_date",
+            field=models.DateTimeField(
+                auto_now=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date
+                ],
+            ),
         ),
     ]
