@@ -121,7 +121,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(set_user_personal_details_constraints),
+        
         migrations.RunPython(set_marital_status_constraint), 
-        migrations.RunPython(set_marital_status_constraint),
+        migrations.RunPython(set_default_dates_deleted),
+        migrations.RunPython(set_user_personal_details_constraints),
     ]
