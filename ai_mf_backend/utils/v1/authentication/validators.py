@@ -1,5 +1,13 @@
 import re
+import unicodedata
 from django.core.exceptions import ValidationError
+
+def contains_special_chars(input_string):
+    # Check if the character is a symbol, punctuation, or other special characters
+    for char in input_string:
+        if unicodedata.category(char) in ['Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po', 'Sm', 'Sc', 'Sk', 'So']:
+            return True
+    return False
 
 class CustomPasswordValidator:
     def validate(self, password, user=None):
@@ -13,9 +21,9 @@ class CustomPasswordValidator:
                 "Password must contain at least one number.",
                 code='password_no_number',
             )
-        if not re.search(r"[@$!%*?&]", password):  # Customize special characters as needed
+        if not contains_special_chars(password):  # Use the custom special character check
             raise ValidationError(
-                "Password must contain at least one special character (@, $, !, %, *, ?, or &).",
+                "Password must contain at least one special character (e.g., @, $, !, %, *, ?, or &).",
                 code='password_no_special',
             )
 
