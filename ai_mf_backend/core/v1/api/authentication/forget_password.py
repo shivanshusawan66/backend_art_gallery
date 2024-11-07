@@ -11,7 +11,7 @@ from phonenumber_field.validators import validate_international_phonenumber
 from fastapi import Header, APIRouter, Depends, Response
 
 from asgiref.sync import sync_to_async
-
+from typing import Optional
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.errors import (
     MalformedJWTRequestException,
@@ -192,8 +192,27 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
 async def change_password(
     request: ChangePasswordRequest,
     response: Response,  # Inject FastAPI Response object
-    Authorization: str = Header(...),  # Expect token in the Authorization header
+    Authorization: Optional[str] = Header(None),  # Expect token in the Authorization header
 ):
+    if Authorization is None:
+        return ChangePasswordResponse(
+            status=False,
+            message="Authorization header is missing.",
+            data={},
+            status_code=401,
+        )
+    else:
+        try:
+            payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except MalformedJWTRequestException as e:
+            response.status_code=498
+            return ChangePasswordResponse(
+            status=False,
+            message="Invalid JWT token is provided.",
+            data={"error":str(e)},
+            status_code = 498 ,
+        )
+
     old_password = request.old_password
     new_password = request.new_password
 
@@ -216,19 +235,6 @@ async def change_password(
             message=f"Bad Password provided: {error_response}",
             data={},
             status_code=422,
-        )
-
-    jwt_token = Authorization
-    if jwt_token:
-        try:
-            payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
-        except MalformedJWTRequestException as e:
-            response.status_code=498
-            return ChangePasswordResponse(
-            status=False,
-            message="Invalid JWT token is provided.",
-            data={"error":str(e)},
-            status_code = 498 ,
         )
 
     email = payload.get("email")

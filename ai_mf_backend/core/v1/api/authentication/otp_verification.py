@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-
+from typing import Optional     
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
@@ -48,16 +48,22 @@ router = APIRouter()
 async def otp_verification(
     request: OTPVerificationRequest,
     response: Response,  # Use FastAPI Response object
-    Authorization: str = Header(...),  # Expect token in the Authorization header
+    Authorization: Optional[str] = Header(None),  # Expect token in the Authorization header
 ) -> OTPVerificationResponse:
 
-    jwt_token = Authorization
     otp_sent = request.otp
     remember_me = request.remember_me
 
-    if jwt_token:
+    if Authorization is None:
+        return OTPVerificationResponse(
+            status=False,
+            message="Authorization header is missing.",
+            data={},
+            status_code=401,
+        )
+    else:
         try:
-            payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
+            payload = jwt_token_checker(jwt_token=Authorization, encode=False)
         except MalformedJWTRequestException as e:
             response.status_code=498
             return OTPVerificationResponse(

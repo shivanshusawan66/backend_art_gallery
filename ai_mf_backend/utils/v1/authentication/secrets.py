@@ -49,11 +49,6 @@ def jwt_token_checker(
             if "Bearer" in jwt_token:
                 jwt_token = jwt_token.split("Bearer ")[1].strip()
 
-            # Fix padding if needed
-            padding_needed = len(jwt_token) % 4
-            if padding_needed != 0:
-                jwt_token += '=' * (4 - padding_needed)
-
             # Decode the JWT without expiration claim check
             decoded_jwt = jwt.decode(
                 jwt_token, authentication_config.SECRET, algorithms=["HS256"], options={"verify_exp": False}
@@ -62,9 +57,14 @@ def jwt_token_checker(
             # Manually check the expiry field
             expiry = decoded_jwt.get("expiry")
             if expiry and datetime.now(timezone.utc).timestamp() > expiry:
-                raise MalformedJWTRequestException("Error decoding JWT: Token has expired.")
+                raise MalformedJWTRequestException("Token has expired.")
 
             return decoded_jwt
+
+        except jwt.DecodeError:
+            raise MalformedJWTRequestException("Malformed token. Please check the token format.")
+        except jwt.InvalidTokenError:
+            raise MalformedJWTRequestException("Invalid token. The token may be tampered with.")
         except Exception as e:
             raise MalformedJWTRequestException(f"Error decoding JWT: {e}")
 
