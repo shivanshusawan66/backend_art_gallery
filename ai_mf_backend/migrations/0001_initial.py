@@ -8,6 +8,7 @@ import django.db.models.deletion
 
 import ai_mf_backend.utils.v1.validators.status
 import ai_mf_backend.utils.v1.validators.dates
+import ai_mf_backend.utils.v1.validators.annual_income
 
 class Migration(migrations.Migration):
 
@@ -468,4 +469,11 @@ class Migration(migrations.Migration):
             name='marital_status',
             field=models.CharField(max_length=50, unique=True, validators=[ai_mf_backend.utils.v1.validators.status.validate_marital_status]),
         ),
+        migrations.AlterField(
+            model_name='annualincome',
+            name='income_category',
+            field=models.CharField(max_length=100, unique=True, validators=[ai_mf_backend.utils.v1.validators.annual_income.validate_annual_income]),
+        ),
+        
+
     ]

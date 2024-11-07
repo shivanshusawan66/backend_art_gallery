@@ -113,6 +113,47 @@ def set_user_personal_details_constraints(apps, schema_editor):
             connection.rollback()
             print(f"Error applying constraints: {e}")
 
+
+def set_income_category_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Fetch tables that have a marital_status column
+        cursor.execute("""
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name = 'income_category'
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """)
+        tables = cursor.fetchall()
+
+        # Regular expression pattern to allow only alphabetic characters and spaces
+        # pattern = r"^\d+\s*-\s*\d+$"
+        
+        # Iterate over tables to apply CHECK constraint
+        for (table,) in tables:
+            try:
+                # Check if the marital_status column exists in the current table
+                cursor.execute(f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' 
+                      AND column_name = 'income_category';
+                """)
+                columns = {col[0] for col in cursor.fetchall()}
+
+                # Apply the CHECK constraint only if the marital_status column is found
+                if 'income_category' in columns:
+                    cursor.execute(f"""
+                        ALTER TABLE {table}
+                        ADD CONSTRAINT {table}_income_category_check
+                        CHECK (income_category ~ '^\d+\s*-\s*\d+$' AND income_category IS NOT NULL AND TRIM(income_category) <> '');
+                    """)
+            except Exception as e:
+                # Rollback transaction to continue with the next table if an error occurs
+                connection.rollback()
+                print(f"Skipping {table} due to error: {e}")
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -122,6 +163,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(set_user_personal_details_constraints),
-        migrations.RunPython(set_marital_status_constraint), 
+        migrations.RunPython(set_default_dates_deleted), 
         migrations.RunPython(set_marital_status_constraint),
+        migrations.RunPython(set_income_category_constraint),
     ]
