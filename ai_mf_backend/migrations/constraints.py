@@ -113,6 +113,13 @@ def set_user_personal_details_constraints(apps, schema_editor):
             connection.rollback()
             print(f"Error applying constraints: {e}")
 
+def add_case_insensitive_unique_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Adding a unique index with a case-insensitive function
+        cursor.execute("""
+            CREATE UNIQUE INDEX gender_name_unique_ci 
+            ON gender (UPPER(gender));
+        """)
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -121,7 +128,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        
+        migrations.RunPython(set_marital_status_constraint),    
+        migrations.RunPython(set_default_dates_deleted),
         migrations.RunPython(set_user_personal_details_constraints),
-        migrations.RunPython(set_marital_status_constraint), 
-        migrations.RunPython(set_marital_status_constraint),
+        migrations.RunPython(add_case_insensitive_unique_constraint)
+     
     ]
