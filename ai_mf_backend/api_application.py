@@ -208,17 +208,20 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "occupation",
-        "annual_income",
-        "monthly_saving_capacity",
+        "income_category",
+        "saving_category",
         "investment_amount_per_year",
+        "regular_source_of_income",
+        "lock_in_period_accepted",
+        "investment_style",
         "add_date",
         "update_date",
     )
     search_fields = ("user__email",)
     list_filter = (
         "occupation",
-        "annual_income",
-        "monthly_saving_capacity",
+        "income_category",
+        "saving_category",
         "investment_amount_per_year",
     )
     ordering = ("user",)
@@ -226,9 +229,9 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
 
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
-    list_display = ("section_name", "add_date", "update_date")
-    search_fields = ("section_name",)
-    ordering = ("section_name",)
+    list_display = ("section", "add_date", "update_date")
+    search_fields = ("section",)
+    ordering = ("section",)
 
 
 @admin.register(Question)

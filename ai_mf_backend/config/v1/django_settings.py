@@ -113,6 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "ai_mf_backend.utils.v1.authentication.validators.CustomPasswordValidator",
+    },
 ]
 
 
@@ -127,7 +130,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-PHONENUMBER_DEFAULT_REGION = "IN"
 
 # LOGGING_CONFIG = "INFO"
 

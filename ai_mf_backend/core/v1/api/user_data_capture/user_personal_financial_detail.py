@@ -18,6 +18,7 @@ from ai_mf_backend.models.v1.api.user_data import (
     User_Personal_Financial_Details_Update_Response,
 )
 from asgiref.sync import sync_to_async
+from django.core.exceptions import ValidationError
 
 router = APIRouter()
 
@@ -131,8 +132,20 @@ async def update_user_personal_financial_details(
             gender=gender,
             marital_status=marital_status,
         )
-        await sync_to_async(user_personal.save)()
-
+        try:
+            await sync_to_async(user_personal.full_clean)()  # Run validation
+            await sync_to_async(user_personal.save)()
+        except ValidationError as e:
+            # Capture validation error details
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+            )
     if not user_financial:
         user_financial = UserFinancialDetails(
             user=user,
