@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
     UserContactInfo,
@@ -140,7 +141,11 @@ async def update_user_personal_financial_details(
             error_details = e.message_dict  # This contains field-specific errors
             raise HTTPException(
                 status_code=422,
-                detail={"status": False, "message": "Validation Error", "errors": error_details},
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
             )
     if not user_financial:
         user_financial = UserFinancialDetails(
@@ -197,7 +202,11 @@ async def update_user_personal_financial_details(
             error_details = e.message_dict  # This contains field-specific errors
             raise HTTPException(
                 status_code=400,
-                detail={"status": False, "message": "Validation Error", "errors": error_details},
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
             )
 
     return User_Personal_Financial_Details_Update_Response(
