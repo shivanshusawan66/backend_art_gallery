@@ -52,7 +52,7 @@ class InvestmentAmountPerYear(SoftDeleteModel):
         verbose_name_plural = "Investment Amount Per Year"
 
     def __str__(self):
-        return self.investment_amount_per_year
+        return f"{self.investment_amount_per_year:.2f}"
 
 
 class UserFinancialDetails(SoftDeleteModel):
