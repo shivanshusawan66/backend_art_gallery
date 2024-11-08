@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-
+from typing import Optional     
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
@@ -30,6 +30,9 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     password_encoder,
 )
 from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
 
 from ai_mf_backend.config.v1.api_config import api_config
 
@@ -45,18 +48,33 @@ router = APIRouter()
 async def otp_verification(
     request: OTPVerificationRequest,
     response: Response,  # Use FastAPI Response object
-    Authorization: str = Header(...),  # Expect token in the Authorization header
+    Authorization: Optional[str] = Header(None),  # Expect token in the Authorization header
 ) -> OTPVerificationResponse:
 
-    jwt_token = Authorization
     otp_sent = request.otp
     remember_me = request.remember_me
 
-    payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
+    if Authorization is None:
+        return OTPVerificationResponse(
+            status=False,
+            message="Authorization header is missing.",
+            data={},
+            status_code=401,
+        )
+    else:
+        try:
+            payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except MalformedJWTRequestException as e:
+            response.status_code=498
+            return OTPVerificationResponse(
+            status=False,
+            message="Invalid JWT token is provided.",
+            data={"error":str(e)},
+            status_code = 498 ,
+        )
 
     email = payload.get("email")
     mobile_no = payload.get("mobile_number")
-    token_expiry = payload.get("expiry")
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set response status code
@@ -99,15 +117,6 @@ async def otp_verification(
                 data={"credentials": email if email else mobile_no},
                 status_code=422,
             )
-
-    if token_expiry and timezone.now().timestamp() >= token_expiry:
-        response.status_code = 401  # Set response status code for expired token
-        return OTPVerificationResponse(
-            status=False,
-            message="The JWT token has expired. Please request a new token.",
-            data={},
-            status_code=401,
-        )
 
     if not isinstance(otp_sent, int) or not (100000 <= otp_sent <= 999999):
         response.status_code = 422  # Set response status code
