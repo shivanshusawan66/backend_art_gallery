@@ -4,7 +4,7 @@ import random
 import string
 import logging
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request,status,HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
@@ -98,6 +98,33 @@ async def internal_server_exception_handler(
 
     return JSONResponse(
         content=api_response.model_dump(), status_code=api_response.status_code
+    )
+
+@application.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
+        # Customize the error response format for missing fields
+        details = [
+            {
+                "type": "missing",
+                "loc": ["body", field["loc"][-1]],  # Get the field name from the location
+                "msg": f"{field['loc'][-1].replace('_', ' ').capitalize()} is required",  # Custom error message
+                "input": {}  # No input, as the field is missing
+            }
+            for field in exc.detail if isinstance(field, dict) and field.get("msg") == "field required"
+        ]
+        
+        # Return custom JSONResponse if there are missing fields
+        if details:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": details}
+            )
+
+    # Default response for other HTTPException errors
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
     )
 
 
