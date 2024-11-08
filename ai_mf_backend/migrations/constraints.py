@@ -1,4 +1,6 @@
 from django.db import connection, migrations
+from django.utils import timezone
+
 
 
 def create_update_date_triggers(apps, schema_editor):
@@ -31,6 +33,53 @@ def drop_update_date_triggers(apps, schema_editor):
             DROP TRIGGER IF EXISTS update_update_date ON {table_name};
         """)
     schema_editor.execute("DROP FUNCTION IF EXISTS update_timestamp;")
+    
+
+def set_marital_status_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Fetch tables that have a marital_status column
+        cursor.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name = 'marital_status'
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """
+        )
+        tables = cursor.fetchall()
+
+        # Regular expression pattern to allow only alphabetic characters and spaces
+        # pattern = r"^[A-Za-z\s]+$"
+
+        # Iterate over tables to apply CHECK constraint
+        for (table,) in tables:
+            try:
+                # Check if the marital_status column exists in the current table
+                cursor.execute(
+                    f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' 
+                      AND column_name = 'marital_status';
+                """
+                )
+                columns = {col[0] for col in cursor.fetchall()}
+
+                # Apply the CHECK constraint only if the marital_status column is found
+                if "marital_status" in columns:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD CONSTRAINT {table}_marital_status_check
+                        CHECK (marital_status ~ '^[A-Za-z\\s]+$' AND marital_status IS NOT NULL AND TRIM(marital_status) <> '');
+                    """
+                    )
+            except Exception as e:
+                # Rollback transaction to continue with the next table if an error occurs
+                connection.rollback()
+                print(f"Skipping {table} due to error: {e}")
+
 
 def set_default_dates_deleted(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -72,47 +121,7 @@ def set_default_dates_deleted(apps, schema_editor):
                 # Rollback transaction to continue with next table
                 connection.rollback()
                 print(f"Skipping {table} due to error: {e}")
-                
 
-def set_marital_status_constraint(apps, schema_editor):
-    with connection.cursor() as cursor:
-        # Fetch tables that have a marital_status column
-        cursor.execute("""
-            SELECT table_name
-            FROM information_schema.columns
-            WHERE column_name = 'marital_status'
-              AND table_schema = 'public'
-            GROUP BY table_name;
-        """)
-        tables = cursor.fetchall()
-
-        # Regular expression pattern to allow only alphabetic characters and spaces
-        # pattern = r"^[A-Za-z\s]+$"
-        
-        # Iterate over tables to apply CHECK constraint
-        for (table,) in tables:
-            try:
-                # Check if the marital_status column exists in the current table
-                cursor.execute(f"""
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = '{table}' 
-                      AND column_name = 'marital_status';
-                """)
-                columns = {col[0] for col in cursor.fetchall()}
-
-                # Apply the CHECK constraint only if the marital_status column is found
-                if 'marital_status' in columns:
-                    cursor.execute(f"""
-                        ALTER TABLE {table}
-                        ADD CONSTRAINT {table}_marital_status_check
-                        CHECK (marital_status ~ '^[A-Za-z\\s]+$' AND marital_status IS NOT NULL AND TRIM(marital_status) <> '');
-                    """)
-            except Exception as e:
-                # Rollback transaction to continue with the next table if an error occurs
-                connection.rollback()
-                print(f"Skipping {table} due to error: {e}")
-                
 
 def set_user_personal_details_constraints(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -157,6 +166,61 @@ class Migration(migrations.Migration):
         
         
     ]
+
+def set_gender_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Fetch tables that have a gender column
+        cursor.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name = 'gender'
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """
+        )
+        tables = cursor.fetchall()
+
+        # Iterate over tables to apply CHECK constraint
+        for (table,) in tables:
+            try:
+                # Check if the gender column exists in the current table
+                cursor.execute(
+                    f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' 
+                      AND column_name = 'gender';
+                """
+                )
+                columns = {col[0] for col in cursor.fetchall()}
+
+                # Apply the CHECK constraint only if the gender column is found
+                if "gender" in columns:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD CONSTRAINT {table}_gender_check
+                        CHECK (gender ~ '^[A-Za-z\\s]+$' AND gender IS NOT NULL AND TRIM(gender) <> '');
+                    """
+                    )
+            except Exception as e:
+                # Rollback transaction to continue with the next table if an error occurs
+                connection.rollback()
+                print(f"Skipping {table} due to error: {e}")
+
+
+def add_case_insensitive_unique_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Adding a unique index with a case-insensitive function
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX gender_name_unique_ci 
+            ON gender (UPPER(gender));
+        """
+        )
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -165,8 +229,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(set_user_personal_details_constraints),
         migrations.RunPython(set_marital_status_constraint),
         migrations.RunPython(set_default_dates_deleted),
+        migrations.RunPython(set_user_personal_details_constraints),
+        migrations.RunPython(add_case_insensitive_unique_constraint),
+        migrations.RunPython(set_gender_constraint),
         migrations.RunPython(create_update_date_triggers, reverse_code=drop_update_date_triggers),
     ]
