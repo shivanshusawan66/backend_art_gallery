@@ -6,6 +6,12 @@ import ai_mf_backend.utils.v1.validators.status
 import django.db.models.deletion
 from django.db import migrations, models
 
+import ai_mf_backend.models.v1.database.user
+import django.db.models.deletion
+
+import ai_mf_backend.utils.v1.validators.status
+import ai_mf_backend.utils.v1.validators.dates
+import ai_mf_backend.utils.v1.validators.annual_income
 
 class Migration(migrations.Migration):
 
@@ -1053,4 +1059,49 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
+        
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="add_date",
+            field=models.DateTimeField(
+                auto_now_add=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="date_of_birth",
+            field=models.DateField(
+                blank=True,
+                null=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_reasonable_birth_date,
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date,
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name="userpersonaldetails",
+            name="update_date",
+            field=models.DateTimeField(
+                auto_now=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.dates.validate_not_future_date
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name='maritalstatus',
+            name='marital_status',
+            field=models.CharField(max_length=50, unique=True, validators=[ai_mf_backend.utils.v1.validators.status.validate_marital_status]),
+        ),
+        migrations.AlterField(
+            model_name='annualincome',
+            name='income_category',
+            field=models.CharField(max_length=100, unique=True, validators=[ai_mf_backend.utils.v1.validators.annual_income.validate_annual_income]),
+        ),
+        
+
     ]

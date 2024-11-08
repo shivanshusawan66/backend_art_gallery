@@ -1,11 +1,12 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
+from ai_mf_backend.utils.v1.validators.annual_income import validate_annual_income
 
 
 
 class AnnualIncome(SoftDeleteModel):
-    income_category = models.CharField(max_length=100, unique=True)
+    income_category = models.CharField(max_length=100, unique=True, validators=[validate_annual_income])
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
