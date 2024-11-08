@@ -103,7 +103,7 @@ async def get_financial_options():
             "name": "occupations",
             "label": "Occupations",
             "options": occupation_options,
-            "type": "checkbox",
+            "type": "dropdown",
             "default": [occupation_options[0]["key"]] if occupation_options else [],
             "required": False,
         },
@@ -111,7 +111,7 @@ async def get_financial_options():
             "name": "annual_incomes",
             "label": "Annual Incomes",
             "options": annual_income_options,
-            "type": "",
+            "type": "dropdown",
             "default": (
                 [annual_income_options[0]["key"]] if annual_income_options else []
             ),
@@ -121,7 +121,7 @@ async def get_financial_options():
             "name": "monthly_saving_capacities",
             "label": "Monthly Saving Capacities",
             "options": monthly_saving_capacity_options,
-            "type": "checkbox",
+            "type": "dropdown",
             "default": (
                 [monthly_saving_capacity_options[0]["key"]]
                 if monthly_saving_capacity_options
@@ -133,7 +133,7 @@ async def get_financial_options():
             "name": "investment_amounts_per_year",
             "label": "Investment Amounts Per Year",
             "options": investment_amount_per_year_options,
-            "type": "checkbox",
+            "type": "dropdown",
             "default": (
                 [investment_amount_per_year_options[0]["key"]]
                 if investment_amount_per_year_options
