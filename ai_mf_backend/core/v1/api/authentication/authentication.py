@@ -9,9 +9,9 @@ from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-
-from phonenumber_field.validators import validate_international_phonenumber
-
+from ai_mf_backend.utils.v1.authentication.validators import (
+    custom_validate_international_phonenumber,
+)
 from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
@@ -84,7 +84,7 @@ async def user_authentication_password(
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set status code in the response
             return UserAuthenticationPasswordResponse(
@@ -133,7 +133,7 @@ async def user_authentication_password(
                 data={"credentials": email if email else mobile_no},
                 status_code=403,
             )
-        
+
         if password_checker(password, user_doc.password):
             new_payload = {
                 "token_type": "login",
@@ -231,8 +231,7 @@ async def user_authentication_password(
             signup_payload["email"] = email
         else:
             signup_payload["mobile_number"] = mobile_no
-        
-        
+
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
         response.status_code = 200  # Set status code in the response
@@ -246,9 +245,6 @@ async def user_authentication_password(
             },
             status_code=200,
         )
-
-
-
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
@@ -294,7 +290,7 @@ async def user_authentication_otp(
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set status code in the header
             return UserAuthenticationOTPResponse(

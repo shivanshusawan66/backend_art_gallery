@@ -37,7 +37,9 @@ def jwt_token_checker(
         try:
             # Validate and parse the payload using Pydantic
             payload = JWTTokenPayload(**payload)
-            encode_jwt = jwt.encode(payload.dict(), authentication_config.SECRET, algorithm="HS256")
+            encode_jwt = jwt.encode(
+                payload.dict(), authentication_config.SECRET, algorithm="HS256"
+            )
             return encode_jwt
         except ValidationError as ve:
             raise MalformedJWTRequestException(f"Payload validation error: {ve}")
@@ -53,7 +55,10 @@ def jwt_token_checker(
 
             # Decode the JWT without expiration claim check
             decoded_jwt = jwt.decode(
-                jwt_token, authentication_config.SECRET, algorithms=["HS256"], options={"verify_exp": False}
+                jwt_token,
+                authentication_config.SECRET,
+                algorithms=["HS256"],
+                options={"verify_exp": False},
             )
 
             # Validate the decoded payload using Pydantic
@@ -70,14 +75,20 @@ def jwt_token_checker(
             return decoded_jwt.dict()
 
         except jwt.DecodeError:
-            raise MalformedJWTRequestException("Malformed token. Please check the token format.")
+            raise MalformedJWTRequestException(
+                "Malformed token. Please check the token format."
+            )
         except jwt.InvalidTokenError:
-            raise MalformedJWTRequestException("Invalid token. The token may be tampered with.")
+            raise MalformedJWTRequestException(
+                "Invalid token. The token may be tampered with."
+            )
         except Exception as e:
             raise MalformedJWTRequestException(f"Error decoding JWT: {e}")
 
     else:
-        raise MalformedJWTRequestException("Malformed JWT request: No valid input provided")
+        raise MalformedJWTRequestException(
+            "Malformed JWT request: No valid input provided"
+        )
 
 
 def password_encoder(password: str) -> str:
