@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
     UserContactInfo,
