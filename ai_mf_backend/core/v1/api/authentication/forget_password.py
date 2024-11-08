@@ -14,7 +14,6 @@ from fastapi import Header, APIRouter, Depends, Response
 
 from asgiref.sync import sync_to_async
 from typing import Optional
-from typing import Optional
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.errors import (
     MalformedJWTRequestException,
