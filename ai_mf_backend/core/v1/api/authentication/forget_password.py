@@ -244,6 +244,15 @@ async def change_password(
             data={},
             status_code=422,
         )
+    
+    if old_password == new_password:
+        response.status_code = 400  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Old password and new password cannot be the same.",
+            data={},
+            status_code=400,
+        )
 
     email = payload.get("email")
     mobile_no = payload.get("mobile_number")
