@@ -135,7 +135,7 @@ async def update_user_personal_financial_details(
         )
         try:
             await sync_to_async(user_personal.full_clean)()  # Run validation
-            await sync_to_async(user_personal.save)()
+            
         except ValidationError as e:
             # Capture validation error details
             error_details = e.message_dict  # This contains field-specific errors
@@ -147,17 +147,31 @@ async def update_user_personal_financial_details(
                     "errors": error_details,
                 },
             )
+        await sync_to_async(user_personal.save)()
     if not user_financial:
         user_financial = UserFinancialDetails(
             user=user,
             occupation=occupation,
-            annual_income=annual_income,
-            monthly_saving_capacity=monthly_saving_capacity,
+            income_category=annual_income,
+            saving_category=monthly_saving_capacity,
             investment_amount_per_year=investment_amount_per_year,
             regular_source_of_income=request.regular_source_of_income,
             lock_in_period_accepted=request.lock_in_period_accepted,
             investment_style=request.investment_style,
         )
+        try:
+            await sync_to_async(user_financial.full_clean)()
+        except ValidationError as e:
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+
+            )
         await sync_to_async(user_financial.save)()
 
     # Update existing data if both are present
@@ -178,10 +192,10 @@ async def update_user_personal_financial_details(
             user_financial.occupation = occupation
 
         if request.annual_income_id:
-            user_financial.annual_income = annual_income
+            user_financial.income_category = annual_income
 
         if request.monthly_saving_capacity_id:
-            user_financial.monthly_saving_capacity = monthly_saving_capacity
+            user_financial.saving_category = monthly_saving_capacity
 
         if request.investment_amount_per_year_id:
             user_financial.investment_amount_per_year = investment_amount_per_year
