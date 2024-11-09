@@ -148,7 +148,22 @@ async def update_user_personal_financial_details(
             gender=gender,
             marital_status=marital_status,
         )
-
+        try:
+            await sync_to_async(user_personal.full_clean)()  # Run validation
+            
+        except ValidationError as e:
+            # Capture validation error details
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+            )
+        await sync_to_async(user_personal.save)()
+    if not user_financial:
         user_financial = UserFinancialDetails(
             user=user,
             occupation=occupation,
@@ -159,22 +174,19 @@ async def update_user_personal_financial_details(
             lock_in_period_accepted=request.lock_in_period_accepted,
             investment_style=request.investment_style,
         )
-
         try:
-            await sync_to_async(user_personal.full_clean)()  # Run validation
-            await sync_to_async(user_personal.save)()
             await sync_to_async(user_financial.full_clean)()
-            await sync_to_async(user_financial.save)() 
         except ValidationError as e:
-            # Capture validation error details
-            response.status_code = 422  # Set status code in the response
-            return User_Personal_Financial_Details_Update_Response(
-                status=False,
-                message=f"Validation error",
-                data={"errors": e.message_dict},
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
                 status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+
             )
-        await sync_to_async(user_personal.save)()
         await sync_to_async(user_financial.save)()
         return User_Personal_Financial_Details_Update_Response(
             status=True,
