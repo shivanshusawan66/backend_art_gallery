@@ -1,23 +1,17 @@
 from typing import Annotated, Dict, Union
-
 import jwt
-
 from asgiref.sync import sync_to_async
-
 from fastapi import Header
 from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
-from django.utils import timezone
+from django.utils import timezone as django_timezone  # Alias django timezone to avoid conflicts
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password, check_password
-
 from phonenumber_field.validators import validate_international_phonenumber
-from datetime import datetime, timezone
+from datetime import datetime, timezone as dt_timezone  # Alias datetime timezone
 
 from ai_mf_backend.config.v1.authentication_config import authentication_config
-from ai_mf_backend.utils.v1.errors import (
-    MalformedJWTRequestException,
-)
+from ai_mf_backend.utils.v1.errors import MalformedJWTRequestException
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 
 
@@ -69,7 +63,7 @@ def jwt_token_checker(
 
             # Manually check the expiry field
             expiry = decoded_jwt.expiry
-            if expiry and datetime.now(timezone.utc).timestamp() > expiry:
+            if expiry and datetime.now(dt_timezone.utc).timestamp() > expiry:
                 raise MalformedJWTRequestException("Token has expired.")
 
             return decoded_jwt.dict()
@@ -174,7 +168,7 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
         raise MalformedJWTRequestException("This user does not exist.")
 
     expiry = float(decoded_payload["expiry"])
-    current_time = float(timezone.now().timestamp())
+    current_time = float(django_timezone.now().timestamp())
     if current_time < expiry:
         return Authorization
     else:
