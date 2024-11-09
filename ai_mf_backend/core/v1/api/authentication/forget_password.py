@@ -1,328 +1,337 @@
-# import logging
-# from datetime import datetime, timedelta
-# from django.utils import timezone
-# from fastapi import APIRouter, Response
-# from asgiref.sync import sync_to_async
-# from fastapi import Header, Request
-# from typing import Annotated
-# from app.schemas.v1.authentication import (
-#     ForgotPasswordRequest,
-#     ForgotPasswordResponse,
-#     ChangePasswordRequest,
-#     ChangePasswordResponse,
-# )
-# from app.models import UserManagement
-# from utils.v1.authentication.otp import send_email_otp
-# from utils.v1.authentication.secrets import (
-#     jwt_token_checker,
-#     password_encoder,
-#     login_checker,
-#     password_checker,
-# )
+import logging
+from datetime import timedelta
 
-# logger = logging.getLogger(__name__)
+from django.utils import timezone
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 
-# router = APIRouter()
+from ai_mf_backend.utils.v1.authentication.validators import (
+    custom_validate_international_phonenumber,
+)
 
+from fastapi import Header, APIRouter, Depends, Response
 
-# @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
-# async def forgot_password(request: ForgotPasswordRequest):
-#     """
-#     Handles the forgot password functionality by generating an OTP and sending it to the user's
-#     email or mobile number. A JWT token is also generated, which is used for resetting the password.
+from asgiref.sync import sync_to_async
+from typing import Optional
+from ai_mf_backend.core.v1.api import limiter
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
+from ai_mf_backend.models.v1.api.user_authentication import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+)
+from ai_mf_backend.models.v1.database.user import UserContactInfo, OTPlogs
+from ai_mf_backend.utils.v1.authentication.otp import send_otp
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    jwt_token_checker,
+    password_encoder,
+    login_checker,
+    password_checker,
+)
+from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
 
-#     This endpoint supports two modes of identity verification:
-#     1. Through email.
-#     2. Through mobile number.
+from ai_mf_backend.config.v1.api_config import api_config
 
-#     If the user exists in the system, an OTP will be generated and sent to the provided email or mobile number,
-#     and a JWT token will be created to facilitate the password reset process. If the user does not exist,
-#     an error response will be returned.
+logger = logging.getLogger(__name__)
 
-#     Parameters:
-#     -----------
-#     request : ForgotPasswordRequest
-#         A Pydantic model instance containing the user's email or mobile number for initiating the password reset
-#         process.
-
-#     Logic:
-#     ------
-#     1. **Email-based flow**:
-#        - If an email is provided, the system checks whether the user exists with that email.
-#        - If the user exists, an OTP is generated, valid for 15 minutes, and a JWT token is created with a 7-day expiry.
-#        - The OTP is sent via email and stored in the user's record, and the JWT token is returned in the response.
-#        - If the user does not exist, a `404 Not Found` response is returned.
-
-#     2. **Mobile number-based flow**:
-#        - If a mobile number is provided, the system checks whether the user exists with that mobile number.
-#        - Similar to the email flow, an OTP is generated and a JWT token is created.
-#        - The OTP is sent via the mobile number (via SMS or other channels), and the JWT token is returned in the response.
-#        - If the user does not exist, a `404 Not Found` response is returned.
-
-#     Returns:
-#     --------
-#     ForgotPasswordResponse: JSON
-#         A structured response indicating the success or failure of the forgot password request.
-#         On success, an OTP is sent to the provided email or mobile number, and a JWT token is generated for password reset.
-
-#     Possible Status Codes:
-#     ----------------------
-#     - 200: OTP successfully sent and JWT token generated.
-#     - 404: User does not exist for the provided email or mobile number.
-
-#     Example:
-#     --------
-#     **Email-based Request**:
-#     Request:
-#         POST /forgot_password
-#         {
-#             "email": "user@example.com"
-#         }
-
-#     Response:
-#         {
-#             "status": true,
-#             "message": "OTP has been sent to user@example.com. Please check.",
-#             "data": {
-#                 "token": "jwt_token",
-#                 "userdata": {
-#                     "email": "user@example.com"
-#                 }
-#             }
-#         }
-
-#     **Mobile number-based Request**:
-#     Request:
-#         POST /forgot_password
-#         {
-#             "mobile_no": "+1234567890"
-#         }
-
-#     Response:
-#         {
-#             "status": true,
-#             "message": "OTP has been sent to +1234567890. Please check.",
-#             "data": {
-#                 "token": "jwt_token",
-#                 "userdata": {
-#                     "mobile_no": "+1234567890"
-#                 }
-#             }
-#         }
-#     """
-#     if request.email:
-#         user_doc = await sync_to_async(
-#             UserManagement.objects.filter(email=request.email).first
-#         )()
-
-#         if user_doc:
-#             otp = send_email_otp()
-#             current_time = timezone.now()
-
-#             payload = {
-#                 "email": request.email,
-#                 "token_type": "forgot_password",
-#                 "creation_time": current_time.timestamp(),
-#                 "expiry": (current_time + timedelta(days=7)).timestamp(),
-#             }
-
-#             jwt_token = jwt_token_checker(payload=payload, encode=True)
-
-#             user_doc.otp = otp
-#             user_doc.otp_valid_till = current_time + timedelta(minutes=15)
-#             await sync_to_async(user_doc.save)()
-
-#             return ForgotPasswordResponse(
-#                 status=True,
-#                 message=f"OTP has been sent to {request.email}. Please check.",
-#                 data={"token": jwt_token, "userdata": {"email": request.email}},
-#             )
-#         else:
-#             return ForgotPasswordResponse(
-#                 status=False,
-#                 message=f"This profile does not exist. {request.email}",
-#                 data={"error": "This profile does not exist."},
-#                 status_code=404,
-#             )
-#     elif request.mobile_no:
-#         user_doc = await sync_to_async(
-#             UserManagement.objects.filter(mobile_numner=request.mobile_no).first
-#         )()
-
-#         if user_doc:
-#             otp = send_email_otp()
-#             current_time = timezone.now()
-
-#             payload = {
-#                 "mobile_no": request.mobile_no,
-#                 "token_type": "forgot_password",
-#                 "creation_time": current_time.timestamp(),
-#                 "expiry": (current_time + timedelta(days=7)).timestamp(),
-#             }
-
-#             jwt_token = jwt_token_checker(payload=payload, encode=True)
-
-#             user_doc.otp = otp
-#             user_doc.otp_valid_till = current_time + timedelta(minutes=15)
-#             await sync_to_async(user_doc.save)()
-
-#             return ForgotPasswordResponse(
-#                 status=True,
-#                 message=f"OTP has been sent to {request.mobile_no}. Please check.",
-#                 data={"token": jwt_token, "userdata": {"email": request.mobile_no}, "otp":otp},
-#             )
-#         else:
-#             return ForgotPasswordResponse(
-#                 status=False,
-#                 message=f"This profile does not exist. {request.mobile_no}",
-#                 data={"error": "This profile does not exist."},
-#                 status_code=404,
-#             )
+router = APIRouter()
 
 
-# @router.post("/change_password", response_model=ChangePasswordResponse, status_code=200)
-# async def change_password(request: ChangePasswordRequest):
-#     """
-#     Handles the password change process for users, allowing them to reset their password
-#     after verifying their old password. This function supports password changes for both email and
-#     mobile number-based profiles, utilizing a JWT token for authentication.
+@limiter.limit(api_config.REQUEST_PER_MIN)
+@router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
+async def forgot_password(request: ForgotPasswordRequest, response: Response):
 
-#     Parameters:
-#     -----------
-#     request : ChangePasswordRequest
-#         A Pydantic model instance containing the user's old password, new password, and JWT token
-#         for verifying the user.
+    email = request.email
+    mobile_no = request.mobile_no
 
-#     Logic:
-#     ------
-#     1. **Token Verification**:
-#        - The function first checks the validity of the provided JWT token using the `login_checker` function.
-#        - If the token is valid, it is decoded to extract either the user's email or mobile number from the payload.
+    if not any([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
+        return ForgotPasswordResponse(
+            status=False,
+            message="Either one of email or mobile number is required to proceed with this request.",
+            data={"credentials": email if email else mobile_no},
+            status_code=400,
+        )
 
-#     2. **Email-based Profile**:
-#        - If the token contains an email, the function retrieves the user associated with that email.
-#        - If the user exists, it verifies the old password against the stored password.
-#        - If the old password matches, the new password is encoded and saved, and the password change is confirmed with a success message.
-#        - If the old password does not match, a 403 error is returned, indicating that the provided old password was incorrect.
+    if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
+        return ForgotPasswordResponse(
+            status=False,
+            message="Both Mobile and email cannot be processed at the same time.",
+            data={"credentials": email if email else mobile_no},
+            status_code=400,
+        )
 
-#     3. **Mobile number-based Profile**:
-#        - If the token contains a mobile number, the function retrieves the user associated with that mobile number.
-#        - Similar to the email flow, the old password is verified, and upon a match, the new password is saved.
-#        - If the old password is incorrect, a failure response is returned.
+    if email:
+        try:
+            _ = validate_email(value=email)
+        except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
+            return ForgotPasswordResponse(
+                status=False,
+                message=f"Bad Email provided: {error_response}",
+                data={"credentials": email if email else mobile_no},
+                status_code=422,
+            )
 
-#     Returns:
-#     --------
-#     ChangePasswordResponse: JSON
-#         A structured response indicating the success or failure of the password change request.
-#         On success, the password is updated, and a confirmation message is returned.
-#         On failure, the response includes an error message.
+    elif mobile_no:
+        try:
+            _ = custom_validate_international_phonenumber(value=mobile_no)
+        except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
+            return ForgotPasswordResponse(
+                status=False,
+                message=f"Bad phone number provided: {error_response}",
+                data={"credentials": email if email else mobile_no},
+                status_code=422,
+            )
 
-#     Possible Status Codes:
-#     ----------------------
-#     - 200: Password changed successfully.
-#     - 403: Old password does not match, and password update fails.
-#     - 404: User profile does not exist for the provided email or mobile number.
+    if email:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(email=email).first
+        )()
+    elif mobile_no:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
+        )()
 
-#     Example:
-#     --------
-#     **Email-based Request**:
-#     Request:
-#         POST /change_password
-#         {
-#             "old_password": "old_password123",
-#             "password": "new_password456",
-#             "token": "valid_jwt_token"
-#         }
+    if not user_doc:
+        response.status_code = 404  # Set status code in the response
+        return ForgotPasswordResponse(
+            status=False,
+            message="This user does not exist.",
+            data={"credentials": email or mobile_no},
+            status_code=404,
+        )
 
-#     Response:
-#         {
-#             "status": true,
-#             "message": "Your password has been reset successfully!",
-#             "data": {}
-#         }
+    user_id = user_doc.user_id
 
-#     **Mobile number-based Request**:
-#     Request:
-#         POST /change_password
-#         {
-#             "old_password": "old_password123",
-#             "password": "new_password456",
-#             "token": "valid_jwt_token"
-#         }
+    can_request, error_message = throttle_otp_requests(user_id)
+    if not can_request:
+        response.status_code = 429  # Set status code in the response
+        return ForgotPasswordResponse(
+            status=False,
+            message=error_message,
+            data={"credentials": email or mobile_no},
+            status_code=429,
+        )
 
-#     Response:
-#         {
-#             "status": true,
-#             "message": "Your password has been reset successfully!",
-#             "data": {}
-#         }
+    if not user_doc.password:
+        response.status_code = 401  # Set status code in the response
+        return ForgotPasswordResponse(
+            status=False,
+            message="The password for this user does not exist. Please login using OTP",
+            data={"credentials": email or mobile_no},
+            status_code=401,
+        )
 
-#     **Failure Response (Incorrect Old Password)**:
-#     Response:
-#         {
-#             "status": false,
-#             "message": "Password update failed",
-#             "data": {
-#                 "error": "Old Password didn't match. Please provide the correct Old Password."
-#             },
-#             "status_code": 403
-#         }
-#     """
-#     jwt_token = await login_checker(request.token)
-#     decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
-#     if "email" in decoded_payload:
-#         user_doc = await sync_to_async(
-#             UserManagement.objects.filter(email=decoded_payload["email"]).first
-#         )()
-#         if user_doc is None:
-#             return ChangePasswordResponse(
-#                 status=False,
-#                 message="This profile does not exist.",
-#                 data={"error": "This profile does not exist."},
-#             )
-#         if password_checker(request.old_password, user_doc.password):
-#             user_doc.password = password_encoder(request.password)
-#             user_doc.updated_at = timezone.now()
-#             await sync_to_async(user_doc.save)()
-#             return ChangePasswordResponse(
-#                 status=True,
-#                 message="Your password has been reset successfully!",
-#                 data={},
-#             )
-#         else:
-#             return ChangePasswordResponse(
-#                 status=False,
-#                 message="Password update failed",
-#                 data={
-#                     "error": "Old Password didn't match. Please provide the correct Old Password."
-#                 },
-#                 status_code=403,
-#             )
-#     elif "mobile_no" in decoded_payload:
-#         user_doc = await sync_to_async(
-#             UserManagement.objects.filter(
-#                 mobile_number=decoded_payload["mobile_no"]
-#             ).first
-#         )()
-#         print(user_doc)
-#         if user_doc is None:
-#             return ChangePasswordResponse(
-#                 status=False,
-#                 message="This profile does not exist.",
-#                 data={"error": "This profile does not exist."},
-#             )
-#         if password_checker(request.old_password, user_doc.password):
-#             user_doc.password = password_encoder(request.password)
-#             user_doc.updated_at = timezone.now()
-#             await sync_to_async(user_doc.save)()
-#             return ChangePasswordResponse(
-#                 status=True,
-#                 message="Your password has been reset successfully!",
-#                 data={},
-#             )
-#         else:
-#             return ChangePasswordResponse(
-#                 status=False,
-#                 message="Password update failed",
-#                 data={"error": "Old Password didn't match. Please provide the correct"},
-#             )
+    user_otp_document = await sync_to_async(
+        OTPlogs.objects.filter(user=user_doc).first
+    )()
+
+    if not user_otp_document:
+        user_otp_document = OTPlogs(
+            user=user_doc,
+        )
+    elif user_otp_document:
+        updated_date = user_otp_document.update_date
+        current_time = timezone.now()
+
+        time_diff = current_time - updated_date
+
+        if time_diff <= timedelta(seconds=15):
+            response.status_code = 429  # Set status code in the response
+            return ForgotPasswordResponse(
+                status=False,
+                message=f"Please wait for {time_diff} seconds before sending another request.",
+                data={"credentials": email if email else mobile_no},
+                status_code=429,
+            )
+
+    otp = send_otp()
+    current_time = timezone.now()
+
+    new_payload = {
+        "token_type": "forgot_password",
+        "creation_time": timezone.now().timestamp(),
+        "expiry": (
+            (timezone.now() + timedelta(minutes=20)).timestamp()  # Fixed to 15 minutes
+        ),
+    }
+    if user_doc.email:
+        new_payload["email"] = user_doc.email
+    elif user_doc.mobile_number:
+        new_payload["mobile_number"] = user_doc.mobile_number
+    jwt_token = jwt_token_checker(payload=new_payload, encode=True)
+
+    user_otp_document.otp = otp
+    user_otp_document.otp_valid = current_time + timedelta(minutes=15)
+    await sync_to_async(user_otp_document.save)()
+
+    response.status_code = 200  # Set status code in the response
+    return ForgotPasswordResponse(
+        status=True,
+        message=f"OTP has been sent. Please check.",
+        data={
+            "token": jwt_token,
+            "data": {"credentials": email or mobile_no},
+            "otp": otp,
+        },
+    )
+
+
+@limiter.limit(api_config.REQUEST_PER_MIN)
+@router.post(
+    "/change_password",
+    response_model=ChangePasswordResponse,
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def change_password(
+    request: ChangePasswordRequest,
+    response: Response,  # Inject FastAPI Response object
+    Authorization: Optional[str] = Header(
+        None
+    ),  # Expect token in the Authorization header
+):
+    if Authorization is None:
+        return ChangePasswordResponse(
+            status=False,
+            message="Authorization header is missing.",
+            data={},
+            status_code=401,
+        )
+    else:
+        try:
+            payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except MalformedJWTRequestException as e:
+            response.status_code = 498
+            return ChangePasswordResponse(
+                status=False,
+                message="Invalid JWT token is provided.",
+                data={"error": str(e)},
+                status_code=498,
+            )
+
+    old_password = request.old_password
+    new_password = request.new_password
+
+    if not new_password:
+        response.status_code = 422  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="This request cannot proceed without a new password being provided.",
+            data={},
+            status_code=422,
+        )
+
+    try:
+        # Password validators are defined in Django Settings
+        _ = validate_password(password=new_password)
+    except ValidationError as error_response:
+        response.status_code = 422  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message=f"Bad Password provided: {error_response}",
+            data={},
+            status_code=422,
+        )
+    
+    if old_password == new_password:
+        response.status_code = 400  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Old password and new password cannot be the same.",
+            data={},
+            status_code=400,
+        )
+
+    email = payload.get("email")
+    mobile_no = payload.get("mobile_number")
+
+    if not any([email, mobile_no]):
+        response.status_code = 422  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Invalid JWT token is provided, no email or mobile number found.",
+            data={},
+            status_code=422,
+        )
+
+    if all([email, mobile_no]):
+        response.status_code = 400  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Invalid JWT token is provided, email and mobile number both found.",
+            data={},
+            status_code=400,
+        )
+
+    if email:
+        try:
+            _ = validate_email(value=email)
+        except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
+            return ChangePasswordResponse(
+                status=False,
+                message=f"Bad Email provided: {error_response}",
+                data={},
+                status_code=422,
+            )
+
+    elif mobile_no:
+        try:
+            _ = custom_validate_international_phonenumber(value=mobile_no)
+        except ValidationError as error_response:
+            response.status_code = 422  # Set status code in the response
+            return ChangePasswordResponse(
+                status=False,
+                message=f"Bad phone number provided: {error_response}",
+                data={},
+                status_code=422,
+            )
+
+    if email:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(email=email).first
+        )()
+
+    elif mobile_no:
+        user_doc = await sync_to_async(
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
+        )()
+
+    if not user_doc:
+        response.status_code = 404  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message=f"This User does not exist.",
+            data={},
+            status_code=404,
+        )
+
+    if password_checker(old_password, user_doc.password):
+        user_doc.password = password_encoder(request.new_password)
+        await sync_to_async(user_doc.save)()
+        response.status_code = 200  # Set status code in the response
+        return ChangePasswordResponse(
+            status=True,
+            message="Your password has been reset successfully!",
+            data={},
+            status_code=200,
+        )
+    else:
+        response.status_code = 401  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Old Password didn't match. Please provide the correct Old Password.",
+            data={},
+            status_code=401,
+        )

@@ -1,4 +1,4 @@
-from config.v1 import BaseSettingsWrapper
+from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
 
 class AuthenticationConfig(BaseSettingsWrapper):
