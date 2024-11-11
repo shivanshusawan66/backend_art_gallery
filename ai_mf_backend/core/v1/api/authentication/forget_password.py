@@ -6,14 +6,21 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 
-from phonenumber_field.validators import validate_international_phonenumber
+from ai_mf_backend.utils.v1.authentication.validators import (
+    custom_validate_international_phonenumber,
+)
 
 from fastapi import Header, APIRouter, Depends, Response
 
 from asgiref.sync import sync_to_async
-
+from typing import Optional
 from ai_mf_backend.core.v1.api import limiter
-
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
 from ai_mf_backend.models.v1.api.user_authentication import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
@@ -76,7 +83,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set status code in the response
             return ForgotPasswordResponse(
@@ -190,8 +197,29 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
 async def change_password(
     request: ChangePasswordRequest,
     response: Response,  # Inject FastAPI Response object
-    Authorization: str = Header(...),  # Expect token in the Authorization header
+    Authorization: Optional[str] = Header(
+        None
+    ),  # Expect token in the Authorization header
 ):
+    if Authorization is None:
+        return ChangePasswordResponse(
+            status=False,
+            message="Authorization header is missing.",
+            data={},
+            status_code=401,
+        )
+    else:
+        try:
+            payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except MalformedJWTRequestException as e:
+            response.status_code = 498
+            return ChangePasswordResponse(
+                status=False,
+                message="Invalid JWT token is provided.",
+                data={"error": str(e)},
+                status_code=498,
+            )
+
     old_password = request.old_password
     new_password = request.new_password
 
@@ -215,22 +243,18 @@ async def change_password(
             data={},
             status_code=422,
         )
-
-    jwt_token = Authorization
-    decoded_payload = jwt_token_checker(jwt_token=jwt_token, encode=False)
-
-    email = decoded_payload.get("email")
-    mobile_no = decoded_payload.get("mobile_number")
-    token_expiry = decoded_payload.get("expiry")
-
-    if token_expiry and timezone.now().timestamp() >= token_expiry:
-        response.status_code = 401  # Set response status code for expired token
+    
+    if old_password == new_password:
+        response.status_code = 400  # Set status code in the response
         return ChangePasswordResponse(
             status=False,
-            message="The JWT token has expired. Please request a new token.",
+            message="Old password and new password cannot be the same.",
             data={},
-            status_code=401,
+            status_code=400,
         )
+
+    email = payload.get("email")
+    mobile_no = payload.get("mobile_number")
 
     if not any([email, mobile_no]):
         response.status_code = 422  # Set status code in the response
@@ -264,7 +288,7 @@ async def change_password(
 
     elif mobile_no:
         try:
-            _ = validate_international_phonenumber(value=mobile_no)
+            _ = custom_validate_international_phonenumber(value=mobile_no)
         except ValidationError as error_response:
             response.status_code = 422  # Set status code in the response
             return ChangePasswordResponse(

@@ -9,3 +9,11 @@ def validate_marital_status(marital_status):
 
     if not marital_status.strip():
         raise ValidationError(f"Marital Status cannot be empty or only whitespace.")
+
+
+def validate_gender(gender):
+    if not re.match(r"^[A-Za-z\s]+$", gender):
+        raise ValidationError(f"{gender} is not a valid gender.")
+
+    if not gender.strip():
+        raise ValidationError("Gender cannot be empty or only whitespace.")
