@@ -1,5 +1,4 @@
 from django.db import connection, migrations
-from django.utils import timezone
 
 def create_update_date_triggers(apps, schema_editor):
     # Dynamically retrieve all model names
@@ -7,46 +6,21 @@ def create_update_date_triggers(apps, schema_editor):
     for model in models:
         table_name = model._meta.db_table  # Get table name for each model
         fields = [f.name for f in model._meta.fields]
-
-        if 'update_date' in fields and 'deleted' in fields:
-            # Quote field names that might be reserved keywords
-            quoted_fields = [f'"{field}"' for field in fields]
+        if 'update_date' in fields:
             schema_editor.execute(f"""
-                CREATE OR REPLACE FUNCTION handle_update_with_soft_delete() 
-                RETURNS TRIGGER AS $$ 
+                CREATE OR REPLACE FUNCTION update_timestamp() 
+                RETURNS TRIGGER AS $$
                 BEGIN
-                    -- Soft delete the existing record (set deleted = true)
-                    UPDATE {table_name}
-                    SET deleted = true
-                    WHERE id = OLD.id AND deleted = false;
-
-                    -- Insert a new row with updated values, deleted = false, and current update_time
-                    INSERT INTO {table_name} ({', '.join(quoted_fields)})
-                    SELECT {', '.join([f"NEW.\"{field}\"" for field in fields if field != 'id'])}
-                    FROM {table_name} 
-                    WHERE id = OLD.id;
-
-                    -- Return the new record
-                    RETURN NULL;  -- Since the new record is inserted manually, we don't need to return the old one
+                   NEW.update_date = NOW();
+                   RETURN NEW;
                 END;
                 $$ LANGUAGE plpgsql;
 
-                CREATE TRIGGER soft_delete_and_insert_new
+                CREATE TRIGGER update_update_date
                 BEFORE UPDATE ON {table_name}
-                FOR EACH ROW EXECUTE FUNCTION handle_update_with_soft_delete();
+                FOR EACH ROW EXECUTE FUNCTION update_timestamp();
             """)
 
-
-# def drop_update_date_triggers(apps, schema_editor):
-#     # Dynamically drop triggers for all tables
-#     models = apps.get_models()
-#     for model in models:
-#         table_name = model._meta.db_table
-#         schema_editor.execute(f"""
-#             DROP TRIGGER IF EXISTS update_update_date ON {table_name};
-#         """)
-#     schema_editor.execute("DROP FUNCTION IF EXISTS update_timestamp;")
-    
 
 def set_marital_status_constraint(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -168,17 +142,7 @@ def set_user_personal_details_constraints(apps, schema_editor):
             print(f"Error applying constraints: {e}")
 
 
-class Migration(migrations.Migration):
-    dependencies = [
-        # Add the migration file on which this depends
-        # Example: ('myapp', '0001_initial'),
-        ('ai_mf_backend', '0001_initial'), 
-    ]
 
-    operations = [
-        
-        
-    ]
 
 def set_gender_constraint(apps, schema_editor):
     with connection.cursor() as cursor:
