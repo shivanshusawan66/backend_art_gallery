@@ -61,7 +61,7 @@ def jwt_token_checker(
             try:
                 decoded_jwt = JWTTokenPayload(**decoded_jwt)
             except ValidationError as e:
-                raise MalformedJWTRequestException(f"Payload validation error: {ve}")
+                raise MalformedJWTRequestException(f"Payload validation error: {e}")
 
             # Manually check the expiry field
             expiry = decoded_jwt.expiry
@@ -114,17 +114,13 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
 
 async def login_checker(Authorization: Annotated[str | None, Header()]):
 
-    if not Authorization:
-        raise MalformedJWTRequestException(
-            "A Valid token is required to work with this request"
-        )
-
-    decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
-
-    if decoded_payload["token_type"] != "login":
-        raise MalformedJWTRequestException(
-            "Login token type is required to work with this request"
-        )
+    if Authorization is None:
+        raise MalformedJWTRequestException("Authorization token is missing.")
+    else:
+        try:
+            decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except ValidationError as e:  
+            raise MalformedJWTRequestException(f"Malformed JWT: {e}")
 
     email = decoded_payload.get("email")
     mobile_no = decoded_payload.get("mobile_number")
