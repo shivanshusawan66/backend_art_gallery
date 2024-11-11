@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Asia/Kolkata'  # Set this to your desired timezone
+TIME_ZONE = "Asia/Kolkata"  # Set this to your desired timezone
 
 USE_I18N = True
 

@@ -3,7 +3,9 @@ import jwt
 from asgiref.sync import sync_to_async
 from fastapi import Header
 from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
-from django.utils import timezone as django_timezone  # Alias django timezone to avoid conflicts
+from django.utils import (
+    timezone as django_timezone,
+)  # Alias django timezone to avoid conflicts
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password, check_password
