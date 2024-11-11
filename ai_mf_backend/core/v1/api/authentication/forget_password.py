@@ -243,7 +243,7 @@ async def change_password(
             data={},
             status_code=422,
         )
-    
+
     if old_password == new_password:
         response.status_code = 400  # Set status code in the response
         return ChangePasswordResponse(
