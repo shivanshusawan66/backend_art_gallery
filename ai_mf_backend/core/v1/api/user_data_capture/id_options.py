@@ -24,7 +24,7 @@ async def get_personal_options():
         for gender in genders
     ]
     marital_status_options = [
-        {"key": str(status.id), "label": status.status, "value": status.status.lower()}
+        {"key": str(status.id), "label": status.marital_status, "value": status.marital_status.lower()}
         for status in marital_statuses
     ]
 
