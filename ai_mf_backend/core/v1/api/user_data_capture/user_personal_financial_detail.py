@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException,Response
+from fastapi import APIRouter, HTTPException, Response
 from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import (
@@ -26,15 +26,14 @@ router = APIRouter()
 
 @router.post("/user_personal_financial_details/")
 async def update_user_personal_financial_details(
-    request: User_Personal_Financial_Details_Update_Request,
-    response: Response
+    request: User_Personal_Financial_Details_Update_Request, response: Response
 ):
     user = await sync_to_async(
         UserContactInfo.objects.filter(user_id=request.user_id).first
     )()
 
     if not user:
-        response.status_code=404
+        response.status_code = 404
         return User_Personal_Financial_Details_Update_Response(
             status=False,
             message="User not found",
@@ -94,7 +93,7 @@ async def update_user_personal_financial_details(
                 message="Invalid occupation_id provided.",
                 data={},
                 status_code=404,
-        )
+            )
 
     if isinstance(request.annual_income_id, int):
         annual_income = await sync_to_async(
@@ -150,7 +149,7 @@ async def update_user_personal_financial_details(
         )
         try:
             await sync_to_async(user_personal.full_clean)()  # Run validation
-            
+
         except ValidationError as e:
             # Capture validation error details
             error_details = e.message_dict  # This contains field-specific errors
@@ -185,7 +184,6 @@ async def update_user_personal_financial_details(
                     "message": "Validation Error",
                     "errors": error_details,
                 },
-
             )
         await sync_to_async(user_financial.save)()
         return User_Personal_Financial_Details_Update_Response(
@@ -194,7 +192,6 @@ async def update_user_personal_financial_details(
             data={"user_id": user.user_id},
             status_code=200,
         )
-        
 
     # Update existing data if both are present
     if user_personal and user_financial:
