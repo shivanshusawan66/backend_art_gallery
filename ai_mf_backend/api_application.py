@@ -28,6 +28,7 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
+    MalformedJWTRequestException,
 )
 from fastapi.exception_handlers import (
     request_validation_exception_handler as _request_validation_exception_handler,
@@ -105,7 +106,17 @@ async def internal_server_exception_handler(
         content=api_response.model_dump(), status_code=api_response.status_code
     )
 
-
+@application.exception_handler(MalformedJWTRequestException)
+async def malformed_jwt_exception_handler(request: Request, exc: MalformedJWTRequestException):
+    return JSONResponse(
+        status_code=498,
+        content={
+            "status": False,
+            "message": str(exc),
+            "data": {},
+            "status_code": 498,
+        },
+    )
 async def request_validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
