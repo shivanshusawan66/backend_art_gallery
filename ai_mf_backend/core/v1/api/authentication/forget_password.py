@@ -202,6 +202,7 @@ async def change_password(
     ),  # Expect token in the Authorization header
 ):
     if Authorization is None:
+        response.status_code = 401  
         return ChangePasswordResponse(
             status=False,
             message="Authorization header is missing.",
