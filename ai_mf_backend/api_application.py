@@ -1,11 +1,13 @@
 import os
 import time
+import json
 import random
 import string
 import logging
 
-from fastapi import FastAPI, Request,status,HTTPException
+from fastapi import FastAPI, Request, status, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
 
@@ -26,6 +28,9 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
+)
+from fastapi.exception_handlers import (
+    request_validation_exception_handler as _request_validation_exception_handler,
 )
 from ai_mf_backend.models.v1.api.exception_handler import ExceptionHandlerResponse
 from ai_mf_backend.models.v1.database.user import (
@@ -100,31 +105,33 @@ async def internal_server_exception_handler(
         content=api_response.model_dump(), status_code=api_response.status_code
     )
 
-@application.exception_handler(HTTPException)
-async def custom_http_exception_handler(request: Request, exc: HTTPException):
-    if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-        # Customize the error response format for missing fields
-        details = [
-            {
-                "type": "missing",
-                "loc": ["body", field["loc"][-1]],  # Get the field name from the location
-                "msg": f"{field['loc'][-1].replace('_', ' ').capitalize()} is required",  # Custom error message
-                "input": {}  # No input, as the field is missing
-            }
-            for field in exc.detail if isinstance(field, dict) and field.get("msg") == "field required"
-        ]
-        
-        # Return custom JSONResponse if there are missing fields
-        if details:
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={"detail": details}
-            )
 
-    # Default response for other HTTPException errors
+async def request_validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """
+    This is a wrapper to the default RequestValidationException handler of FastAPI.
+    This function will be called when client input is not valid.
+    """
+    logger.debug("Our custom request_validation_exception_handler was called")
+    body = await request.body()
+    query_params = request.query_params._dict  # pylint: disable=protected-access
+
+    detail = [
+        {
+            "type": "missing",
+            "loc": ["body", field["loc"][-1]],  # Get the field name from the location
+            "msg": f"{field['loc'][-1].replace('_', ' ').capitalize()} is required",  # Custom error message
+            "input": {},  # No input, as the field is missing
+        }
+        for field in exc.errors()
+        if isinstance(field, dict) and field.get("msg") == "Field required"
+    ]
+    detail = {"errors": detail, "body": body.decode(), "query_params": query_params}
+    logger.info(detail)
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail}
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": detail},
     )
 
 
@@ -155,7 +162,9 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
+application.add_exception_handler(
+    RequestValidationError, request_validation_exception_handler
+)
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
 

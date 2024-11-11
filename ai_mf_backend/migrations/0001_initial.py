@@ -9,417 +9,999 @@ import django.db.models.deletion
 import ai_mf_backend.utils.v1.validators.status
 import ai_mf_backend.utils.v1.validators.dates
 
+
 class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Allowed_Response',
+            name="Allowed_Response",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('response', models.CharField(max_length=500)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("response", models.CharField(max_length=500)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Allowed Response',
-                'verbose_name_plural': 'Allowed Response',
-                'db_table': 'allowed_response',
+                "verbose_name": "Allowed Response",
+                "verbose_name_plural": "Allowed Response",
+                "db_table": "allowed_response",
             },
         ),
         migrations.CreateModel(
-            name='AMFIMutualFund',
+            name="AMFIMutualFund",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('scheme_name', models.CharField(max_length=255, unique=True)),
-                ('q_param', models.CharField(max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("scheme_name", models.CharField(max_length=255, unique=True)),
+                ("q_param", models.CharField(max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='AnnualIncome',
+            name="AnnualIncome",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('income_category', models.CharField(max_length=100, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("income_category", models.CharField(max_length=100, unique=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Annual Income',
-                'verbose_name_plural': 'Annual Income',
-                'db_table': 'annual_income',
+                "verbose_name": "Annual Income",
+                "verbose_name_plural": "Annual Income",
+                "db_table": "annual_income",
             },
         ),
         migrations.CreateModel(
-            name='Gender',
+            name="Gender",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('gender', models.CharField(max_length=50, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("gender", models.CharField(max_length=50, unique=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Gender',
-                'verbose_name_plural': 'Gender',
-                'db_table': 'gender',
+                "verbose_name": "Gender",
+                "verbose_name_plural": "Gender",
+                "db_table": "gender",
             },
         ),
         migrations.CreateModel(
-            name='InvestmentAmountPerYear',
+            name="InvestmentAmountPerYear",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('investment_amount_per_year', models.CharField(max_length=100, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                (
+                    "investment_amount_per_year",
+                    models.CharField(max_length=100, unique=True),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Investment Amount Per Year',
-                'verbose_name_plural': 'Investment Amount Per Year',
-                'db_table': 'investment_amount_per_year',
+                "verbose_name": "Investment Amount Per Year",
+                "verbose_name_plural": "Investment Amount Per Year",
+                "db_table": "investment_amount_per_year",
             },
         ),
         migrations.CreateModel(
-            name='MaritalStatus',
+            name="MaritalStatus",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('marital_status', models.CharField(max_length=50, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("marital_status", models.CharField(max_length=50, unique=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Marital Status',
-                'verbose_name_plural': 'Marital Status',
-                'db_table': 'marital_status',
+                "verbose_name": "Marital Status",
+                "verbose_name_plural": "Marital Status",
+                "db_table": "marital_status",
             },
         ),
         migrations.CreateModel(
-            name='MonthlySavingCapacity',
+            name="MonthlySavingCapacity",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('saving_category', models.CharField(max_length=100, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("saving_category", models.CharField(max_length=100, unique=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Monthly Saving Capacity',
-                'verbose_name_plural': 'Monthly Saving Capacity',
-                'db_table': 'monthly_saving_capacity',
+                "verbose_name": "Monthly Saving Capacity",
+                "verbose_name_plural": "Monthly Saving Capacity",
+                "db_table": "monthly_saving_capacity",
             },
         ),
         migrations.CreateModel(
-            name='MutualFund',
+            name="MutualFund",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('scheme_name', models.CharField(max_length=255, unique=True)),
-                ('q_param', models.CharField(max_length=100)),
-                ('net_asset_value', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('date', models.DateField()),
-                ('symbol', models.CharField(max_length=50)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("scheme_name", models.CharField(max_length=255, unique=True)),
+                ("q_param", models.CharField(max_length=100)),
+                (
+                    "net_asset_value",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                ("date", models.DateField()),
+                ("symbol", models.CharField(max_length=50)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Occupation',
+            name="Occupation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('occupation', models.CharField(max_length=100, unique=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("occupation", models.CharField(max_length=100, unique=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Occupation',
-                'verbose_name_plural': 'Occupation',
-                'db_table': 'occupation',
+                "verbose_name": "Occupation",
+                "verbose_name_plural": "Occupation",
+                "db_table": "occupation",
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('question', models.CharField(max_length=500)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("question", models.CharField(max_length=500)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Question',
-                'verbose_name_plural': 'Question',
-                'db_table': 'question',
+                "verbose_name": "Question",
+                "verbose_name_plural": "Question",
+                "db_table": "question",
             },
         ),
         migrations.CreateModel(
-            name='Section',
+            name="Section",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('section', models.CharField(max_length=100)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("section", models.CharField(max_length=100)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Section',
-                'verbose_name_plural': 'Section',
-                'db_table': 'section',
+                "verbose_name": "Section",
+                "verbose_name_plural": "Section",
+                "db_table": "section",
             },
         ),
         migrations.CreateModel(
-            name='FundOverview',
+            name="FundOverview",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(blank=True, max_length=100, null=True)),
-                ('fund_family', models.CharField(blank=True, max_length=255, null=True)),
-                ('net_assets', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('ytd_return', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('yield_value', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('morningstar_rating', models.CharField(blank=True, max_length=10, null=True)),
-                ('inception_date', models.DateField(blank=True, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='overview', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("category", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "fund_family",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                (
+                    "net_assets",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "ytd_return",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "yield_value",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "morningstar_rating",
+                    models.CharField(blank=True, max_length=10, null=True),
+                ),
+                ("inception_date", models.DateField(blank=True, null=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="overview",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='FundData',
+            name="FundData",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('min_initial_investment', models.DecimalField(decimal_places=2, default=0.0, max_digits=10, null=True)),
-                ('min_subsequent_investment', models.DecimalField(decimal_places=2, default=0.0, max_digits=10, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='fund_data', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "min_initial_investment",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "min_subsequent_investment",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=10, null=True
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fund_data",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='AnnualReturn',
+            name="AnnualReturn",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year', models.IntegerField()),
-                ('fund_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('category_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_returns', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("year", models.IntegerField()),
+                (
+                    "fund_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "category_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="annual_returns",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='PerformanceData',
+            name="PerformanceData",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('morningstar_return_rating', models.CharField(blank=True, max_length=10, null=True)),
-                ('ytd_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('average_return_5y', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('number_of_years_up', models.IntegerField(default=0, null=True)),
-                ('number_of_years_down', models.IntegerField(default=0, null=True)),
-                ('best_1y_total_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('worst_1y_total_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('best_3y_total_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('worst_3y_total_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='performance_data', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "morningstar_return_rating",
+                    models.CharField(blank=True, max_length=10, null=True),
+                ),
+                (
+                    "ytd_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "average_return_5y",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                ("number_of_years_up", models.IntegerField(default=0, null=True)),
+                ("number_of_years_down", models.IntegerField(default=0, null=True)),
+                (
+                    "best_1y_total_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "worst_1y_total_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "best_3y_total_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "worst_3y_total_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="performance_data",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ConditionalQuestion',
+            name="ConditionalQuestion",
             fields=[
-                ('deleted', models.BooleanField(default=False)),
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('visibility', models.CharField(max_length=50)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('response', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.allowed_response')),
-                ('dependent_question', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='dependent_question', to='ai_mf_backend.question')),
-                ('question', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='main_question', to='ai_mf_backend.question')),
+                ("deleted", models.BooleanField(default=False)),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("visibility", models.CharField(max_length=50)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "response",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.allowed_response",
+                    ),
+                ),
+                (
+                    "dependent_question",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="dependent_question",
+                        to="ai_mf_backend.question",
+                    ),
+                ),
+                (
+                    "question",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="main_question",
+                        to="ai_mf_backend.question",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Conditional Question',
-                'verbose_name_plural': 'Conditional Question',
-                'db_table': 'conditional_question',
+                "verbose_name": "Conditional Question",
+                "verbose_name_plural": "Conditional Question",
+                "db_table": "conditional_question",
             },
         ),
         migrations.AddField(
-            model_name='allowed_response',
-            name='question',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.question'),
+            model_name="allowed_response",
+            name="question",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.question",
+            ),
         ),
         migrations.AddField(
-            model_name='question',
-            name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.section'),
+            model_name="question",
+            name="section",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.section",
+            ),
         ),
         migrations.AddField(
-            model_name='allowed_response',
-            name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.section'),
+            model_name="allowed_response",
+            name="section",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="ai_mf_backend.section",
+            ),
         ),
         migrations.CreateModel(
-            name='TrailingReturn',
+            name="TrailingReturn",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('metric', models.CharField(max_length=50)),
-                ('fund_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('benchmark_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='trailing_returns', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("metric", models.CharField(max_length=50)),
+                (
+                    "fund_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "benchmark_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="trailing_returns",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='UserContactInfo',
+            name="UserContactInfo",
             fields=[
-                ('deleted', models.BooleanField(default=False)),
-                ('user_id', models.AutoField(primary_key=True, serialize=False)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True, unique=True)),
-                ('mobile_number', models.CharField(blank=True, null=True, unique=True, validators=[ai_mf_backend.models.v1.database.user.validate_mobile_number])),
-                ('password', models.CharField(blank=True, max_length=100, null=True)),
-                ('is_verified', models.BooleanField(default=False)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
+                ("deleted", models.BooleanField(default=False)),
+                ("user_id", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "email",
+                    models.EmailField(
+                        blank=True, max_length=254, null=True, unique=True
+                    ),
+                ),
+                (
+                    "mobile_number",
+                    models.CharField(
+                        blank=True,
+                        null=True,
+                        unique=True,
+                        validators=[
+                            ai_mf_backend.models.v1.database.user.validate_mobile_number
+                        ],
+                    ),
+                ),
+                ("password", models.CharField(blank=True, max_length=100, null=True)),
+                ("is_verified", models.BooleanField(default=False)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'User Contact Info',
-                'verbose_name_plural': 'User Contact Info',
-                'db_table': 'user_contact_info',
-                'indexes': [models.Index(fields=['email'], name='user_contac_email_f59fcd_idx'), models.Index(fields=['mobile_number'], name='user_contac_mobile__5846b8_idx')],
+                "verbose_name": "User Contact Info",
+                "verbose_name_plural": "User Contact Info",
+                "db_table": "user_contact_info",
+                "indexes": [
+                    models.Index(fields=["email"], name="user_contac_email_f59fcd_idx"),
+                    models.Index(
+                        fields=["mobile_number"], name="user_contac_mobile__5846b8_idx"
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='OTPlogs',
+            name="OTPlogs",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('otp', models.IntegerField(blank=True, null=True)),
-                ('otp_valid', models.DateTimeField(blank=True, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("otp", models.IntegerField(blank=True, null=True)),
+                ("otp_valid", models.DateTimeField(blank=True, null=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'OTP Logs',
-                'verbose_name_plural': 'OTP Logs',
-                'db_table': 'otp_logs',
+                "verbose_name": "OTP Logs",
+                "verbose_name_plural": "OTP Logs",
+                "db_table": "otp_logs",
             },
         ),
         migrations.CreateModel(
-            name='UserFinancialDetails',
+            name="UserFinancialDetails",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('regular_source_of_income', models.BooleanField(blank=True, choices=[(True, 'Yes'), (False, 'No')], default=False, null=True)),
-                ('lock_in_period_accepted', models.BooleanField(blank=True, choices=[(True, 'Yes'), (False, 'No')], default=False, null=True)),
-                ('investment_style', models.CharField(blank=True, choices=[('SIP', 'SIP'), ('Lump-Sum', 'Lump-Sum')], default='SIP', max_length=10, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('income_category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.annualincome')),
-                ('investment_amount_per_year', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.investmentamountperyear')),
-                ('occupation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.occupation')),
-                ('saving_category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.monthlysavingcapacity')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                (
+                    "regular_source_of_income",
+                    models.BooleanField(
+                        blank=True,
+                        choices=[(True, "Yes"), (False, "No")],
+                        default=False,
+                        null=True,
+                    ),
+                ),
+                (
+                    "lock_in_period_accepted",
+                    models.BooleanField(
+                        blank=True,
+                        choices=[(True, "Yes"), (False, "No")],
+                        default=False,
+                        null=True,
+                    ),
+                ),
+                (
+                    "investment_style",
+                    models.CharField(
+                        blank=True,
+                        choices=[("SIP", "SIP"), ("Lump-Sum", "Lump-Sum")],
+                        default="SIP",
+                        max_length=10,
+                        null=True,
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "income_category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.annualincome",
+                    ),
+                ),
+                (
+                    "investment_amount_per_year",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.investmentamountperyear",
+                    ),
+                ),
+                (
+                    "occupation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.occupation",
+                    ),
+                ),
+                (
+                    "saving_category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.monthlysavingcapacity",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User Financial Detail',
-                'verbose_name_plural': 'User Financial Details',
-                'db_table': 'user_financial_details',
+                "verbose_name": "User Financial Detail",
+                "verbose_name_plural": "User Financial Details",
+                "db_table": "user_financial_details",
             },
         ),
         migrations.CreateModel(
-            name='UserPersonalDetails',
+            name="UserPersonalDetails",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('name', models.CharField(blank=True, max_length=100, null=True)),
-                ('date_of_birth', models.DateField(blank=True, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('gender', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.gender')),
-                ('marital_status', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.maritalstatus')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("name", models.CharField(blank=True, max_length=100, null=True)),
+                ("date_of_birth", models.DateField(blank=True, null=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "gender",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.gender",
+                    ),
+                ),
+                (
+                    "marital_status",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.maritalstatus",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'user_personal_details',
+                "db_table": "user_personal_details",
             },
         ),
         migrations.CreateModel(
-            name='UserResponse',
+            name="UserResponse",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('question', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.question')),
-                ('response', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.allowed_response')),
-                ('section', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.section')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.question",
+                    ),
+                ),
+                (
+                    "response",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.allowed_response",
+                    ),
+                ),
+                (
+                    "section",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.section",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User Response',
-                'verbose_name_plural': 'User Response',
-                'db_table': 'user_response',
+                "verbose_name": "User Response",
+                "verbose_name_plural": "User Response",
+                "db_table": "user_response",
             },
         ),
         migrations.CreateModel(
-            name='HistoricalData',
+            name="HistoricalData",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateTimeField()),
-                ('open', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('high', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('low', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('close', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('adj_close', models.DecimalField(decimal_places=4, default=0.0, max_digits=10)),
-                ('volume', models.BigIntegerField(default=0)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='historical_data', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateTimeField()),
+                (
+                    "open",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                (
+                    "high",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                (
+                    "low",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                (
+                    "close",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                (
+                    "adj_close",
+                    models.DecimalField(decimal_places=4, default=0.0, max_digits=10),
+                ),
+                ("volume", models.BigIntegerField(default=0)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="historical_data",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('fund', 'date')},
+                "unique_together": {("fund", "date")},
             },
         ),
         migrations.CreateModel(
-            name='RiskStatistics',
+            name="RiskStatistics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('period', models.CharField(max_length=10)),
-                ('alpha', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('beta', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('mean_annual_return', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('r_squared', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('standard_deviation', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('sharpe_ratio', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('treynor_ratio', models.DecimalField(decimal_places=2, default=0.0, max_digits=5, null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('update_date', models.DateTimeField(auto_now=True)),
-                ('fund', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='risk_statistics', to='ai_mf_backend.mutualfund')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("period", models.CharField(max_length=10)),
+                (
+                    "alpha",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "beta",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "mean_annual_return",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "r_squared",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "standard_deviation",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "sharpe_ratio",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "treynor_ratio",
+                    models.DecimalField(
+                        decimal_places=2, default=0.0, max_digits=5, null=True
+                    ),
+                ),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                ("update_date", models.DateTimeField(auto_now=True)),
+                (
+                    "fund",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="risk_statistics",
+                        to="ai_mf_backend.mutualfund",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('fund', 'period')},
+                "unique_together": {("fund", "period")},
             },
         ),
         migrations.CreateModel(
-            name='UserLogs',
+            name="UserLogs",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('ip_details', models.JSONField()),
-                ('device_type', models.CharField(max_length=100)),
-                ('last_access', models.DateTimeField()),
-                ('action', models.CharField(choices=[('login', 'Logged In'), ('logged_out', 'Logged Out'), ('signup', 'Signed Up'), ('invalid', 'invalid_action')], default='invalid', max_length=10)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("ip_details", models.JSONField()),
+                ("device_type", models.CharField(max_length=100)),
+                ("last_access", models.DateTimeField()),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("login", "Logged In"),
+                            ("logged_out", "Logged Out"),
+                            ("signup", "Signed Up"),
+                            ("invalid", "invalid_action"),
+                        ],
+                        default="invalid",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "User Logs",
@@ -430,7 +1012,6 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
-        
         migrations.AlterField(
             model_name="userpersonaldetails",
             name="add_date",
@@ -464,8 +1045,14 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name='maritalstatus',
-            name='marital_status',
-            field=models.CharField(max_length=50, unique=True, validators=[ai_mf_backend.utils.v1.validators.status.validate_marital_status]),
+            model_name="maritalstatus",
+            name="marital_status",
+            field=models.CharField(
+                max_length=50,
+                unique=True,
+                validators=[
+                    ai_mf_backend.utils.v1.validators.status.validate_marital_status
+                ],
+            ),
         ),
     ]
