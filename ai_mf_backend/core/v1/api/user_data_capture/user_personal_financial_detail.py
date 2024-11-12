@@ -162,13 +162,15 @@ async def update_user_personal_financial_details(
 
         except ValidationError as e:
 
-            error_details = e.message_dict  
+            error_details = e.message_dict
 
             raise HTTPException(
-                
                 status_code=422,
-
-                detail={"status": False, "message": "Validation Error", "errors": error_details},
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
             )
         await sync_to_async(user_financial.save)()
 
@@ -214,14 +216,15 @@ async def update_user_personal_financial_details(
 
         except ValidationError as e:
 
-            error_details = e.message_dict  
-            
+            error_details = e.message_dict
+
             raise HTTPException(
-
                 status_code=422,
-
-                detail={"status": False, "message": "Validation Error", "errors": error_details},
-
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
             )
 
         await sync_to_async(user_financial.save)()

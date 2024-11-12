@@ -1,7 +1,7 @@
 from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-from ai_mf_backend.utils.v1.validators.input import validate_alphanumeric_with_spaces
+from ai_mf_backend.utils.v1.validators.input import validate_number_dash_number
 
 
 class AnnualIncome(SoftDeleteModel):
@@ -21,16 +21,10 @@ class AnnualIncome(SoftDeleteModel):
 class MonthlySavingCapacity(SoftDeleteModel):
 
     saving_category = models.CharField(
-        max_length=100, 
-        unique=True, 
-        validators=[validate_alphanumeric_with_spaces]
-        )
-    add_date = models.DateTimeField(
-        auto_now_add=True
-        )
-    update_date = models.DateTimeField(
-        auto_now=True
-        )
+        max_length=100, unique=True, validators=[validate_number_dash_number]
+    )
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "monthly_saving_capacity"
