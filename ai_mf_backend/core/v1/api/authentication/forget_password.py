@@ -308,6 +308,8 @@ async def change_password(
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
+    
+    
 
     if not user_doc:
         response.status_code = 404  # Set status code in the response
@@ -317,6 +319,16 @@ async def change_password(
             data={},
             status_code=404,
         )
+    
+    if user_doc:
+        if not user_doc.is_verified:
+            response.status_code = 404  # Set status code in the response
+            return ChangePasswordResponse(
+                status=False,
+                message=f"The User is not verified!",
+                data={},
+                status_code=404,
+            )
 
     if password_checker(old_password, user_doc.password):
         user_doc.password = password_encoder(request.new_password)
