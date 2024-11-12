@@ -1,23 +1,19 @@
 from typing import Annotated, Dict, Union
-
 import jwt
-
 from asgiref.sync import sync_to_async
-
 from fastapi import Header
 from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
-from django.utils import timezone
+from django.utils import (
+    timezone as django_timezone,
+)  # Alias django timezone to avoid conflicts
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password, check_password
-
 from phonenumber_field.validators import validate_international_phonenumber
-from datetime import datetime, timezone
+from datetime import datetime, timezone as dt_timezone  # Alias datetime timezone
 
 from ai_mf_backend.config.v1.authentication_config import authentication_config
-from ai_mf_backend.utils.v1.errors import (
-    MalformedJWTRequestException,
-)
+from ai_mf_backend.utils.v1.errors import MalformedJWTRequestException
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 
 
@@ -65,11 +61,11 @@ def jwt_token_checker(
             try:
                 decoded_jwt = JWTTokenPayload(**decoded_jwt)
             except ValidationError as e:
-                raise MalformedJWTRequestException(f"Payload validation error: {ve}")
+                raise MalformedJWTRequestException(f"Payload validation error: {e}")
 
             # Manually check the expiry field
             expiry = decoded_jwt.expiry
-            if expiry and datetime.now(timezone.utc).timestamp() > expiry:
+            if expiry and datetime.now(dt_timezone.utc).timestamp() > expiry:
                 raise MalformedJWTRequestException("Token has expired.")
 
             return decoded_jwt.dict()
@@ -118,17 +114,13 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
 
 async def login_checker(Authorization: Annotated[str | None, Header()]):
 
-    if not Authorization:
-        raise MalformedJWTRequestException(
-            "A Valid token is required to work with this request"
-        )
-
-    decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
-
-    if decoded_payload["token_type"] != "login":
-        raise MalformedJWTRequestException(
-            "Login token type is required to work with this request"
-        )
+    if Authorization is None:
+        raise MalformedJWTRequestException("Authorization token is missing.")
+    else:
+        try:
+            decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        except ValidationError as e:  
+            raise MalformedJWTRequestException(f"Malformed JWT: {e}")
 
     email = decoded_payload.get("email")
     mobile_no = decoded_payload.get("mobile_number")
@@ -174,7 +166,7 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
         raise MalformedJWTRequestException("This user does not exist.")
 
     expiry = float(decoded_payload["expiry"])
-    current_time = float(timezone.now().timestamp())
+    current_time = float(django_timezone.now().timestamp())
     if current_time < expiry:
         return Authorization
     else:

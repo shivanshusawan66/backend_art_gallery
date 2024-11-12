@@ -59,6 +59,7 @@ async def otp_verification(
     remember_me = request.remember_me
 
     if Authorization is None:
+        response.status_code = 401  
         return OTPVerificationResponse(
             status=False,
             message="Authorization header is missing.",
@@ -223,7 +224,7 @@ async def otp_verification(
         new_token = jwt_token_checker(payload=new_payload, encode=True)
 
         if payload["token_type"] == "signup":
-            response.status_code = 201  # Set response status code
+            response.status_code = 200  # Set response status code
             return OTPVerificationResponse(
                 status=True,
                 message="The user is verified successfully",
@@ -232,7 +233,7 @@ async def otp_verification(
                     "token": new_token,
                     "user_id": user_doc.user_id,
                 },
-                status_code=201,
+                status_code=200,
             )
         else:
             response.status_code = 200  # Set response status code

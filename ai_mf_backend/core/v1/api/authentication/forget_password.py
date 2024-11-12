@@ -14,7 +14,6 @@ from fastapi import Header, APIRouter, Depends, Response
 
 from asgiref.sync import sync_to_async
 from typing import Optional
-from typing import Optional
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.errors import (
     MalformedJWTRequestException,
@@ -203,6 +202,7 @@ async def change_password(
     ),  # Expect token in the Authorization header
 ):
     if Authorization is None:
+        response.status_code = 401  
         return ChangePasswordResponse(
             status=False,
             message="Authorization header is missing.",
@@ -243,6 +243,15 @@ async def change_password(
             message=f"Bad Password provided: {error_response}",
             data={},
             status_code=422,
+        )
+
+    if old_password == new_password:
+        response.status_code = 400  # Set status code in the response
+        return ChangePasswordResponse(
+            status=False,
+            message="Old password and new password cannot be the same.",
+            data={},
+            status_code=400,
         )
 
     email = payload.get("email")
