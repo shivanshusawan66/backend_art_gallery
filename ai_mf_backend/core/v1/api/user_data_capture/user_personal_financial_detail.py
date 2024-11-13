@@ -20,6 +20,11 @@ from ai_mf_backend.models.v1.api.user_data import (
 )
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ValidationError
+from ai_mf_backend.utils.v1.validators.dates import (
+    validate_not_future_date,
+    validate_reasonable_birth_date,
+)
+from ai_mf_backend.utils.v1.validators.name import validate_name
 
 router = APIRouter()
 
@@ -55,6 +60,29 @@ async def update_user_personal_financial_details(
     annual_income = None
     monthly_saving_capacity = None
     investment_amount_per_year = None
+
+    try:
+        validate_not_future_date(request.date_of_birth)
+        validate_reasonable_birth_date(request.date_of_birth)
+    except ValidationError as e:
+        response.status_code = 400
+        return User_Personal_Financial_Details_Update_Response(
+            status=False,
+            message=str(e),
+            data={},
+            status_code=400,
+        )
+
+    try:
+        validate_name(request.name)
+    except ValidationError as e:
+        response.status_code = 400
+        return User_Personal_Financial_Details_Update_Response(
+            status=False,
+            message=str(e),
+            data={},
+            status_code=400,
+        )
 
     if isinstance(request.gender_id, int):
         gender = await sync_to_async(
@@ -227,6 +255,9 @@ async def update_user_personal_financial_details(
 
         if request.investment_style:
             user_financial.investment_style = request.investment_style
+
+        await sync_to_async(user_personal.save)()
+
         try:
             await sync_to_async(user_personal.full_clean)()  # Run validation
             await sync_to_async(user_financial.full_clean)()
