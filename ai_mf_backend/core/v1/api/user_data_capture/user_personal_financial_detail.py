@@ -20,8 +20,12 @@ from ai_mf_backend.models.v1.api.user_data import (
 )
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ValidationError
-from ai_mf_backend.utils.v1.validators.dates import validate_not_future_date,validate_reasonable_birth_date
+from ai_mf_backend.utils.v1.validators.dates import (
+    validate_not_future_date,
+    validate_reasonable_birth_date,
+)
 from ai_mf_backend.utils.v1.validators.name import validate_name
+
 router = APIRouter()
 
 
@@ -49,8 +53,6 @@ async def update_user_personal_financial_details(
         UserFinancialDetails.objects.filter(user_id=request.user_id).first
     )()
 
-
-
     # Check and fetch optional related models
     gender = None
     marital_status = None
@@ -70,7 +72,7 @@ async def update_user_personal_financial_details(
             data={},
             status_code=400,
         )
-    
+
     try:
         validate_name(request.name)
     except ValidationError as e:
