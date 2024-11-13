@@ -261,6 +261,22 @@ def set_income_category_constraint(apps, schema_editor):
                 print(f"Skipping {table} due to error: {e}")
 
 
+def set_user_personal_details_saving_category_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # Alphanumeric constraint for `saving_category`
+            cursor.execute(
+                """
+                ALTER TABLE monthly_saving_capacity
+                ADD CONSTRAINT user_personal_details_saving_category_number_dash_number
+                CHECK (saving_category ~ '^(\\d+\\s*-\\s*\\d+)$');
+            """
+            )
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying saving_category constraint: {e}")
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -276,4 +292,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(set_gender_constraint),
         migrations.RunPython(create_update_date_triggers),
         migrations.RunPython(set_income_category_constraint),
+        migrations.RunPython(set_user_personal_details_saving_category_constraint),
     ]
