@@ -59,12 +59,12 @@ async def otp_verification(
     remember_me = request.remember_me
 
     if Authorization is None:
-        response.status_code = 401
+        response.status_code = 422
         return OTPVerificationResponse(
             status=False,
             message="Authorization header is missing.",
             data={},
-            status_code=401,
+            status_code=422,
         )
     else:
         try:
