@@ -154,11 +154,11 @@ async def otp_verification(
             )
 
     # Retrieve user based on email or mobile number
-    if "email" in payload:
+    if payload["email"] is not None:
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(email=payload["email"]).first
         )()
-    elif "mobile_number" in payload:
+    elif payload["mobile_number"] is not None:
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(mobile_number=payload["mobile_number"]).first
         )()
