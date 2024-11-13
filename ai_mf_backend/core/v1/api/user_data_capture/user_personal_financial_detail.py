@@ -255,6 +255,9 @@ async def update_user_personal_financial_details(
 
         if request.investment_style:
             user_financial.investment_style = request.investment_style
+
+        await sync_to_async(user_personal.save)()
+
         try:
             await sync_to_async(user_personal.full_clean)()  # Run validation
             await sync_to_async(user_financial.full_clean)()
