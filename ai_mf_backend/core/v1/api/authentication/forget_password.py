@@ -202,7 +202,7 @@ async def change_password(
     ),  # Expect token in the Authorization header
 ):
     if Authorization is None:
-        response.status_code = 401  
+        response.status_code = 401
         return ChangePasswordResponse(
             status=False,
             message="Authorization header is missing.",
@@ -308,8 +308,6 @@ async def change_password(
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
-    
-    
 
     if not user_doc:
         response.status_code = 404  # Set status code in the response
@@ -319,7 +317,7 @@ async def change_password(
             data={},
             status_code=404,
         )
-    
+
     if user_doc:
         if not user_doc.is_verified:
             response.status_code = 404  # Set status code in the response

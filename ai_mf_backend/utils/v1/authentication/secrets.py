@@ -119,7 +119,7 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
     else:
         try:
             decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
-        except ValidationError as e:  
+        except ValidationError as e:
             raise MalformedJWTRequestException(f"Malformed JWT: {e}")
 
     email = decoded_payload.get("email")
