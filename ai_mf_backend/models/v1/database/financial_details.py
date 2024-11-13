@@ -38,8 +38,8 @@ class MonthlySavingCapacity(SoftDeleteModel):
 
 
 class InvestmentAmountPerYear(SoftDeleteModel):
-    investment_amount_per_year = models.DecimalField(
-        max_digits=10, decimal_places=2, unique=True
+    investment_amount_per_year = models.CharField(
+        max_length=100, unique=True, validators=[validate_number_dash_number]
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -50,7 +50,7 @@ class InvestmentAmountPerYear(SoftDeleteModel):
         verbose_name_plural = "Investment Amount Per Year"
 
     def __str__(self):
-        return f"{self.investment_amount_per_year:.2f}"
+        return self.investment_amount_per_year
 
 
 class UserFinancialDetails(SoftDeleteModel):
