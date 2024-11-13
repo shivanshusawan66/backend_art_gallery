@@ -59,7 +59,7 @@ async def otp_verification(
     remember_me = request.remember_me
 
     if Authorization is None:
-        response.status_code = 401  
+        response.status_code = 401
         return OTPVerificationResponse(
             status=False,
             message="Authorization header is missing.",
@@ -368,9 +368,15 @@ async def resend_otp(
     await sync_to_async(user_otp_doc.save)()
 
     response.status_code = 202
+
+    if email:
+        message = f"OTP has been sent to {email}. Please check your email."
+    else:
+        message = f"OTP has been sent to {mobile_no}. Please check your mobile."
+
     return ResendOTPResponse(
         status=True,
-        message=f"OTP has been sent to {request.email}. Please check.",
+        message=message,
         data={"userdata": {"name": user_doc.email, "otp": otp}},
         status_code=202,
     )
