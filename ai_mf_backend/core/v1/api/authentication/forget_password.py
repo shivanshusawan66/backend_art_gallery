@@ -123,15 +123,6 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
             status_code=429,
         )
 
-    if not user_doc.password:
-        response.status_code = 401  # Set status code in the response
-        return ForgotPasswordResponse(
-            status=False,
-            message="The password for this user does not exist. Please login using OTP",
-            data={"credentials": email or mobile_no},
-            status_code=401,
-        )
-
     user_otp_document = await sync_to_async(
         OTPlogs.objects.filter(user=user_doc).first
     )()

@@ -185,63 +185,13 @@ async def user_authentication_password(
             )
 
     elif user_doc and not user_doc.password:
-        # response.status_code = 400  # Set status code in the response
-        # return UserAuthenticationPasswordResponse(
-        #     status=False,
-        #     message=f"User password was not registered, please try login using OTP.",
-        #     data={"credentials": email if email else mobile_no},
-        #     status_code=400,
-        # )
-        if not user_doc.is_verified:
-            response.status_code = 403  # Set status code in the response
-            return UserAuthenticationPasswordResponse(
-                status=False,
-                message=f"This User is not verified yet.",
-                data={"credentials": email if email else mobile_no},
-                status_code=403,
-            )
-        password = password_encoder(password=password)
-        user_doc.password = password
-        await sync_to_async(user_doc.save)()
-
-        user_otp_document = await sync_to_async(
-            OTPlogs.objects.filter(user=user_doc.user_id).first
-        )()
-        if not user_otp_document:
-            user_otp_document = OTPlogs(
-                user=user_doc,
-            )
-        elif user_otp_document:
-            updated_date = user_otp_document.update_date
-            current_time = timezone.now()
-            time_diff = current_time - updated_date
-
-            if time_diff <= timedelta(seconds=15):
-                response.status_code = 429  # Set status code in the header
-                return UserAuthenticationOTPResponse(
-                    status=False,
-                    message=f"Please wait for {time_diff} seconds before sending another request.",
-                    data={"credentials": email if email else mobile_no},
-                    status_code=429,
-                )
-
-        otp = send_otp()
-
-        user_otp_document.otp = otp
-        user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
-        await sync_to_async(user_otp_document.save)()
-
-        login_payload = {
-            "token_type": "login",
-            "creation_time": timezone.now().timestamp(),
-            "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
-        }
-        if user_doc.email:
-            login_payload["email"] = user_doc.email
-        elif user_doc.mobile_number:
-            login_payload["mobile_number"] = user_doc.mobile_number
-        jwt_token = jwt_token_checker(payload=login_payload, encode=True)
-
+        response.status_code = 400  # Set status code in the response
+        return UserAuthenticationPasswordResponse(
+            status=False,
+            message=f"User password was not registered, please use Forget Password to reset your password",
+            data={"credentials": email if email else mobile_no},
+            status_code=400,
+        )
     else:
         password = password_encoder(password=password)
         user_doc = UserContactInfo(
