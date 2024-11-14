@@ -234,7 +234,7 @@ async def user_authentication_password(
 
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
-        response.status_code = 200  # Set status code in the response
+        response.status_code = 202  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=True,
             message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
@@ -243,7 +243,7 @@ async def user_authentication_password(
                 "token": jwt_token,
                 "otp": otp,
             },
-            status_code=200,
+            status_code=202,
         )
 
 
@@ -363,12 +363,10 @@ async def user_authentication_otp(
         response.status_code = 202  # Set status code in the header
         return UserAuthenticationOTPResponse(
             status=True,
-            message=f"OTP successfully sent to user ",
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it. ",
             data={
-                "data": {
-                    "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "token": jwt_token,
-                },
+                "credentials": user_doc.email if email else user_doc.mobile_number,
+                "token": jwt_token,
                 "otp": otp,
             },
             status_code=202,
@@ -397,15 +395,13 @@ async def user_authentication_otp(
             signup_payload["mobile_number"] = user_doc.mobile_number
         jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
 
-        response.status_code = 202  # Set status code in the header
+        response.status_code = 202  # Set status code in the response
         return UserAuthenticationOTPResponse(
             status=True,
-            message=f"OTP successfully sent to newly created user ",
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
             data={
-                "data": {
-                    "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "token": jwt_token,
-                },
+                "credentials": email if email else mobile_no,
+                "token": jwt_token,
                 "otp": otp,
             },
             status_code=202,
