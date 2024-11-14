@@ -168,57 +168,59 @@ async def update_user_personal_financial_details(
 
     # Create or update personal and financial details
     if not user_personal or not user_financial:
-        user_personal = UserPersonalDetails(
-            user=user,
-            name=request.name,
-            date_of_birth=request.date_of_birth,
-            gender=gender,
-            marital_status=marital_status,
-        )
-        try:
-            await sync_to_async(user_personal.full_clean)()  # Run validation
+        if not user_personal:
+            user_personal = UserPersonalDetails(
+                user=user,
+                name=request.name,
+                date_of_birth=request.date_of_birth,
+                gender=gender,
+                marital_status=marital_status,
+            )
+            try:
+                await sync_to_async(user_personal.full_clean)()  # Run validation
 
-        except ValidationError as e:
-            # Capture validation error details
-            error_details = e.message_dict  # This contains field-specific errors
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "status": False,
-                    "message": "Validation Error",
-                    "errors": error_details,
-                },
+            except ValidationError as e:
+                # Capture validation error details
+                error_details = e.message_dict  # This contains field-specific errors
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "status": False,
+                        "message": "Validation Error",
+                        "errors": error_details,
+                    },
+                )
+            await sync_to_async(user_personal.save)()
+        if not user_financial:
+            user_financial = UserFinancialDetails(
+                user=user,
+                occupation=occupation,
+                income_category=annual_income,
+                saving_category=monthly_saving_capacity,
+                investment_amount_per_year=investment_amount_per_year,
+                regular_source_of_income=request.regular_source_of_income,
+                lock_in_period_accepted=request.lock_in_period_accepted,
+                investment_style=request.investment_style,
             )
-        await sync_to_async(user_personal.save)()
-    if not user_financial:
-        user_financial = UserFinancialDetails(
-            user=user,
-            occupation=occupation,
-            income_category=annual_income,
-            saving_category=monthly_saving_capacity,
-            investment_amount_per_year=investment_amount_per_year,
-            regular_source_of_income=request.regular_source_of_income,
-            lock_in_period_accepted=request.lock_in_period_accepted,
-            investment_style=request.investment_style,
-        )
-        try:
-            await sync_to_async(user_financial.full_clean)()
-        except ValidationError as e:
-            error_details = e.message_dict  # This contains field-specific errors
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "status": False,
-                    "message": "Validation Error",
-                    "errors": error_details,
-                },
-            )
-        await sync_to_async(user_financial.save)()
+            try:
+                await sync_to_async(user_financial.full_clean)()
+            except ValidationError as e:
+                error_details = e.message_dict  # This contains field-specific errors
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "status": False,
+                        "message": "Validation Error",
+                        "errors": error_details,
+                    },
+                )
+            await sync_to_async(user_financial.save)()
+        response.status_code =201
         return User_Personal_Financial_Details_Update_Response(
             status=True,
             message="User personal and financial details created successfully.",
             data={"user_id": user.user_id},
-            status_code=200,
+            status_code=201,
         )
 
     # Update existing data if both are present
