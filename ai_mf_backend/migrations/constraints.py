@@ -285,7 +285,7 @@ def set_otp_valid_constraint(apps, schema_editor):
                 """
                 ALTER TABLE otp_logs
                 ADD CONSTRAINT otp_valid_not_past
-                CHECK (otp_valid IS NULL OR otp_valid >= CURRENT_TIMESTAMP);
+                CHECK (otp_valid >= CURRENT_TIMESTAMP);
                 """
             )
             print("OTP validity constraint applied successfully.")
