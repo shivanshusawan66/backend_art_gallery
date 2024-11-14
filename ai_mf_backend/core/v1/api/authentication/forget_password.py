@@ -110,6 +110,16 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
             data={"credentials": email or mobile_no},
             status_code=404,
         )
+        
+    if user_doc:
+        if not user_doc.is_verified:
+            response.status_code = 401  # Set status code in the response
+            return ForgotPasswordResponse(
+                status=False,
+                message=f"The User is not verified!",
+                data={"credentials": email or mobile_no},
+                status_code=401,
+            )
 
     user_id = user_doc.user_id
 
