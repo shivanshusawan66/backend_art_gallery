@@ -212,12 +212,12 @@ async def change_password(
     ),  # Expect token in the Authorization header
 ):
     if Authorization is None:
-        response.status_code = 401
+        response.status_code = 422
         return ChangePasswordResponse(
             status=False,
             message="Authorization header is missing.",
             data={},
-            status_code=401,
+            status_code=422,
         )
     else:
         try:
@@ -327,6 +327,16 @@ async def change_password(
             data={},
             status_code=404,
         )
+
+    if user_doc:
+        if not user_doc.is_verified:
+            response.status_code = 401  # Set status code in the response
+            return ChangePasswordResponse(
+                status=False,
+                message=f"The User is not verified!",
+                data={},
+                status_code=401,
+            )
 
     if password_checker(old_password, user_doc.password):
         user_doc.password = password_encoder(request.new_password)
