@@ -293,6 +293,7 @@ def set_otp_valid_constraint(apps, schema_editor):
             connection.rollback()
             print(f"Error applying OTP validity constraint: {e}")
 
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends

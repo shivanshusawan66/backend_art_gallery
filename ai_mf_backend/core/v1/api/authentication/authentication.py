@@ -365,9 +365,9 @@ async def user_authentication_otp(
             status=True,
             message=f"Otp has been send to {email if email else mobile_no}, please verify it. ",
             data={
-                    "credentials": user_doc.email if email else user_doc.mobile_number,
-                    "token": jwt_token,
-                    "otp": otp,
+                "credentials": user_doc.email if email else user_doc.mobile_number,
+                "token": jwt_token,
+                "otp": otp,
             },
             status_code=202,
         )
