@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
+from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
     UserContactInfo,
@@ -17,23 +19,31 @@ from ai_mf_backend.models.v1.api.user_data import (
     User_Personal_Financial_Details_Update_Response,
 )
 from asgiref.sync import sync_to_async
+from django.core.exceptions import ValidationError
+from ai_mf_backend.utils.v1.validators.dates import (
+    validate_not_future_date,
+    validate_reasonable_birth_date,
+)
+from ai_mf_backend.utils.v1.validators.name import validate_name
 
 router = APIRouter()
 
 
 @router.post("/user_personal_financial_details/")
 async def update_user_personal_financial_details(
-    request: User_Personal_Financial_Details_Update_Request,
+    request: User_Personal_Financial_Details_Update_Request, response: Response
 ):
     user = await sync_to_async(
         UserContactInfo.objects.filter(user_id=request.user_id).first
     )()
 
     if not user:
+        response.status_code = 404
         return User_Personal_Financial_Details_Update_Response(
             status=False,
             message="User not found",
             data={},
+            status_code=404,
         )
 
     user_personal = await sync_to_async(
@@ -51,78 +61,113 @@ async def update_user_personal_financial_details(
     monthly_saving_capacity = None
     investment_amount_per_year = None
 
-    if request.gender_id:
+    try:
+        validate_not_future_date(request.date_of_birth)
+        validate_reasonable_birth_date(request.date_of_birth)
+    except ValidationError as e:
+        response.status_code = 400
+        return User_Personal_Financial_Details_Update_Response(
+            status=False,
+            message=str(e),
+            data={},
+            status_code=400,
+        )
+
+    try:
+        validate_name(request.name)
+    except ValidationError as e:
+        response.status_code = 400
+        return User_Personal_Financial_Details_Update_Response(
+            status=False,
+            message=str(e),
+            data={},
+            status_code=400,
+        )
+
+    if isinstance(request.gender_id, int):
         gender = await sync_to_async(
             Gender.objects.filter(id=request.gender_id).first
         )()
         if not gender:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Gender not found",
+                message="Invalid gender_id provided.",
                 data={},
+                status_code=404,
             )
 
-    if request.marital_status_id:
+    if isinstance(request.marital_status_id, int):
         marital_status = await sync_to_async(
             MaritalStatus.objects.filter(id=request.marital_status_id).first
         )()
         if not marital_status:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Marital status not found",
+                message="Invalid marital_status_id provided.",
                 data={},
+                status_code=404,
             )
 
-    if request.occupation_id:
+    if isinstance(request.occupation_id, int):
         occupation = await sync_to_async(
             Occupation.objects.filter(id=request.occupation_id).first
         )()
         if not occupation:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Occupation not found",
+                message="Invalid occupation_id provided.",
                 data={},
+                status_code=404,
             )
 
-    if request.annual_income_id:
+    if isinstance(request.annual_income_id, int):
         annual_income = await sync_to_async(
             AnnualIncome.objects.filter(id=request.annual_income_id).first
         )()
         if not annual_income:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Annual income not found",
+                message="Invalid annual_income_id provided.",
                 data={},
+                status_code=404,
             )
 
-    if request.monthly_saving_capacity_id:
+    if isinstance(request.monthly_saving_capacity_id, int):
         monthly_saving_capacity = await sync_to_async(
             MonthlySavingCapacity.objects.filter(
                 id=request.monthly_saving_capacity_id
             ).first
         )()
         if not monthly_saving_capacity:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Monthly saving capacity not found",
+                message="Invalid monthly_saving_capacity_id provided.",
                 data={},
+                status_code=404,
             )
 
-    if request.investment_amount_per_year_id:
+    if isinstance(request.investment_amount_per_year_id, int):
         investment_amount_per_year = await sync_to_async(
             InvestmentAmountPerYear.objects.filter(
                 id=request.investment_amount_per_year_id
             ).first
         )()
         if not investment_amount_per_year:
+            response.status_code = 404
             return User_Personal_Financial_Details_Update_Response(
                 status=False,
-                message="Investment amount per year not found",
+                message="Invalid investment_amount_per_year_id provided.",
                 data={},
+                status_code=404,
             )
 
     # Create or update personal and financial details
-    if not user_personal:
+    if not user_personal or not user_financial:
         user_personal = UserPersonalDetails(
             user=user,
             name=request.name,
@@ -130,20 +175,51 @@ async def update_user_personal_financial_details(
             gender=gender,
             marital_status=marital_status,
         )
-        await sync_to_async(user_personal.save)()
+        try:
+            await sync_to_async(user_personal.full_clean)()  # Run validation
 
+        except ValidationError as e:
+            # Capture validation error details
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+            )
+        await sync_to_async(user_personal.save)()
     if not user_financial:
         user_financial = UserFinancialDetails(
             user=user,
             occupation=occupation,
-            annual_income=annual_income,
-            monthly_saving_capacity=monthly_saving_capacity,
+            income_category=annual_income,
+            saving_category=monthly_saving_capacity,
             investment_amount_per_year=investment_amount_per_year,
             regular_source_of_income=request.regular_source_of_income,
             lock_in_period_accepted=request.lock_in_period_accepted,
             investment_style=request.investment_style,
         )
+        try:
+            await sync_to_async(user_financial.full_clean)()
+        except ValidationError as e:
+            error_details = e.message_dict  # This contains field-specific errors
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "status": False,
+                    "message": "Validation Error",
+                    "errors": error_details,
+                },
+            )
         await sync_to_async(user_financial.save)()
+        return User_Personal_Financial_Details_Update_Response(
+            status=True,
+            message="User personal and financial details created successfully.",
+            data={"user_id": user.user_id},
+            status_code=200,
+        )
 
     # Update existing data if both are present
     if user_personal and user_financial:
@@ -163,10 +239,10 @@ async def update_user_personal_financial_details(
             user_financial.occupation = occupation
 
         if request.annual_income_id:
-            user_financial.annual_income = annual_income
+            user_financial.income_category = annual_income
 
         if request.monthly_saving_capacity_id:
-            user_financial.monthly_saving_capacity = monthly_saving_capacity
+            user_financial.saving_category = monthly_saving_capacity
 
         if request.investment_amount_per_year_id:
             user_financial.investment_amount_per_year = investment_amount_per_year
@@ -181,8 +257,21 @@ async def update_user_personal_financial_details(
             user_financial.investment_style = request.investment_style
 
         await sync_to_async(user_personal.save)()
-        await sync_to_async(user_financial.save)()
 
+        try:
+            await sync_to_async(user_personal.full_clean)()  # Run validation
+            await sync_to_async(user_financial.full_clean)()
+        except ValidationError as e:
+            # Capture validation error details
+            response.status_code = 422  # Set status code in the response
+            return User_Personal_Financial_Details_Update_Response(
+                status=False,
+                message=f"Validation error",
+                data={"errors": e.message_dict},
+                status_code=422,
+            )
+    await sync_to_async(user_personal.save)()
+    await sync_to_async(user_financial.save)()
     return User_Personal_Financial_Details_Update_Response(
         status=True,
         message="User personal and financial details updated successfully",

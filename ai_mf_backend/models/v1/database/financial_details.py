@@ -1,10 +1,21 @@
 from django.db import models
+import logging
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
+from ai_mf_backend.utils.v1.validators.input import validate_number_dash_number
+from ai_mf_backend.utils.v1.validators.profile_update import (
+    validate_profile_modification_time,
+    track_changes,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 class AnnualIncome(SoftDeleteModel):
-    income_category = models.CharField(max_length=100, unique=True)
+    income_category = models.CharField(
+        max_length=100, unique=True, validators=[validate_number_dash_number]
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -18,7 +29,10 @@ class AnnualIncome(SoftDeleteModel):
 
 
 class MonthlySavingCapacity(SoftDeleteModel):
-    saving_category = models.CharField(max_length=100, unique=True)
+
+    saving_category = models.CharField(
+        max_length=100, unique=True, validators=[validate_number_dash_number]
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -32,7 +46,9 @@ class MonthlySavingCapacity(SoftDeleteModel):
 
 
 class InvestmentAmountPerYear(SoftDeleteModel):
-    investment_amount_per_year = models.CharField(max_length=100, unique=True)
+    investment_amount_per_year = models.CharField(
+        max_length=100, unique=True, validators=[validate_number_dash_number]
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -84,3 +100,32 @@ class UserFinancialDetails(SoftDeleteModel):
 
     def __str__(self):
         return f"Financial Details for {self.user}"
+
+    def save(self, *args, **kwargs):
+        # Only track changes if this is an update (not creation)
+        if self.pk:
+            old_instance = UserFinancialDetails.objects.get(pk=self.pk)
+            # Call the track_changes function to detect and log changes
+            changed_fields = track_changes(
+                old_instance,
+                self,
+                [
+                    "occupation",
+                    "income_category",
+                    "saving_category",
+                    "investment_amount_per_year",
+                    "regular_source_of_income",
+                    "lock_in_period_accepted",
+                    "investment_style",
+                ],
+            )
+            if changed_fields:
+                logger.info(
+                    f"User {self.user} changed profile fields: {changed_fields}"
+                )
+
+        # Call the validation function to enforce time-based restrictions
+        validate_profile_modification_time(self)
+
+        # Save the instance
+        super().save(*args, **kwargs)
