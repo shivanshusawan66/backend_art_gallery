@@ -153,14 +153,13 @@ async def otp_verification(
                 status_code=422,
             )
 
-    # Retrieve user based on email or mobile number
-    if "email" in payload:
+    if email:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(email=payload["email"]).first
+            UserContactInfo.objects.filter(email=email).first
         )()
-    elif "mobile_number" in payload:
+    else:
         user_doc = await sync_to_async(
-            UserContactInfo.objects.filter(mobile_number=payload["mobile_number"]).first
+            UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
 
     if not user_doc:
@@ -216,10 +215,10 @@ async def otp_verification(
             ),
         }
 
-        if "email" in payload:
-            new_payload["email"] = payload["email"]
-        elif "mobile_number" in payload:
-            new_payload["mobile_number"] = payload["mobile_number"]
+        if email:
+            new_payload["email"] = email
+        else:
+            new_payload["mobile_number"] = mobile_no
 
         new_token = jwt_token_checker(payload=new_payload, encode=True)
 
