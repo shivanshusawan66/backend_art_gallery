@@ -154,11 +154,14 @@ async def otp_verification(
             )
 
     # Retrieve user based on email or mobile number
-    if payload["email"] is not None:
+    if not payload.get("email") and not payload.get("mobile_number"):
+        raise ValidationError("Mobile Number and Email are not found in JWT payload")
+
+    if payload.get("email"):
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(email=payload["email"]).first
         )()
-    elif payload["mobile_number"] is not None:
+    else:
         user_doc = await sync_to_async(
             UserContactInfo.objects.filter(mobile_number=payload["mobile_number"]).first
         )()
@@ -215,11 +218,14 @@ async def otp_verification(
                 else (timezone.now() + timedelta(days=365)).timestamp()
             ),
         }
+        
 
-        if "email" in payload:
+        if payload.get("email") is not None:
             new_payload["email"] = payload["email"]
-        elif "mobile_number" in payload:
+        elif payload.get("mobile_number") is not None:
             new_payload["mobile_number"] = payload["mobile_number"]
+        else:
+            raise ValidationError("Neither email nor mobile number is found in the payload")
 
         new_token = jwt_token_checker(payload=new_payload, encode=True)
 
