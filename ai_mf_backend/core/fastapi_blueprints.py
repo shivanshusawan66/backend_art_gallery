@@ -31,6 +31,10 @@ from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
     router as soft_delete_router,
 )
 
+from ai_mf_backend.core.v1.api.questionaire.saving_responses import (
+    router as saving_response_v1,
+)
+
 connect_router.include_router(authentication_router_v1)
 connect_router.include_router(forget_password_router_v1)
 connect_router.include_router(otp_verification_router_v1)
@@ -41,3 +45,4 @@ connect_router.include_router(questionaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
 connect_router.include_router(display_mf_data_router_v1)
 connect_router.include_router(soft_delete_router)
+connect_router.include_router(saving_response_v1)
