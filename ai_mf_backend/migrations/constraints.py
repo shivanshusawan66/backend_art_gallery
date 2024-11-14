@@ -277,6 +277,22 @@ def set_user_personal_details_saving_category_constraint(apps, schema_editor):
             print(f"Error applying saving_category constraint: {e}")
 
 
+def set_otp_valid_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # New constraint to prevent expired OTPs from being stored
+            cursor.execute(
+                """
+                ALTER TABLE otp_logs
+                ADD CONSTRAINT otp_valid_not_past
+                CHECK (otp_valid IS NULL OR otp_valid >= CURRENT_TIMESTAMP);
+                """
+            )
+            print("OTP validity constraint applied successfully.")
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying OTP validity constraint: {e}")
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -293,4 +309,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_update_date_triggers),
         migrations.RunPython(set_income_category_constraint),
         migrations.RunPython(set_user_personal_details_saving_category_constraint),
+        migrations.RunPython(set_otp_valid_constraint),
     ]
