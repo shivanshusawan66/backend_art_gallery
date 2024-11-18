@@ -100,32 +100,3 @@ class UserFinancialDetails(SoftDeleteModel):
 
     def __str__(self):
         return f"Financial Details for {self.user}"
-
-    def save(self, *args, **kwargs):
-        # Only track changes if this is an update (not creation)
-        if self.pk:
-            old_instance = UserFinancialDetails.objects.get(pk=self.pk)
-            # Call the track_changes function to detect and log changes
-            changed_fields = track_changes(
-                old_instance,
-                self,
-                [
-                    "occupation",
-                    "income_category",
-                    "saving_category",
-                    "investment_amount_per_year",
-                    "regular_source_of_income",
-                    "lock_in_period_accepted",
-                    "investment_style",
-                ],
-            )
-            if changed_fields:
-                logger.info(
-                    f"User {self.user} changed profile fields: {changed_fields}"
-                )
-
-        # Call the validation function to enforce time-based restrictions
-        validate_profile_modification_time(self)
-
-        # Save the instance
-        super().save(*args, **kwargs)

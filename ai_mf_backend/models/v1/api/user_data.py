@@ -1,11 +1,11 @@
-from typing import Optional, Dict
+from typing import Optional
 from pydantic import BaseModel
 from ai_mf_backend.models.v1.api import Response
 from datetime import date
 
 
 # Request model for updating UserFinancialDetails
-class User_Personal_Financial_Details_Update_Request(BaseModel):
+class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
     user_id: int
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
@@ -21,5 +21,5 @@ class User_Personal_Financial_Details_Update_Request(BaseModel):
 
 
 # Response model for updating UserFinancialDetails
-class User_Personal_Financial_Details_Update_Response(Response):
+class UserPersonalFinancialDetailsUpdateResponse(Response):
     pass
