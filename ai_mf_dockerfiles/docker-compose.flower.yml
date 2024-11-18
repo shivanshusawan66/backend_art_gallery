@@ -13,7 +13,8 @@ services:
     ports:
       - ${FLOWER_UI_PORT}:5555
     networks:
-      - ${AI_MF_IMAGE_NAME}
+      - network
 
 networks:
-  ${AI_MF_IMAGE_NAME}:
+  network:
+    name: ${AI_MF_IMAGE_NAME}

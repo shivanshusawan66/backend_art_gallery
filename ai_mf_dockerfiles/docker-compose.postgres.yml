@@ -16,10 +16,11 @@ services:
     ports:
       - ${POSTGRES_EXTERNAL_PORT}:5432/tcp
     networks:
-      - ${AI_MF_IMAGE_NAME}
+      - network
 
 volumes: 
   postgres_data:
 
 networks:
-  ${AI_MF_IMAGE_NAME}:
+  network:
+    name: ${AI_MF_IMAGE_NAME}

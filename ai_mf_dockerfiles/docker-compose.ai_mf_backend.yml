@@ -18,7 +18,7 @@ services:
       # - ai_mf_tests
       []
     networks:
-      - ${AI_MF_IMAGE_NAME}
+      - network
 
   ai_mf_api:
     image: ${AI_MF_IMAGE_NAME}:latest
@@ -38,7 +38,7 @@ services:
     depends_on:
       - ai_mf_pipe
     networks:
-      - ${AI_MF_IMAGE_NAME}
+      - network
 
   # ai_mf_tests:
   #   image: ${AI_MF_IMAGE_NAME}:latest
@@ -52,7 +52,8 @@ services:
   #     LOG_LEVEL: ${LOG_LEVEL}
   #     ENVIRONMENT: server
   #   networks:
-  #     - ${AI_MF_IMAGE_NAME}
+      # - network
 
 networks:
-  ${AI_MF_IMAGE_NAME}:
+  network:
+    name: ${AI_MF_IMAGE_NAME}
