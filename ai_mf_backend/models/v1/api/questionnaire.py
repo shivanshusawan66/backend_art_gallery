@@ -44,7 +44,7 @@ class SectionRequest(BaseModel):
 
 
 class SectionsResponse(Response):
-    data: Optional[Dict[List[SectionBase]]] = dict()
+    data: Optional[Dict[str, List[SectionBase]]] = dict()
 
 
 class SectionQuestionsResponse(Response):

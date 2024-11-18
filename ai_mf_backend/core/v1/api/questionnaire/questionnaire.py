@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, Request
 
 from ai_mf_backend.core.v1.api import limiter
 
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
-async def get_all_sections():
+async def get_all_sections(request: Request):
     try:
         sections = Section.objects.all()
         sections_data = [
@@ -72,12 +72,10 @@ async def get_all_sections():
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
-async def get_section_wise_questions(
-    section_request: SectionRequest, response: Response
-):
+async def get_section_wise_questions(request: SectionRequest, response: Response):
     try:
         # Check if section_id is valid
-        specified_section_id = section_request.section_id
+        specified_section_id = request.section_id
 
         if not specified_section_id:
             logger.warning("Section ID is missing or empty.")
