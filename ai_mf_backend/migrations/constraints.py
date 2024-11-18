@@ -260,6 +260,59 @@ def set_income_category_constraint(apps, schema_editor):
                 connection.rollback()
                 print(f"Skipping {table} due to error: {e}")
 
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX occupation_unique_ci 
+            ON occupation (UPPER(occupation));
+        """
+        )
+
+
+def set_occupation_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Fetch tables that have a marital_status column
+        cursor.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name = 'occupation'
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """
+        )
+        tables = cursor.fetchall()
+
+        # Regular expression pattern to allow only alphabetic characters and spaces
+        # pattern = r"^[A-Za-z\s]+$"
+
+        # Iterate over tables to apply CHECK constraint
+        for (table,) in tables:
+            try:
+                # Check if the marital_status column exists in the current table
+                cursor.execute(
+                    f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' 
+                      AND column_name = 'occupation';
+                """
+                )
+                columns = {col[0] for col in cursor.fetchall()}
+
+                # Apply the CHECK constraint only if the marital_status column is found
+                if "occupation" in columns:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD CONSTRAINT {table}_occupation_check
+                        CHECK (occupation ~ '^[A-Za-z\\s]+$' AND occupation IS NOT NULL AND TRIM(occupation) <> '');
+                    """
+                    )
+            except Exception as e:
+                # Rollback transaction to continue with the next table if an error occurs
+                connection.rollback()
+                print(f"Skipping {table} due to error: {e}")
+
 
 def set_user_personal_details_saving_category_constraint(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -309,6 +362,7 @@ class Migration(migrations.Migration):
         migrations.RunPython(set_gender_constraint),
         migrations.RunPython(create_update_date_triggers),
         migrations.RunPython(set_income_category_constraint),
+        migrations.RunPython(set_occupation_constraint),
         migrations.RunPython(set_user_personal_details_saving_category_constraint),
         migrations.RunPython(set_otp_valid_constraint),
     ]
