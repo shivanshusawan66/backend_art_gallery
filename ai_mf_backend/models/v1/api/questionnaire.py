@@ -38,7 +38,7 @@ class SectionQuestionsData(BaseModel):
 
 
 class SectionRequest(BaseModel):
-    section_id: Optional[str] = Field(
+    section_id: Optional[int] = Field(
         None, description="The section ID for the request"
     )
 

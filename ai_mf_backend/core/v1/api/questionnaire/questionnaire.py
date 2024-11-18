@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from asgiref.sync import sync_to_async
+
 from fastapi import APIRouter, Response, Depends, Request
 
 from ai_mf_backend.core.v1.api import limiter
@@ -40,7 +42,7 @@ logger = logging.getLogger(__name__)
 )
 async def get_all_sections(request: Request):
     try:
-        sections = Section.objects.all()
+        sections = sync_to_async(Section.objects.all)()
         sections_data = [
             SectionBase(section_id=section.pk, section_name=section.section)
             for section in sections
@@ -87,7 +89,7 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                 status_code=422,
             )
 
-        if not isinstance(specified_section_id, str):
+        if not isinstance(specified_section_id, int):
             logger.warning(f"Invalid section_id type: {type(specified_section_id)}")
             response.status_code = 422
             return SectionQuestionsResponse(
@@ -98,7 +100,9 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             )
 
         # Fetch the current section using the specified ID
-        current_section = Section.objects.filter(pk=specified_section_id).first()
+        current_section = sync_to_async(
+            Section.objects.filter(pk=specified_section_id).first
+        )()
 
         if not current_section:
             logger.warning(f"Section ID {specified_section_id} not found.")
@@ -111,22 +115,28 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             )
 
         # Fetch questions associated with the section
-        questions = Question.objects.filter(section=current_section)
+        questions = sync_to_async(Question.objects.filter(section=current_section))()
         question_data_list: List[QuestionData] = []
 
         for question in questions:
-            options = Allowed_Response.objects.filter(question=question).values(
-                "id", "response"
-            )
-            conditional_infos = ConditionalQuestion.objects.filter(question=question)
+            options = sync_to_async(
+                Allowed_Response.objects.filter(question=question).values(
+                    "id", "response"
+                )
+            )()
+            conditional_infos = sync_to_async(
+                ConditionalQuestion.objects.filter(question=question)
+            )()
 
             visibility_decisions = VisibilityDecisions(if_=[])
 
             for conditional_info in conditional_infos:
                 dependent_question = conditional_info.dependent_question
-                condition_response = Allowed_Response.objects.filter(
-                    pk=conditional_info.response_id
-                ).first()
+                condition_response = sync_to_async(
+                    Allowed_Response.objects.filter(
+                        pk=conditional_info.response_id
+                    ).first
+                )()
 
                 condition_value = (
                     condition_response.response if condition_response else None
