@@ -33,7 +33,12 @@ router = APIRouter()
 async def update_user_personal_financial_details(
     request: UserPersonalFinancialDetailsUpdateRequest, response: Response
 ):
-
+    gender = None
+    marital_status = None
+    occupation = None
+    annual_income = None
+    monthly_saving_capacity = None
+    investment_amount_per_year = None
     try:
         # Validating date of birth
         validate_not_future_date(request.date_of_birth)
@@ -43,58 +48,54 @@ async def update_user_personal_financial_details(
         validate_name(request.name)
 
         # validating gender
-        if not (
-            isinstance(request.gender_id, int)
-            and await sync_to_async(Gender.objects.filter(id=request.gender_id).first)()
-        ):
+        gender = await sync_to_async(
+            Gender.objects.filter(id=request.gender_id).first
+        )()
+        if isinstance(request.gender_id, int) and not gender:
             raise ValidationError("Invalid gender provided.")
 
         # validating marital status
-        if not (
-            isinstance(request.marital_status_id, int)
-            and await sync_to_async(
-                MaritalStatus.objects.filter(id=request.marital_status_id).first
-            )()
-        ):
+        marital_status = await sync_to_async(
+            MaritalStatus.objects.filter(id=request.marital_status_id).first
+        )()
+        if isinstance(request.marital_status_id, int) and not marital_status:
             raise ValidationError("Invalid Marital status provided.")
 
         # validating occupation
-        if not (
-            isinstance(request.occupation_id, int)
-            and await sync_to_async(
-                Occupation.objects.filter(id=request.occupation_id).first
-            )()
-        ):
+        occupation = await sync_to_async(
+            Occupation.objects.filter(id=request.occupation_id).first
+        )()
+        if isinstance(request.occupation_id, int) and not occupation:
             raise ValidationError("Invalid occupation provided.")
 
         # validating annual income
-        if not (
-            isinstance(request.annual_income_id, int)
-            and await sync_to_async(
-                AnnualIncome.objects.filter(id=request.annual_income_id).first
-            )()
-        ):
+        annual_income = await sync_to_async(
+            AnnualIncome.objects.filter(id=request.annual_income_id).first
+        )()
+        if isinstance(request.annual_income_id, int) and not annual_income:
             raise ValidationError("Invalid Annual income provided.")
 
         # validating monthly saving capacity
-        if not (
+        monthly_saving_capacity = await sync_to_async(
+            MonthlySavingCapacity.objects.filter(
+                id=request.monthly_saving_capacity_id
+            ).first
+        )()
+        if (
             isinstance(request.monthly_saving_capacity_id, int)
-            and await sync_to_async(
-                MonthlySavingCapacity.objects.filter(
-                    id=request.monthly_saving_capacity_id
-                ).first
-            )()
+            and not monthly_saving_capacity
         ):
             raise ValidationError("Invalid Monthly saving capacity provided.")
 
         # validating investment ammount per year
-        if not (
+        investment_amount_per_year = await sync_to_async(
+            InvestmentAmountPerYear.objects.filter(
+                id=request.investment_amount_per_year_id
+            ).first
+        )()
+        if (
             isinstance(request.investment_amount_per_year_id, int)
-            and await sync_to_async(
-                InvestmentAmountPerYear.objects.filter(
-                    id=request.investment_amount_per_year_id
-                ).first
-            )()
+            and not investment_amount_per_year
         ):
             raise ValidationError("Invalid investment ammount per year provided.")
 
@@ -128,30 +129,14 @@ async def update_user_personal_financial_details(
         UserFinancialDetails.objects.filter(user_id=request.user_id).first
     )()
 
-    # Check and fetch optional related models
-    gender_id = request.gender_id if request.gender_id else None
-    marital_status_id = request.marital_status_id if request.marital_status_id else None
-    occupation_id = request.occupation_id if request.occupation_id else None
-    annual_income_id = request.annual_income_id if request.annual_income_id else None
-    monthly_saving_capacity_id = (
-        request.monthly_saving_capacity_id
-        if request.monthly_saving_capacity_id
-        else None
-    )
-    investment_amount_per_year_id = (
-        request.investment_amount_per_year_id
-        if request.investment_amount_per_year_id
-        else None
-    )
-
     # Create or update personal and financial details
     if not user_personal:
         user_personal = UserPersonalDetails(
             user=user,
             name=request.name,
             date_of_birth=request.date_of_birth,
-            gender=gender_id,
-            marital_status=marital_status_id,
+            gender=gender,
+            marital_status=marital_status,
         )
     else:
         if request.name:
@@ -159,30 +144,30 @@ async def update_user_personal_financial_details(
         if request.date_of_birth:
             user_personal.date_of_birth = request.date_of_birth
         if request.gender_id:
-            user_personal.gender = gender_id
+            user_personal.gender = gender
         if request.marital_status_id:
-            user_personal.marital_status = marital_status_id
+            user_personal.marital_status = marital_status
 
     if not user_financial:
         user_financial = UserFinancialDetails(
             user=user,
-            occupation=occupation_id,
-            income_category=annual_income_id,
-            saving_category=monthly_saving_capacity_id,
-            investment_amount_per_year=investment_amount_per_year_id,
+            occupation=occupation,
+            income_category=annual_income,
+            saving_category=monthly_saving_capacity,
+            investment_amount_per_year=investment_amount_per_year,
             regular_source_of_income=request.regular_source_of_income,
             lock_in_period_accepted=request.lock_in_period_accepted,
             investment_style=request.investment_style,
         )
     else:
         if request.occupation_id:
-            user_financial.occupation = occupation_id
+            user_financial.occupation = occupation
         if request.annual_income_id:
-            user_financial.income_category = annual_income_id
+            user_financial.income_category = annual_income
         if request.monthly_saving_capacity_id:
-            user_financial.saving_category = monthly_saving_capacity_id
+            user_financial.saving_category = monthly_saving_capacity
         if request.investment_amount_per_year_id:
-            user_financial.investment_amount_per_year = investment_amount_per_year_id
+            user_financial.investment_amount_per_year = investment_amount_per_year
         if request.regular_source_of_income:
             user_financial.regular_source_of_income = request.regular_source_of_income
         if request.lock_in_period_accepted:
