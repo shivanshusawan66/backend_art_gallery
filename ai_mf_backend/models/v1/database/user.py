@@ -136,8 +136,8 @@ class OTPlogs(SoftDeleteModel):
     user = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    otp = models.IntegerField(null=True, blank=True)
-    otp_valid = models.DateTimeField(null=True, blank=True)
+    otp = models.IntegerField(null=False, blank=False)
+    otp_valid = models.DateTimeField(null=False, blank=False)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
