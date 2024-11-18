@@ -6,12 +6,14 @@ services:
     container_name: ${AI_MF_REDIS_CONTAINER_NAME}
     restart: always
     networks:
-      - ${AI_MF_IMAGE_NAME}
+      - network
     volumes:
       - ai_mf_redis_data:/data
 
 networks:
-  ${AI_MF_IMAGE_NAME}:
+  network:
+    name: ${AI_MF_IMAGE_NAME}
+
 
 volumes:
   ai_mf_redis_data:
