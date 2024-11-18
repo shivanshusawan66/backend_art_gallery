@@ -3,7 +3,10 @@ from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.api.saving_responses import SubmitResponseRequest
 from ai_mf_backend.models.v1.database.questions import (
-    Question, Section, Allowed_Response, UserResponse
+    Question,
+    Section,
+    Allowed_Response,
+    UserResponse,
 )
 from asgiref.sync import sync_to_async
 from typing import List, Dict
@@ -13,13 +16,17 @@ user_responses_storage: Dict[int, Dict[int, List[Dict]]] = {}
 
 router = APIRouter()
 
-@router.post("/questionnaire/submit-response-or-section/", status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/questionnaire/submit-response-or-section/", status_code=status.HTTP_201_CREATED
+)
 async def submit_response_or_section(
-    request: SubmitResponseRequest,
-    response: Response
+    request: SubmitResponseRequest, response: Response
 ):
     # Fetch user
-    user = await sync_to_async(UserContactInfo.objects.filter(user_id=request.user_id).first)()
+    user = await sync_to_async(
+        UserContactInfo.objects.filter(user_id=request.user_id).first
+    )()
     if not user:
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"status": False, "message": "User not found", "status_code": 404}
@@ -59,7 +66,9 @@ async def submit_response_or_section(
 
         # Validate allowed response
         allowed_response = await sync_to_async(
-            Allowed_Response.objects.filter(question_id=question_id, response=user_response).first
+            Allowed_Response.objects.filter(
+                question_id=question_id, response=user_response
+            ).first
         )()
         if not allowed_response:
             raise HTTPException(
@@ -68,10 +77,12 @@ async def submit_response_or_section(
             )
 
         # Temporarily store the response
-        user_responses_storage[request.user_id][request.section_id].append({
-            "question_id": question_id,
-            "response": user_response,
-        })
+        user_responses_storage[request.user_id][request.section_id].append(
+            {
+                "question_id": question_id,
+                "response": user_response,
+            }
+        )
 
     # Check if the user is changing the section (has already submitted for a previous section)
     last_section_id = next(iter(user_responses_storage[request.user_id]), None)
@@ -89,8 +100,7 @@ async def submit_response_or_section(
 
                 allowed_response = await sync_to_async(
                     Allowed_Response.objects.filter(
-                        question_id=question_id,
-                        response=user_response
+                        question_id=question_id, response=user_response
                     ).first
                 )()
                 if not allowed_response:
@@ -104,7 +114,7 @@ async def submit_response_or_section(
                     user_id=request.user_id,
                     question_id=question_id,
                     response_id=allowed_response.id,
-                    section_id=last_section_id
+                    section_id=last_section_id,
                 )
                 try:
                     # Validate the response
@@ -117,6 +127,11 @@ async def submit_response_or_section(
                     )
 
             # Save all responses for the last section in bulk
-            await sync_to_async(UserResponse.objects.bulk_create)(user_responses_to_create)
+            await sync_to_async(UserResponse.objects.bulk_create)(
+                user_responses_to_create
+            )
 
-    return {"status": True, "message": "Responses temporarily saved. Submit when switching sections."}
+    return {
+        "status": True,
+        "message": "Responses temporarily saved. Submit when switching sections.",
+    }

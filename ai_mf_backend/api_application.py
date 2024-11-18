@@ -106,8 +106,11 @@ async def internal_server_exception_handler(
         content=api_response.model_dump(), status_code=api_response.status_code
     )
 
+
 @application.exception_handler(MalformedJWTRequestException)
-async def malformed_jwt_exception_handler(request: Request, exc: MalformedJWTRequestException):
+async def malformed_jwt_exception_handler(
+    request: Request, exc: MalformedJWTRequestException
+):
     return JSONResponse(
         status_code=498,
         content={
@@ -117,6 +120,8 @@ async def malformed_jwt_exception_handler(request: Request, exc: MalformedJWTReq
             "status_code": 498,
         },
     )
+
+
 async def request_validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
