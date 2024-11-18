@@ -3,15 +3,17 @@ version: "3.3"
 services:
   redis:
     image: redis
-    container_name: redis
+    container_name: ${AI_MF_REDIS_CONTAINER_NAME}
     restart: always
     networks:
-      - ai_mf
+      - network
     volumes:
       - ai_mf_redis_data:/data
 
 networks:
-  ai_mf:
+  network:
+    name: ${AI_MF_IMAGE_NAME}
+
 
 volumes:
   ai_mf_redis_data:

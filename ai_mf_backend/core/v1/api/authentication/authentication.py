@@ -188,7 +188,7 @@ async def user_authentication_password(
         response.status_code = 400  # Set status code in the response
         return UserAuthenticationPasswordResponse(
             status=False,
-            message=f"User password was not registered, please try login using OTP.",
+            message=f"User password was not registered, please use Forget Password to reset your password",
             data={"credentials": email if email else mobile_no},
             status_code=400,
         )
