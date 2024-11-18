@@ -6,90 +6,117 @@ from ai_mf_backend.models.v1.database.questions import (
     Question, Section, Allowed_Response, UserResponse
 )
 from asgiref.sync import sync_to_async
-from typing import List
+from typing import List, Dict
+
+# This will store the responses for each user and section temporarily
+user_responses_storage: Dict[int, Dict[int, List[Dict]]] = {}
 
 router = APIRouter()
 
-@router.post("/questionnaire/submit-response/", status_code=status.HTTP_201_CREATED)
-async def submit_response(
+@router.post("/questionnaire/submit-response-or-section/", status_code=status.HTTP_201_CREATED)
+async def submit_response_or_section(
     request: SubmitResponseRequest,
     response: Response
 ):
-    # Fetch user based on user_id from the request
-    user = await sync_to_async(
-        UserContactInfo.objects.filter(user_id=request.user_id).first
-    )()
+    # Fetch user
+    user = await sync_to_async(UserContactInfo.objects.filter(user_id=request.user_id).first)()
     if not user:
-        response.status_code = 404
+        response.status_code = status.HTTP_404_NOT_FOUND
         return {"status": False, "message": "User not found", "status_code": 404}
 
-    # Validate that the section ID exists
-    section = await sync_to_async(
-        Section.objects.filter(id=request.section_id).first
-    )()
+    # Validate section
+    section = await sync_to_async(Section.objects.filter(id=request.section_id).first)()
     if not section:
-        response.status_code = 404
+        response.status_code = status.HTTP_404_NOT_FOUND
         return {
             "status": False,
             "message": f"Section with ID {request.section_id} not found",
             "status_code": 404,
         }
 
-    # Initialize a list to hold validated UserResponse objects for bulk creation
-    user_responses_to_create: List[UserResponse] = []
+    # Initialize the dictionary for this user if not already initialized
+    if request.user_id not in user_responses_storage:
+        user_responses_storage[request.user_id] = {}
 
-    # Process each response item for the entire section
+    # Initialize the list for the current section if not already initialized
+    if request.section_id not in user_responses_storage[request.user_id]:
+        user_responses_storage[request.user_id][request.section_id] = []
+
+    # Validate each response before temporarily saving it
     for response_item in request.responses:
-        # Validate that the question exists within the section
+        question_id = response_item.question_id  # Access using dot notation
+        user_response = response_item.response  # Access using dot notation
+
+        # Validate question existence
         question = await sync_to_async(
-            Question.objects.filter(id=response_item.question_id, section_id=request.section_id).first
+            Question.objects.filter(id=question_id, section_id=request.section_id).first
         )()
         if not question:
-            response.status_code = 404
-            return {
-                "status": False,
-                "message": f"Question with ID {response_item.question_id} not found in section {request.section_id}",
-                "status_code": 404,
-            }
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Question ID {question_id} not found in section {request.section_id}",
+            )
 
-        # Validate the response value against allowed responses
+        # Validate allowed response
         allowed_response = await sync_to_async(
-            Allowed_Response.objects.filter(
-                question_id=response_item.question_id,
-                response=response_item.response
-            ).first
+            Allowed_Response.objects.filter(question_id=question_id, response=user_response).first
         )()
         if not allowed_response:
-            response.status_code = 400
-            return {
-                "status": False,
-                "message": f"Invalid response '{response_item.response}' for question {response_item.question_id}",
-                "status_code": 400,
-            }
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid response '{user_response}' for question {question_id}",
+            )
 
-        # Prepare a new UserResponse object to save after all validations
-        user_response = UserResponse(
-            user_id=user.user_id,
-            question_id=response_item.question_id,
-            response_id=allowed_response.id,
-            section_id=request.section_id
-        )
-        try:
-            # Validate each UserResponse instance before saving in bulk
-            await sync_to_async(user_response.full_clean)()  # Run validation
-            user_responses_to_create.append(user_response)  # Add to batch list if valid
-        except ValidationError as e:
-            error_details = e.message_dict  # This contains field-specific errors
-            response.status_code = 422
-            return {
-                "status": False,
-                "message": "Validation Error",
-                "errors": error_details,
-                "status_code": 422,
-            }
+        # Temporarily store the response
+        user_responses_storage[request.user_id][request.section_id].append({
+            "question_id": question_id,
+            "response": user_response,
+        })
 
-    # Save all validated responses for the section in a single bulk_create operation
-    await sync_to_async(UserResponse.objects.bulk_create)(user_responses_to_create)
+    # Check if the user is changing the section (has already submitted for a previous section)
+    last_section_id = next(iter(user_responses_storage[request.user_id]), None)
 
-    # Confirm submission
-    return {"status": True, "message": "Responses for section submitted successfully"}
+    # Save responses for the last section if moving to a new one
+    if last_section_id and last_section_id != request.section_id:
+        responses = user_responses_storage[request.user_id].pop(last_section_id, [])
+        if responses:
+            user_responses_to_create: List[UserResponse] = []
+
+            # Validate and prepare responses for saving
+            for response_item in responses:
+                question_id = response_item["question_id"]
+                user_response = response_item["response"]
+
+                allowed_response = await sync_to_async(
+                    Allowed_Response.objects.filter(
+                        question_id=question_id,
+                        response=user_response
+                    ).first
+                )()
+                if not allowed_response:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid response '{user_response}' for question {question_id}",
+                    )
+
+                # Create UserResponse instance
+                user_response_instance = UserResponse(
+                    user_id=request.user_id,
+                    question_id=question_id,
+                    response_id=allowed_response.id,
+                    section_id=last_section_id
+                )
+                try:
+                    # Validate the response
+                    await sync_to_async(user_response_instance.full_clean)()
+                    user_responses_to_create.append(user_response_instance)
+                except ValidationError as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail={"errors": e.message_dict},
+                    )
+
+            # Save all responses for the last section in bulk
+            await sync_to_async(UserResponse.objects.bulk_create)(user_responses_to_create)
+
+    return {"status": True, "message": "Responses temporarily saved. Submit when switching sections."}
