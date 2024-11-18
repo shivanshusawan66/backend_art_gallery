@@ -122,7 +122,7 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
 
 async def login_checker(Authorization: Annotated[str | None, Header()]):
 
-    if Authorization is None:
+    if not Authorization:
         raise MalformedJWTRequestException("Authorization token is missing.")
     else:
         try:
