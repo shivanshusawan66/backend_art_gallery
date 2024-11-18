@@ -109,13 +109,25 @@ async def submit_questionnaire_response(
                     status_code=404,
                 )
 
-            # Create UserResponse instance
-            user_response_instance = UserResponse(
-                user_id=request.user_id,
-                question_id=question_id,
-                response_id=allowed_response.id,
-                section_id=request.section_id,
-            )
+            user_response_instance = await sync_to_async(
+                UserResponse.objects.filter(
+                    user_id=request.user_id,
+                    question_id=question_id,
+                    section_id=request.section_id,
+                ).first
+            )()
+            if not user_response_instance:
+                # Create UserResponse instance
+                user_response_instance = UserResponse(
+                    user_id=request.user_id,
+                    question_id=question_id,
+                    response_id=allowed_response.id,
+                    section_id=request.section_id,
+                )
+                status_code = status.HTTP_201_CREATED
+            else:
+                user_response_instance.response_id = allowed_response.id
+                status_code = status.HTTP_200_OK
             try:
                 # Validate the response
                 await sync_to_async(user_response_instance.full_clean)()
@@ -130,12 +142,12 @@ async def submit_questionnaire_response(
 
             await sync_to_async(user_response_instance.save)()
 
-        response.status_code = status.HTTP_200_OK
+        response.status_code = status_code
         return SubmitQuestionnaireResponse(
             status=True,
             message="Successfully able to save responses to the Database.",
             data={},
-            status_code=200,
+            status_code=status_code,
         )
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
