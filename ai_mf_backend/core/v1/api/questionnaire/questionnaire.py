@@ -40,15 +40,20 @@ logger = logging.getLogger(__name__)
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
-async def get_all_sections(request: Request):
+async def get_all_sections(request: Request, response: Response):
     try:
-        sections = sync_to_async(Section.objects.all)()
+
+        # Fetch sections using async to avoid sync issues
+        sections = await sync_to_async(list)(Section.objects.all())
+
+        # Prepare the list of SectionBase objects
         sections_data = [
             SectionBase(section_id=section.pk, section_name=section.section)
             for section in sections
         ]
 
-        # Success response using Pydantic model
+        # Return success response
+        response.status_code = 200
         return SectionsResponse(
             status=True,
             message="Sections fetched successfully.",
@@ -56,13 +61,15 @@ async def get_all_sections(request: Request):
             status_code=200,
         )
     except Exception as e:
+
         logger.error(f"Error fetching sections: {e}")
 
-        # Error response using Pydantic model
+        # Return error response
+        response.status_code = 500
         return SectionsResponse(
             status=False,
             message="Failed to fetch sections.",
-            data=dict(),
+            data=None,  # Set data as None for errors
             status_code=500,
         )
 
@@ -78,7 +85,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
     try:
         # Check if section_id is valid
         specified_section_id = request.section_id
-
         if not specified_section_id:
             logger.warning("Section ID is missing or empty.")
             response.status_code = 422
@@ -100,7 +106,8 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             )
 
         # Fetch the current section using the specified ID
-        current_section = sync_to_async(
+
+        current_section = await sync_to_async(
             Section.objects.filter(pk=specified_section_id).first
         )()
 
@@ -115,26 +122,36 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             )
 
         # Fetch questions associated with the section
-        questions = sync_to_async(Question.objects.filter(section=current_section))()
+
+        questions = await sync_to_async(list)(
+            Question.objects.filter(section=current_section)
+        )
+
         question_data_list: List[QuestionData] = []
 
         for question in questions:
-            options = sync_to_async(
-                Allowed_Response.objects.filter(question=question).values(
-                    "id", "response"
+            options = await sync_to_async(
+                lambda: list(
+                    Allowed_Response.objects.filter(question=question).values(
+                        "id", "response"
+                    )
                 )
             )()
-            conditional_infos = sync_to_async(
-                ConditionalQuestion.objects.filter(question=question)
+
+            conditional_infos = await sync_to_async(
+                lambda: list(
+                    ConditionalQuestion.objects.filter(question=question).values()
+                )
             )()
 
             visibility_decisions = VisibilityDecisions(if_=[])
 
             for conditional_info in conditional_infos:
-                dependent_question = conditional_info.dependent_question
-                condition_response = sync_to_async(
+                dependent_question = conditional_info["dependent_question_id"]
+
+                condition_response = await sync_to_async(
                     Allowed_Response.objects.filter(
-                        pk=conditional_info.response_id
+                        pk=conditional_info["response_id"]
                     ).first
                 )()
 
@@ -146,10 +163,10 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                     "value": [condition_value],
                 }
 
-                if conditional_info.visibility == "show":
-                    condition["show"] = [dependent_question.id]
-                elif conditional_info.visibility == "hide":
-                    condition["hide"] = [dependent_question.id]
+                if conditional_info["visibility"] == "show":
+                    condition["show"] = [dependent_question]
+                elif conditional_info["visibility"] == "hide":
+                    condition["hide"] = [dependent_question]
 
                 visibility_decisions.if_.append(VisibilityCondition(**condition))
 
@@ -170,12 +187,12 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             section_name=current_section.section,
             questions=question_data_list,
         )
-
         response.status_code = 200
         return SectionQuestionsResponse(
             status=True,
-            status_code=200,
+            message="Succesfully fetched section wise questions and responses",
             data=response_data,
+            status_code=200,
         )
 
     except Exception as e:
