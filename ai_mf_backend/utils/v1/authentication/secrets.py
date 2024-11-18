@@ -1,20 +1,28 @@
-from typing import Annotated, Dict, Union
 import jwt
+from typing import Annotated, Dict, Union
+from datetime import datetime, timezone as dt_timezone  # Alias datetime timezone
+
 from asgiref.sync import sync_to_async
+
 from fastapi import Header
-from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
+
 from django.utils import (
     timezone as django_timezone,
 )  # Alias django timezone to avoid conflicts
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password, check_password
+
 from phonenumber_field.validators import validate_international_phonenumber
-from datetime import datetime, timezone as dt_timezone  # Alias datetime timezone
+
+from ai_mf_backend.utils.v1.authentication.rate_limiting import throttle_otp_requests
+
+from ai_mf_backend.models.v1.database.user import UserContactInfo
+from ai_mf_backend.models.v1.api.jwt_token import JWTTokenPayload
+
+from ai_mf_backend.utils.v1.errors import MalformedJWTRequestException
 
 from ai_mf_backend.config.v1.authentication_config import authentication_config
-from ai_mf_backend.utils.v1.errors import MalformedJWTRequestException
-from ai_mf_backend.models.v1.database.user import UserContactInfo
 
 
 def jwt_token_checker(
@@ -114,7 +122,7 @@ def password_checker(plain_password: str, hashed_password: str) -> bool:
 
 async def login_checker(Authorization: Annotated[str | None, Header()]):
 
-    if Authorization is None:
+    if not Authorization:
         raise MalformedJWTRequestException("Authorization token is missing.")
     else:
         try:
@@ -164,6 +172,11 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
 
     if not user_doc:
         raise MalformedJWTRequestException("This user does not exist.")
+
+    user_id = user_doc.user_id
+    can_request, error_message = throttle_otp_requests(user_id)
+    if not can_request:
+        raise MalformedJWTRequestException(error_message)
 
     expiry = float(decoded_payload["expiry"])
     current_time = float(django_timezone.now().timestamp())

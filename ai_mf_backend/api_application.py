@@ -1,11 +1,10 @@
 import os
 import time
-import json
 import random
 import string
 import logging
 
-from fastapi import FastAPI, Request, status, HTTPException
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.logger import logger as fastapi_logger
@@ -18,6 +17,7 @@ from starlette.middleware.cors import CORSMiddleware
 from django.contrib import admin
 from django.core.asgi import get_asgi_application
 
+from ai_mf_backend.core.v1.api import limiter as rate_limiter
 
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
@@ -74,6 +74,7 @@ logger = logging.getLogger(__name__)
 fastapi_logger.handlers = logger.handlers
 
 application = FastAPI(title=api_config.PROJECT_NAME)
+application.state.limiter = rate_limiter
 
 
 @application.exception_handler(RateLimitExceeded)
