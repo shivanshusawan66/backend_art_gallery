@@ -214,6 +214,13 @@ def add_case_insensitive_unique_constraint(apps, schema_editor):
         """
         )
 
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX occupation_unique_ci 
+            ON occupation (UPPER(occupation));
+        """
+        )
+
 
 def set_income_category_constraint(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -259,13 +266,6 @@ def set_income_category_constraint(apps, schema_editor):
                 # Rollback transaction to continue with the next table if an error occurs
                 connection.rollback()
                 print(f"Skipping {table} due to error: {e}")
-
-        cursor.execute(
-            """
-            CREATE UNIQUE INDEX occupation_unique_ci 
-            ON occupation (UPPER(occupation));
-        """
-        )
 
 
 def set_occupation_constraint(apps, schema_editor):
