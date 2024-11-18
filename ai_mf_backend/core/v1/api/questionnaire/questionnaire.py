@@ -1,8 +1,13 @@
 import logging
-from typing import List, Union
-from fastapi import APIRouter, Response
-from ai_mf_backend.models.v1.api.questionaire import (
-    ErrorResponse,
+from typing import List
+
+from fastapi import APIRouter, Response, Depends
+
+from ai_mf_backend.core.v1.api import limiter
+
+from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+
+from ai_mf_backend.models.v1.api.questionnaire import (
     Option,
     QuestionData,
     SectionBase,
@@ -20,12 +25,20 @@ from ai_mf_backend.models.v1.database.questions import (
     ConditionalQuestion,
 )
 
+from ai_mf_backend.config.v1.api_config import api_config
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/sections", response_model=Union[SectionsResponse, ErrorResponse])
-def get_all_sections():
+@limiter.limit(api_config.REQUEST_PER_MIN)
+@router.get(
+    "/sections",
+    response_model=SectionsResponse,
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_all_sections():
     try:
         sections = Section.objects.all()
         sections_data = [
@@ -44,16 +57,24 @@ def get_all_sections():
         logger.error(f"Error fetching sections: {e}")
 
         # Error response using Pydantic model
-        return ErrorResponse(
-            status=False, message="Failed to fetch sections.", status_code=500
+        return SectionsResponse(
+            status=False,
+            message="Failed to fetch sections.",
+            data=dict(),
+            status_code=500,
         )
 
 
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/section-wise-questions/",
-    response_model=Union[SectionQuestionsResponse, ErrorResponse],
+    response_model=SectionQuestionsResponse,
+    dependencies=[Depends(login_checker)],
+    status_code=200,
 )
-def get_section_wise_questions(section_request: SectionRequest, response: Response):
+async def get_section_wise_questions(
+    section_request: SectionRequest, response: Response
+):
     try:
         # Check if section_id is valid
         specified_section_id = section_request.section_id
@@ -61,18 +82,20 @@ def get_section_wise_questions(section_request: SectionRequest, response: Respon
         if not specified_section_id:
             logger.warning("Section ID is missing or empty.")
             response.status_code = 422
-            return ErrorResponse(
+            return SectionQuestionsResponse(
                 status=False,
                 message="section_id cannot be empty.",
+                data=dict(),
                 status_code=422,
             )
 
         if not isinstance(specified_section_id, str):
             logger.warning(f"Invalid section_id type: {type(specified_section_id)}")
             response.status_code = 422
-            return ErrorResponse(
+            return SectionQuestionsResponse(
                 status=False,
                 message="section_id must be a string.",
+                data=dict(),
                 status_code=422,
             )
 
@@ -82,9 +105,10 @@ def get_section_wise_questions(section_request: SectionRequest, response: Respon
         if not current_section:
             logger.warning(f"Section ID {specified_section_id} not found.")
             response.status_code = 404
-            return ErrorResponse(
+            return SectionQuestionsResponse(
                 status=False,
                 message="Section not found.",
+                data=dict(),
                 status_code=404,
             )
 
@@ -149,4 +173,6 @@ def get_section_wise_questions(section_request: SectionRequest, response: Respon
     except Exception as e:
         logger.error(f"Unexpected error while fetching questions: {str(e)}")
         response.status_code = 500
-        return ErrorResponse(status=False, message=str(e), status_code=500)
+        return SectionQuestionsResponse(
+            status=False, message=str(e), data=dict(), status_code=500
+        )

@@ -1,5 +1,7 @@
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
-from typing import List, Optional
+
+from ai_mf_backend.models.v1.api import Response
 
 
 class Option(BaseModel):
@@ -41,20 +43,9 @@ class SectionRequest(BaseModel):
     )
 
 
-class SectionsResponse(BaseModel):
-    status: bool
-    message: str
-    data: List[SectionBase]
-    status_code: int
+class SectionsResponse(Response):
+    data: Optional[Dict[List[SectionBase]]] = dict()
 
 
-class ErrorResponse(BaseModel):
-    status: bool
-    message: str
-    status_code: int
-
-
-class SectionQuestionsResponse(BaseModel):
-    status: bool
-    data: SectionQuestionsData
-    status_code: int
+class SectionQuestionsResponse(Response):
+    data: Optional[SectionQuestionsData] = dict()
