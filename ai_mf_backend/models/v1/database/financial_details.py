@@ -1,5 +1,6 @@
 from django.db import models
 import logging
+from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.utils.v1.validators.input import validate_number_dash_number
@@ -125,7 +126,10 @@ class UserFinancialDetails(SoftDeleteModel):
                 )
 
         # Call the validation function to enforce time-based restrictions
-        validate_profile_modification_time(self)
+        try:
+            validate_profile_modification_time(self)
+        except ValidationError as e:
+            raise ValidationError(str(e))
 
         # Save the instance
         super().save(*args, **kwargs)

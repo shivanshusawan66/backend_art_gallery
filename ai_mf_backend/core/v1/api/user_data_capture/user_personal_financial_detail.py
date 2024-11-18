@@ -271,7 +271,17 @@ async def update_user_personal_financial_details(
                 status_code=422,
             )
     await sync_to_async(user_personal.save)()
-    await sync_to_async(user_financial.save)()
+    try:
+        await sync_to_async(user_financial.save)()
+    except ValidationError as e:
+        # Return a structured response with the validation error message
+        response.status_code = 422  # Set status code to 422 for validation errors
+        return User_Personal_Financial_Details_Update_Response(
+            status=False,
+            message=str(e),  # Return the validation error message
+            data={},
+            status_code=422,
+        )
     return User_Personal_Financial_Details_Update_Response(
         status=True,
         message="User personal and financial details updated successfully",
