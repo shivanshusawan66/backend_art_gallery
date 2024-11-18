@@ -31,7 +31,7 @@ from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
     router as soft_delete_router,
 )
 
-from ai_mf_backend.core.v1.api.questionaire.saving_responses import (
+from ai_mf_backend.core.v1.api.questionnaire.saving_responses import (
     router as saving_response_v1,
 )
 
