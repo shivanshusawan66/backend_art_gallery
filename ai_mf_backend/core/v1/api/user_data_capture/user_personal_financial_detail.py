@@ -1,6 +1,11 @@
 from fastapi import APIRouter, HTTPException, Response
+
+from asgiref.sync import sync_to_async
+
 from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
+
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
     UserContactInfo,
@@ -18,8 +23,7 @@ from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsUpdateRequest,
     UserPersonalFinancialDetailsUpdateResponse,
 )
-from asgiref.sync import sync_to_async
-from django.core.exceptions import ValidationError
+
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
@@ -129,51 +133,43 @@ async def update_user_personal_financial_details(
         UserFinancialDetails.objects.filter(user_id=request.user_id).first
     )()
 
+    response_message = "User personal and financial details updated successfully."
+    status_code = 200
+
     # Create or update personal and financial details
     if not user_personal:
-        user_personal = UserPersonalDetails(
-            user=user,
-            name=request.name,
-            date_of_birth=request.date_of_birth,
-            gender=gender,
-            marital_status=marital_status,
-        )
-    else:
-        if request.name:
-            user_personal.name = request.name
-        if request.date_of_birth:
-            user_personal.date_of_birth = request.date_of_birth
-        if request.gender_id:
-            user_personal.gender = gender
-        if request.marital_status_id:
-            user_personal.marital_status = marital_status
+        user_personal = UserPersonalDetails()
+        response_message = "User personal and financial details created successfully."
+        status_code = 201
+
+    if request.name:
+        user_personal.name = request.name
+    if request.date_of_birth:
+        user_personal.date_of_birth = request.date_of_birth
+    if request.gender_id:
+        user_personal.gender = gender
+    if request.marital_status_id:
+        user_personal.marital_status = marital_status
 
     if not user_financial:
-        user_financial = UserFinancialDetails(
-            user=user,
-            occupation=occupation,
-            income_category=annual_income,
-            saving_category=monthly_saving_capacity,
-            investment_amount_per_year=investment_amount_per_year,
-            regular_source_of_income=request.regular_source_of_income,
-            lock_in_period_accepted=request.lock_in_period_accepted,
-            investment_style=request.investment_style,
-        )
-    else:
-        if request.occupation_id:
-            user_financial.occupation = occupation
-        if request.annual_income_id:
-            user_financial.income_category = annual_income
-        if request.monthly_saving_capacity_id:
-            user_financial.saving_category = monthly_saving_capacity
-        if request.investment_amount_per_year_id:
-            user_financial.investment_amount_per_year = investment_amount_per_year
-        if request.regular_source_of_income:
-            user_financial.regular_source_of_income = request.regular_source_of_income
-        if request.lock_in_period_accepted:
-            user_financial.lock_in_period_accepted = request.lock_in_period_accepted
-        if request.investment_style:
-            user_financial.investment_style = request.investment_style
+        user_financial = UserFinancialDetails()
+        response_message = "User personal and financial details created successfully."
+        status_code = 201
+
+    if request.occupation_id:
+        user_financial.occupation = occupation
+    if request.annual_income_id:
+        user_financial.income_category = annual_income
+    if request.monthly_saving_capacity_id:
+        user_financial.saving_category = monthly_saving_capacity
+    if request.investment_amount_per_year_id:
+        user_financial.investment_amount_per_year = investment_amount_per_year
+    if request.regular_source_of_income:
+        user_financial.regular_source_of_income = request.regular_source_of_income
+    if request.lock_in_period_accepted:
+        user_financial.lock_in_period_accepted = request.lock_in_period_accepted
+    if request.investment_style:
+        user_financial.investment_style = request.investment_style
 
     try:
         await sync_to_async(
@@ -198,10 +194,10 @@ async def update_user_personal_financial_details(
     await sync_to_async(user_personal.save)()
     await sync_to_async(user_financial.save)()
 
-    response.status_code = 201
+    response.status_code = status_code
     return UserPersonalFinancialDetailsUpdateResponse(
         status=True,
-        message="User personal and financial details created successfully.",
+        message=response_message,
         data={"user_id": user.user_id},
-        status_code=201,
+        status_code=status_code,
     )
