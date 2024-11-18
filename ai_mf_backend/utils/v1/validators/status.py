@@ -17,3 +17,11 @@ def validate_gender(gender):
 
     if not gender.strip():
         raise ValidationError("Gender cannot be empty or only whitespace.")
+
+
+def validate_occupation(occupation):
+    if not re.match(r"^[A-Za-z\s]+$", occupation):
+        raise ValidationError(f"{occupation} is not a valid occupation.")
+
+    if not occupation.strip():
+        raise ValidationError(f"Occupation cannot be empty or only whitespace.")

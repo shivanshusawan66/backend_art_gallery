@@ -2,12 +2,12 @@ version: "3.3"
 
 services:
   ai_mf_pipe:
-    image: ai_mf_pipe:latest
+    image: ${AI_MF_IMAGE_NAME}:latest
     build:
       context: ../
       dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
     command: celery -A ai_mf_backend.celery_tasks worker --autoscale=${CELERY_AUTOSCALE_UPPER_LIMIT},${CELERY_AUTOSCALE_LOWER_LIMIT} --loglevel=${LOG_LEVEL} && celery -A ai_mf_backend.celery_tasks beat --loglevel=${LOG_LEVEL}
-    container_name: ai_mf_pipe
+    container_name: ${AI_MF_PIPE_CONTAINER_NAME}
     restart: always
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
@@ -18,15 +18,15 @@ services:
       # - ai_mf_tests
       []
     networks:
-      - ai_mf
+      - network
 
   ai_mf_api:
-    image: ai_mf_api:latest
+    image: ${AI_MF_IMAGE_NAME}:latest
     build:
       context: ../
       dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
     command: gunicorn -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers ${APPLICATION_WORKERS} --threads ${APPLICATION_THREADS} ai_mf_backend.api_application --timeout 400 --log-level=${LOG_LEVEL}
-    container_name: ai_mf_api
+    container_name: ${AI_MF_API_CONTAINER_NAME}
     restart: always
     ports:
       - ${FASTAPI_APPLICATION_PORT}:8000
@@ -36,13 +36,12 @@ services:
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
     depends_on:
-      # - ai_mf_tests
-      []
+      - ai_mf_pipe
     networks:
-      - ai_mf
+      - network
 
   # ai_mf_tests:
-  #   image: ai_mf_api:latest
+  #   image: ${AI_MF_IMAGE_NAME}:latest
   #   build:
   #     context: ../
   #     dockerfile: ./ai_mf_dockerfiles/Dockerfile.ai_mf_backend
@@ -53,7 +52,8 @@ services:
   #     LOG_LEVEL: ${LOG_LEVEL}
   #     ENVIRONMENT: server
   #   networks:
-  #     - ai_mf
+      # - network
 
 networks:
-  ai_mf:
+  network:
+    name: ${AI_MF_IMAGE_NAME}

@@ -6,9 +6,11 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
 )
+from ai_mf_backend.utils.v1.validators.name import validate_name
 from ai_mf_backend.utils.v1.validators.status import (
     validate_marital_status,
     validate_gender,
+    validate_occupation,
 )
 
 
@@ -55,7 +57,9 @@ class MaritalStatus(SoftDeleteModel):
 
 
 class Occupation(SoftDeleteModel):
-    occupation = models.CharField(max_length=100, unique=True)
+    occupation = models.CharField(
+        max_length=100, unique=True, validators=[validate_occupation]
+    )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -105,7 +109,9 @@ class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    name = models.CharField(max_length=100, null=True, blank=True)
+    name = models.CharField(
+        max_length=100, null=True, blank=True, validators=[validate_name]
+    )
     date_of_birth = models.DateField(
         null=True,
         blank=True,
@@ -133,8 +139,8 @@ class OTPlogs(SoftDeleteModel):
     user = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    otp = models.IntegerField(null=True, blank=True)
-    otp_valid = models.DateTimeField(null=True, blank=True)
+    otp = models.IntegerField(null=False, blank=False)
+    otp_valid = models.DateTimeField(null=False, blank=False)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 

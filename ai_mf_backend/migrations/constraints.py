@@ -214,6 +214,13 @@ def add_case_insensitive_unique_constraint(apps, schema_editor):
         """
         )
 
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX occupation_unique_ci 
+            ON occupation (UPPER(occupation));
+        """
+        )
+
 
 def set_income_category_constraint(apps, schema_editor):
     with connection.cursor() as cursor:
@@ -261,6 +268,85 @@ def set_income_category_constraint(apps, schema_editor):
                 print(f"Skipping {table} due to error: {e}")
 
 
+def set_occupation_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        # Fetch tables that have a marital_status column
+        cursor.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE column_name = 'occupation'
+              AND table_schema = 'public'
+            GROUP BY table_name;
+        """
+        )
+        tables = cursor.fetchall()
+
+        # Regular expression pattern to allow only alphabetic characters and spaces
+        # pattern = r"^[A-Za-z\s]+$"
+
+        # Iterate over tables to apply CHECK constraint
+        for (table,) in tables:
+            try:
+                # Check if the marital_status column exists in the current table
+                cursor.execute(
+                    f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' 
+                      AND column_name = 'occupation';
+                """
+                )
+                columns = {col[0] for col in cursor.fetchall()}
+
+                # Apply the CHECK constraint only if the marital_status column is found
+                if "occupation" in columns:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD CONSTRAINT {table}_occupation_check
+                        CHECK (occupation ~ '^[A-Za-z\\s]+$' AND occupation IS NOT NULL AND TRIM(occupation) <> '');
+                    """
+                    )
+            except Exception as e:
+                # Rollback transaction to continue with the next table if an error occurs
+                connection.rollback()
+                print(f"Skipping {table} due to error: {e}")
+
+
+def set_user_personal_details_saving_category_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # Alphanumeric constraint for `saving_category`
+            cursor.execute(
+                """
+                ALTER TABLE monthly_saving_capacity
+                ADD CONSTRAINT user_personal_details_saving_category_number_dash_number
+                CHECK (saving_category ~ '^(\\d+\\s*-\\s*\\d+)$');
+            """
+            )
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying saving_category constraint: {e}")
+
+
+def set_otp_valid_constraint(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # New constraint to prevent expired OTPs from being stored
+            cursor.execute(
+                """
+                ALTER TABLE otp_logs
+                ADD CONSTRAINT otp_valid_not_past
+                CHECK (otp_valid >= CURRENT_TIMESTAMP);
+                """
+            )
+            print("OTP validity constraint applied successfully.")
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying OTP validity constraint: {e}")
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -276,4 +362,7 @@ class Migration(migrations.Migration):
         migrations.RunPython(set_gender_constraint),
         migrations.RunPython(create_update_date_triggers),
         migrations.RunPython(set_income_category_constraint),
+        migrations.RunPython(set_occupation_constraint),
+        migrations.RunPython(set_user_personal_details_saving_category_constraint),
+        migrations.RunPython(set_otp_valid_constraint),
     ]
