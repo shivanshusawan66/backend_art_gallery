@@ -248,6 +248,7 @@ async def otp_verification(
             )
 
     elif payload["token_type"] == "forgot_password":
+        user_doc.is_verified = True
         user_doc.password = password_encoder(request.password)
         await sync_to_async(user_doc.save)()
         return OTPVerificationResponse(
