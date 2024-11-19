@@ -388,9 +388,12 @@ async def user_authentication_otp(
         user_otp_document.otp = otp
         user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
         await sync_to_async(user_otp_document.save)()
+        token_type="login"
+        if not user_doc.is_verified:
+            token_type = "signup"
 
         login_payload = {
-            "token_type": "login",
+            "token_type": token_type,
             "creation_time": timezone.now().timestamp(),
             "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
