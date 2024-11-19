@@ -5,7 +5,7 @@ services:
   flower:
     image: mher/flower
     command: celery flower
-    container_name: ${AI_MF_FLOWER_CONTAINER_NAME}
+    container_name: ai_mf_flower
     environment:
     - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     - FLOWER_PORT=5555
@@ -13,8 +13,7 @@ services:
     ports:
       - ${FLOWER_UI_PORT}:5555
     networks:
-      - network
+      - ai_mf
 
 networks:
-  network:
-    name: ${AI_MF_IMAGE_NAME}
+  ai_mf:

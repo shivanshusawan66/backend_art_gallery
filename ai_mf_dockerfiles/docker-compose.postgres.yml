@@ -3,7 +3,7 @@ version: "3.3"
 services:
   pgserver:
     image: pgvector/pgvector:pg17
-    container_name: ${AI_MF_PG_CONTAINER_NAME}
+    container_name: ai-mf-postgres
     restart: always
     stdin_open: true
     volumes:
@@ -16,11 +16,10 @@ services:
     ports:
       - ${POSTGRES_EXTERNAL_PORT}:5432/tcp
     networks:
-      - network
+      - ai_mf
 
 volumes: 
   postgres_data:
 
 networks:
-  network:
-    name: ${AI_MF_IMAGE_NAME}
+  ai_mf:
