@@ -227,7 +227,7 @@ async def user_authentication_password(
     elif user_doc and not user_doc.password:
         response.status_code = 204  # Set status code in the response
         return UserAuthenticationPasswordResponse(
-            status=False,
+            status=True,
             message=f"User password was not registered, please use Forget Password to reset your password",
             data={"credentials": email if email else mobile_no},
             status_code=204,
