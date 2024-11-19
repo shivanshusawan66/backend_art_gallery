@@ -349,7 +349,7 @@ async def user_authentication_otp(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
 
-    if user_doc or not user_doc.is_verified:
+    if user_doc:
         user_id = user_doc.user_id
         can_request, error_message = throttle_otp_requests(user_id)
         if not can_request:
@@ -388,6 +388,7 @@ async def user_authentication_otp(
         user_otp_document.otp = otp
         user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
         await sync_to_async(user_otp_document.save)()
+        
         token_type="login"
         if not user_doc.is_verified:
             token_type = "signup"
