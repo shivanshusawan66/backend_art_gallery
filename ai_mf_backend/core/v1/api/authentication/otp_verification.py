@@ -58,7 +58,7 @@ async def otp_verification(
     otp_sent = request.otp
     remember_me = request.remember_me
 
-    if Authorization is None:
+    if not Authorization:
         response.status_code = 422
         return OTPVerificationResponse(
             status=False,

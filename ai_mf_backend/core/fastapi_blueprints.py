@@ -18,8 +18,8 @@ from ai_mf_backend.core.v1.api.user_data_capture.user_personal_financial_detail 
 from ai_mf_backend.core.v1.api.yf_data_pull.yf_data_pull import (
     router as yf_data_pull_router_v1,
 )
-from ai_mf_backend.core.v1.api.questionaire.questionaire import (
-    router as questionaire_router_v1,
+from ai_mf_backend.core.v1.api.questionnaire.questionnaire import (
+    router as questionnaire_router_v1,
 )
 from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
@@ -41,7 +41,7 @@ connect_router.include_router(otp_verification_router_v1)
 connect_router.include_router(id_options_router_v1)
 connect_router.include_router(user_personal_financial_detail_router_v1)
 connect_router.include_router(yf_data_pull_router_v1)
-connect_router.include_router(questionaire_router_v1)
+connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
 connect_router.include_router(display_mf_data_router_v1)
 connect_router.include_router(soft_delete_router)

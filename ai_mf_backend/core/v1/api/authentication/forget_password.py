@@ -202,7 +202,7 @@ async def change_password(
         None
     ),  # Expect token in the Authorization header
 ):
-    if Authorization is None:
+    if not Authorization:
         response.status_code = 422
         return ChangePasswordResponse(
             status=False,
