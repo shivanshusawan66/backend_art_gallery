@@ -6,7 +6,7 @@ from ai_mf_backend.config.v1.api_config import api_config
 
 def throttle_otp_requests(user_id):
     """
-    Throttles OTP requests based on the number of requests within a time window.
+    Throttles API requests based on the number of requests within a time window.
 
     We have added this along with IP rate limiting since a user can request too many times from diff IPs also.
     """
@@ -24,7 +24,7 @@ def throttle_otp_requests(user_id):
     if len(request_timestamps) >= api_config.MAX_OTP_REQUESTS:
         return (
             False,
-            f"Too many OTP requests. Try again after {api_config.THROTTLE_WINDOW_SECONDS - int(current_time - request_timestamps[0])} seconds.",
+            f"Too many requests! Try again after {api_config.THROTTLE_WINDOW_SECONDS - int(current_time - request_timestamps[0])} seconds.",
         )
 
     # Add current timestamp and update the cache
