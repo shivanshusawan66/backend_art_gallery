@@ -29,6 +29,7 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
+from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
 
 router = APIRouter()
 
@@ -43,43 +44,44 @@ async def update_user_personal_financial_details(
     annual_income = None
     monthly_saving_capacity = None
     investment_amount_per_year = None
+
     try:
         # Validating date of birth
         validate_not_future_date(request.date_of_birth)
         validate_reasonable_birth_date(request.date_of_birth)
 
-        # validating name
+        # Validating name
         validate_name(request.name)
 
-        # validating gender
+        # Validating gender
         gender = await sync_to_async(
             Gender.objects.filter(id=request.gender_id).first
         )()
         if isinstance(request.gender_id, int) and not gender:
             raise ValidationError("Invalid gender provided.")
 
-        # validating marital status
+        # Validating marital status
         marital_status = await sync_to_async(
             MaritalStatus.objects.filter(id=request.marital_status_id).first
         )()
         if isinstance(request.marital_status_id, int) and not marital_status:
             raise ValidationError("Invalid Marital status provided.")
 
-        # validating occupation
+        # Validating occupation
         occupation = await sync_to_async(
             Occupation.objects.filter(id=request.occupation_id).first
         )()
         if isinstance(request.occupation_id, int) and not occupation:
             raise ValidationError("Invalid occupation provided.")
 
-        # validating annual income
+        # Validating annual income
         annual_income = await sync_to_async(
             AnnualIncome.objects.filter(id=request.annual_income_id).first
         )()
         if isinstance(request.annual_income_id, int) and not annual_income:
             raise ValidationError("Invalid Annual income provided.")
 
-        # validating monthly saving capacity
+        # Validating monthly saving capacity
         monthly_saving_capacity = await sync_to_async(
             MonthlySavingCapacity.objects.filter(
                 id=request.monthly_saving_capacity_id
@@ -91,7 +93,7 @@ async def update_user_personal_financial_details(
         ):
             raise ValidationError("Invalid Monthly saving capacity provided.")
 
-        # validating investment ammount per year
+        # Validating investment amount per year
         investment_amount_per_year = await sync_to_async(
             InvestmentAmountPerYear.objects.filter(
                 id=request.investment_amount_per_year_id
@@ -101,16 +103,15 @@ async def update_user_personal_financial_details(
             isinstance(request.investment_amount_per_year_id, int)
             and not investment_amount_per_year
         ):
-            raise ValidationError("Invalid investment ammount per year provided.")
+            raise ValidationError("Invalid investment amount per year provided.")
 
     except ValidationError as e:
-        status_code = 400
-        response.status_code = status_code
+        response.status_code = 400
         return UserPersonalFinancialDetailsUpdateResponse(
             status=False,
             message=str(e),
             data={},
-            status_code=status_code,
+            status_code=400,
         )
 
     user = await sync_to_async(
@@ -136,7 +137,6 @@ async def update_user_personal_financial_details(
     response_message = "User personal and financial details updated successfully."
     status_code = 200
 
-    # Create or update personal and financial details
     if not user_personal:
         user_personal = UserPersonalDetails()
         response_message = "User personal and financial details created successfully."
@@ -171,40 +171,42 @@ async def update_user_personal_financial_details(
     if request.investment_style:
         user_financial.investment_style = request.investment_style
 
+    # Before saving, validate if profile modification is allowed
     try:
-        await sync_to_async(
-            user_personal.full_clean
-        )()  # Run validation for user personal details
-        await sync_to_async(
-            user_financial.full_clean
-        )()  # Run validation for user financial details
-
+        validate_profile_modification_time(user_financial)
     except ValidationError as e:
-        # Capture validation error details
-        error_details = e.message_dict  # This contains field-specific errors
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "status": False,
-                "message": "Validation Error while saving details to the database.",
-                "errors": error_details,
-            },
-        )
-
-    await sync_to_async(user_personal.save)()
-    try:
-        await sync_to_async(user_financial.save)()
-
-        response.status_code = status_code
-    except ValidationError as e:
-        # Return a structured response with the validation error message
-        response.status_code = 422  # Set status code to 422 for validation errors
+        response.status_code = 403  # Forbidden due to modification time
         return UserPersonalFinancialDetailsUpdateResponse(
             status=False,
-            message=str(e),  # Return the validation error message
+            message=str(e),
+            data={},
+            status_code=403,
+        )
+
+    try:
+        await sync_to_async(user_personal.full_clean)()  # Validation before saving
+        await sync_to_async(user_personal.save)()  # Save user personal details
+    except ValidationError as e:
+        response.status_code = 422
+        return UserPersonalFinancialDetailsUpdateResponse(
+            status=False,
+            message="Validation error in personal details",
             data={},
             status_code=422,
         )
+
+    try:
+        await sync_to_async(user_financial.full_clean)()  # Validation before saving
+        await sync_to_async(user_financial.save)()  # Save user financial details
+    except ValidationError as e:
+        response.status_code = 422
+        return UserPersonalFinancialDetailsUpdateResponse(
+            status=False,
+            message="Validation error in financial details",
+            data={},
+            status_code=422,
+        )
+
     return UserPersonalFinancialDetailsUpdateResponse(
         status=True,
         message=response_message,
