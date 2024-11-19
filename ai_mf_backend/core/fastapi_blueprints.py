@@ -30,6 +30,9 @@ from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data import (
 from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
     router as soft_delete_router,
 )
+from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import (
+    router as mutual_fund_category_router,
+)
 
 connect_router.include_router(authentication_router_v1)
 connect_router.include_router(forget_password_router_v1)
@@ -41,3 +44,4 @@ connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
 connect_router.include_router(display_mf_data_router_v1)
 connect_router.include_router(soft_delete_router)
+connect_router.include_router(mutual_fund_category_router)
