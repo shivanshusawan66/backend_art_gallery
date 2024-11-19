@@ -43,7 +43,7 @@ router = APIRouter()
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
-    "/api/mutual_funds_category",
+    "/mutual_funds_category",
     response_model=FrontendResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
