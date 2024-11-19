@@ -407,7 +407,7 @@ async def user_authentication_otp(
         response.status_code = 202  # Set status code in the header
         return UserAuthenticationOTPResponse(
             status=True,
-            message=f"Otp has been send to {email if email else mobile_no}, please verify it. ",
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
             data={
                 "credentials": user_doc.email if email else user_doc.mobile_number,
                 "token": jwt_token,
