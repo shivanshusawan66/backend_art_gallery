@@ -179,10 +179,14 @@ async def user_authentication_password(
                 "creation_time": timezone.now().timestamp(),
                 "expiry": (
                     (
-                        timezone.now() + timedelta(hours=5)
+                        timezone.now()
+                        + timedelta(hours=api_config.OTP_EXPIRATION_DEFAULT_HOURS)
                     ).timestamp()  # Fixed to 5 hours
                     if not request.remember_me
-                    else (timezone.now() + timedelta(days=365)).timestamp()
+                    else (
+                        timezone.now()
+                        + timedelta(days=api_config.OTP_EXPIRATION_REMEMBER_DAYS)
+                    ).timestamp()
                 ),
             }
             if user_doc.email:

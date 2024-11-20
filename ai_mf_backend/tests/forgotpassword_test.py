@@ -1,12 +1,15 @@
-import os
-import sys
-import pytest
-from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
+
+import pytest
+
+from unittest.mock import patch, MagicMock
+
+from fastapi.testclient import TestClient
+
+
 from django.utils import timezone
+
 from ai_mf_backend.api_application import application
-from ai_mf_backend.utils.v1.errors import MalformedJWTRequestException
 
 # ================== Constants ==================
 FORGOT_PASSWORD_URL = "/api/v1/forgot_password"

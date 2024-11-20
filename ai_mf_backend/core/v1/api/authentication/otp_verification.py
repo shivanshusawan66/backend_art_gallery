@@ -209,9 +209,15 @@ async def otp_verification(
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
             "expiry": (
-                (timezone.now() + timedelta(hours=5)).timestamp()
+                (
+                    timezone.now()
+                    + timedelta(hours=api_config.OTP_EXPIRATION_DEFAULT_HOURS)
+                ).timestamp()
                 if not remember_me
-                else (timezone.now() + timedelta(days=365)).timestamp()
+                else (
+                    timezone.now()
+                    + timedelta(days=api_config.OTP_EXPIRATION_REMEMBER_DAYS)
+                ).timestamp()
             ),
         }
 
