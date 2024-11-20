@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, Response
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Response, Depends, Header
 
 from asgiref.sync import sync_to_async
 
-from django.core.exceptions import ValidationError
-from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
 
 from ai_mf_backend.models.v1.database.user import (
@@ -29,13 +28,20 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
+from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 
 router = APIRouter()
 
 
-@router.post("/user_personal_financial_details/")
+@router.post(
+    "/user_personal_financial_details/",
+    response_model=UserPersonalFinancialDetailsUpdateResponse,
+    dependencies=[Depends(login_checker)],
+)
 async def update_user_personal_financial_details(
-    request: UserPersonalFinancialDetailsUpdateRequest, response: Response
+    request: UserPersonalFinancialDetailsUpdateRequest,
+    response: Response,
+    Authorization: Optional[str] = Header(None),
 ):
     gender = None
     marital_status = None
@@ -138,7 +144,7 @@ async def update_user_personal_financial_details(
 
     # Create or update personal and financial details
     if not user_personal:
-        user_personal = UserPersonalDetails()
+        user_personal = UserPersonalDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -152,7 +158,7 @@ async def update_user_personal_financial_details(
         user_personal.marital_status = marital_status
 
     if not user_financial:
-        user_financial = UserFinancialDetails()
+        user_financial = UserFinancialDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -178,33 +184,18 @@ async def update_user_personal_financial_details(
         await sync_to_async(
             user_financial.full_clean
         )()  # Run validation for user financial details
-
+        await sync_to_async(user_personal.save)()
+        await sync_to_async(user_financial.save)()
     except ValidationError as e:
-        # Capture validation error details
-        error_details = e.message_dict  # This contains field-specific errors
         raise HTTPException(
             status_code=422,
             detail={
                 "status": False,
                 "message": "Validation Error while saving details to the database.",
-                "errors": error_details,
+                "errors": str(e),
             },
         )
 
-    await sync_to_async(user_personal.save)()
-    try:
-        await sync_to_async(user_financial.save)()
-
-        response.status_code = status_code
-    except ValidationError as e:
-        # Return a structured response with the validation error message
-        response.status_code = 422  # Set status code to 422 for validation errors
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message=str(e),  # Return the validation error message
-            data={},
-            status_code=422,
-        )
     return UserPersonalFinancialDetailsUpdateResponse(
         status=True,
         message=response_message,

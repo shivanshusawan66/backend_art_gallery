@@ -230,6 +230,7 @@ class InvestmentAmountPerYearAdmin(admin.ModelAdmin):
 @admin.register(UserPersonalDetails)
 class UserPersonalDetailsAdmin(admin.ModelAdmin):
     list_display = (
+        "user",
         "name",
         "date_of_birth",
         "gender",
