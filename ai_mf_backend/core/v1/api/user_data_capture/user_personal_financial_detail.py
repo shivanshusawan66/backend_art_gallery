@@ -140,7 +140,7 @@ async def update_user_personal_financial_details(
 
     # Create or update personal and financial details
     if not user_personal:
-        user_personal = UserPersonalDetails()
+        user_personal = UserPersonalDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -154,7 +154,7 @@ async def update_user_personal_financial_details(
         user_personal.marital_status = marital_status
 
     if not user_financial:
-        user_financial = UserFinancialDetails()
+        user_financial = UserFinancialDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -180,7 +180,8 @@ async def update_user_personal_financial_details(
         await sync_to_async(
             user_financial.full_clean
         )()  # Run validation for user financial details
-
+        await sync_to_async(user_personal.save)()
+        await sync_to_async(user_financial.save)()
     except ValidationError as e:
         # Capture validation error details
         error_details = e.message_dict  # This contains field-specific errors
@@ -193,20 +194,6 @@ async def update_user_personal_financial_details(
             },
         )
 
-    await sync_to_async(user_personal.save)()
-    try:
-        await sync_to_async(user_financial.save)()
-
-        response.status_code = status_code
-    except ValidationError as e:
-        # Return a structured response with the validation error message
-        response.status_code = 422  # Set status code to 422 for validation errors
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message=str(e),  # Return the validation error message
-            data={},
-            status_code=422,
-        )
     return UserPersonalFinancialDetailsUpdateResponse(
         status=True,
         message=response_message,
