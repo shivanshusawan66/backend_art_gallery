@@ -124,7 +124,6 @@ async def user_authentication_password(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
 
-
     if user_doc and not user_doc.is_verified:
         password = password_encoder(password=password)
         user_doc.password = password
@@ -388,8 +387,8 @@ async def user_authentication_otp(
         user_otp_document.otp = otp
         user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
         await sync_to_async(user_otp_document.save)()
-        
-        token_type="login"
+
+        token_type = "login"
         if not user_doc.is_verified:
             token_type = "signup"
 

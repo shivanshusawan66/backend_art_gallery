@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Response,Depends,Header
+from fastapi import APIRouter, HTTPException, Response, Depends, Header
 
 from asgiref.sync import sync_to_async
 
@@ -33,11 +33,15 @@ from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 router = APIRouter()
 
 
-@router.post("/user_personal_financial_details/",response_model=UserPersonalFinancialDetailsUpdateResponse,dependencies=[Depends(login_checker)])
+@router.post(
+    "/user_personal_financial_details/",
+    response_model=UserPersonalFinancialDetailsUpdateResponse,
+    dependencies=[Depends(login_checker)],
+)
 async def update_user_personal_financial_details(
-    request: UserPersonalFinancialDetailsUpdateRequest, response: Response,Authorization: Optional[str] = Header(
-        None
-    ), 
+    request: UserPersonalFinancialDetailsUpdateRequest,
+    response: Response,
+    Authorization: Optional[str] = Header(None),
 ):
     gender = None
     marital_status = None
