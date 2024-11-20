@@ -374,20 +374,6 @@ def set_user_contact_info_constraints(apps, schema_editor):
                 """
             )
 
-            # Ensure at least one of email, mobile_number, or password is not NULL
-            cursor.execute(
-                """
-                ALTER TABLE user_contact_info
-                ADD CONSTRAINT user_contact_info_at_least_one_field_check
-                CHECK (
-                    email IS NOT NULL OR 
-                    mobile_number IS NOT NULL OR 
-                    password IS NOT NULL
-                );
-                """
-            )
-
-            # Ensure email or mobile_number must be provided with password (if one is provided)
             cursor.execute(
                 """
                 ALTER TABLE user_contact_info
@@ -396,7 +382,8 @@ def set_user_contact_info_constraints(apps, schema_editor):
                     (email IS NOT NULL AND mobile_number IS NULL AND password IS NOT NULL) OR
                     (mobile_number IS NOT NULL AND email IS NULL AND password IS NOT NULL) OR
                     (email IS NOT NULL AND mobile_number IS NULL AND password IS NULL) OR
-                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) OR
+                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) 
+                    
                 );
                 """
             )
