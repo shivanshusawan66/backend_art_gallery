@@ -347,6 +347,80 @@ def set_otp_valid_constraint(apps, schema_editor):
             print(f"Error applying OTP validity constraint: {e}")
 
 
+def set_user_contact_info_constraints(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # Email format validation (still allows NULL)
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_email_format_check
+                CHECK (
+                    email IS NULL OR 
+                    email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$'
+                );
+                """
+            )
+
+            # Mobile number validation: Must be in +91XXXXXXXXXX format
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_mobile_number_check
+                CHECK (
+                    mobile_number IS NULL OR 
+                    mobile_number ~ '^\\+91[0-9]{10}$'
+                );
+                """
+            )
+
+            # Ensure at least one of email, mobile_number, or password is not NULL
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_at_least_one_field_check
+                CHECK (
+                    email IS NOT NULL OR 
+                    mobile_number IS NOT NULL OR 
+                    password IS NOT NULL
+                );
+                """
+            )
+
+            # Ensure email or mobile_number must be provided with password (if one is provided)
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_email_or_mobile_with_password
+                CHECK (
+                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NOT NULL) OR
+                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NOT NULL) OR
+                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NULL) OR
+                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) OR
+                    (email IS NULL AND mobile_number IS NULL AND password IS NULL)
+                );
+                """
+            )
+
+            # Add indexes for performance (on mobile_number and email)
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_user_contact_info_mobile_number 
+                ON user_contact_info (mobile_number);
+                """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_user_contact_info_email 
+                ON user_contact_info (email);
+                """
+            )
+
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying UserContactInfo constraints: {e}")
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -365,4 +439,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(set_occupation_constraint),
         migrations.RunPython(set_user_personal_details_saving_category_constraint),
         migrations.RunPython(set_otp_valid_constraint),
+        migrations.RunPython(set_user_contact_info_constraints),
     ]
