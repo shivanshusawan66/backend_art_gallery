@@ -64,19 +64,19 @@ class InvestmentAmountPerYear(SoftDeleteModel):
 
 class UserFinancialDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+        'UserContactInfo', on_delete=models.SET_NULL, null=True, blank=True
     )
     occupation = models.ForeignKey(
-        Occupation, on_delete=models.SET_NULL, null=True, blank=True
+        'Occupation', on_delete=models.SET_NULL, null=True, blank=True
     )
     income_category = models.ForeignKey(
-        AnnualIncome, on_delete=models.SET_NULL, null=True, blank=True
+        'AnnualIncome', on_delete=models.SET_NULL, null=True, blank=True
     )
     saving_category = models.ForeignKey(
-        MonthlySavingCapacity, on_delete=models.SET_NULL, null=True, blank=True
+        'MonthlySavingCapacity', on_delete=models.SET_NULL, null=True, blank=True
     )
     investment_amount_per_year = models.ForeignKey(
-        InvestmentAmountPerYear, on_delete=models.SET_NULL, null=True, blank=True
+        'InvestmentAmountPerYear', on_delete=models.SET_NULL, null=True, blank=True
     )
     regular_source_of_income = models.BooleanField(
         choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
@@ -93,6 +93,7 @@ class UserFinancialDetails(SoftDeleteModel):
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
+    modification_count = models.PositiveIntegerField(default=0)  # Track number of modifications
 
     class Meta:
         db_table = "user_financial_details"
@@ -103,10 +104,11 @@ class UserFinancialDetails(SoftDeleteModel):
         return f"Financial Details for {self.user}"
 
     def save(self, *args, **kwargs):
-        # Only track changes if this is an update (not creation)
-        if self.pk:
+        # Only track changes and validate if this is an update (not creation)
+        if self.pk:  # Object exists in the database
             old_instance = UserFinancialDetails.objects.get(pk=self.pk)
-            # Call the track_changes function to detect and log changes
+
+            # Track changes in fields
             changed_fields = track_changes(
                 old_instance,
                 self,
@@ -125,11 +127,17 @@ class UserFinancialDetails(SoftDeleteModel):
                     f"User {self.user} changed profile fields: {changed_fields}"
                 )
 
-        # Call the validation function to enforce time-based restrictions
-        try:
-            validate_profile_modification_time(self)
-        except ValidationError as e:
-            raise ValidationError(str(e))
+            # Validate profile modification restrictions
+            try:
+                validate_profile_modification_time(self)
+            except ValidationError as e:
+                raise ValidationError(str(e))
 
-        # Save the instance
+            # Increment modification count if any fields are changed
+            self.modification_count += 1
+        else:
+            # Reset modification count for new users
+            self.modification_count = 0
+
+        # Save the instance to the database
         super().save(*args, **kwargs)
