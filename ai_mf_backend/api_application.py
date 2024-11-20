@@ -324,7 +324,7 @@ class ConditionalQuestionAdmin(admin.ModelAdmin):
     list_display = (
         "question",
         "dependent_question",
-        "condition",
+        "response",
         "visibility",
         "add_date",
         "update_date",
