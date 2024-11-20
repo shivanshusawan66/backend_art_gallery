@@ -346,6 +346,7 @@ def set_otp_valid_constraint(apps, schema_editor):
             connection.rollback()
             print(f"Error applying OTP validity constraint: {e}")
 
+
 def set_user_contact_info_constraints(apps, schema_editor):
     with connection.cursor() as cursor:
         try:
@@ -373,7 +374,7 @@ def set_user_contact_info_constraints(apps, schema_editor):
                 """
             )
 
-       # Ensure at least one of email, mobile_number, or password is not NULL
+            # Ensure at least one of email, mobile_number, or password is not NULL
             cursor.execute(
                 """
                 ALTER TABLE user_contact_info
@@ -418,9 +419,6 @@ def set_user_contact_info_constraints(apps, schema_editor):
         except Exception as e:
             connection.rollback()
             print(f"Error applying UserContactInfo constraints: {e}")
-
-
-
 
 
 class Migration(migrations.Migration):
