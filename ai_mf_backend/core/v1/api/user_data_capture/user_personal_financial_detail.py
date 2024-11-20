@@ -183,14 +183,12 @@ async def update_user_personal_financial_details(
         await sync_to_async(user_personal.save)()
         await sync_to_async(user_financial.save)()
     except ValidationError as e:
-        # Capture validation error details
-        error_details = e.message_dict  # This contains field-specific errors
         raise HTTPException(
             status_code=422,
             detail={
                 "status": False,
                 "message": "Validation Error while saving details to the database.",
-                "errors": error_details,
+                "errors": str(e),
             },
         )
 
