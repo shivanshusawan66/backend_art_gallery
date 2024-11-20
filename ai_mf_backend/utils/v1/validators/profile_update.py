@@ -1,8 +1,10 @@
+import logging
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import timedelta
-from django.db import models
-import logging
+
+from ai_mf_backend.config.v1.api_config import api_config
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +15,10 @@ def validate_profile_modification_time(instance):
     Validator to restrict profile modification within a defined period and number of changes.
     Users can only modify their profile a limited number of times in a 7-day window.
     """
-    max_changes_per_window = 3  # Maximum allowed changes in 7 days
-    restriction_period = timedelta(days=7)  # 7-day window
+    max_changes_per_window = (
+        api_config.MAX_CHANGES_PER_WINDOW
+    )  # Maximum allowed changes in 7 days
+    restriction_period = timedelta(days=api_config.CHANGES_WINDOW)  # 7-day window
 
     # Ensure the instance has an `update_date` and `modification_count`
     if not instance.pk or not instance.modification_count:
