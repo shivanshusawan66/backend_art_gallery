@@ -374,31 +374,46 @@ def set_user_contact_info_constraints(apps, schema_editor):
                 """
             )
 
-            # Ensure at least one of email, mobile_number, or password is not NULL
+            # trigger
             cursor.execute(
                 """
-                ALTER TABLE user_contact_info
-                ADD CONSTRAINT user_contact_info_at_least_one_field_check
-                CHECK (
-                    email IS NOT NULL OR 
-                    mobile_number IS NOT NULL OR 
-                    password IS NOT NULL
-                );
+                -- Trigger function for INSERT
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_insert() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for INSERT
+                CREATE TRIGGER user_contact_info_before_insert
+                BEFORE INSERT ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_insert();
                 """
             )
 
-            # Ensure email or mobile_number must be provided with password (if one is provided)
             cursor.execute(
                 """
-                ALTER TABLE user_contact_info
-                ADD CONSTRAINT user_contact_info_email_or_mobile_with_password
-                CHECK (
-                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NOT NULL) OR
-                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NOT NULL) OR
-                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NULL) OR
-                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) OR
-                    (email IS NULL AND mobile_number IS NULL AND password IS NULL)
-                );
+                -- Trigger function for UPDATE
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_update() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for UPDATE
+                CREATE TRIGGER user_contact_info_before_update
+                BEFORE UPDATE ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_update();
                 """
             )
 
