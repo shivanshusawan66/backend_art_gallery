@@ -397,7 +397,6 @@ def set_user_contact_info_constraints(apps, schema_editor):
                     (mobile_number IS NOT NULL AND email IS NULL AND password IS NOT NULL) OR
                     (email IS NOT NULL AND mobile_number IS NULL AND password IS NULL) OR
                     (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) OR
-                    (email IS NULL AND mobile_number IS NULL AND password IS NULL)
                 );
                 """
             )
