@@ -248,12 +248,17 @@ async def otp_verification(
             )
 
     elif payload["token_type"] == "forgot_password":
+        password_added = True if not user_doc.password else False
         user_doc.is_verified = True
         user_doc.password = password_encoder(request.password)
         await sync_to_async(user_doc.save)()
         return OTPVerificationResponse(
             status=True,
-            message="Password is changed successfully.",
+            message=(
+                "Password is changed successfully."
+                if not password_added
+                else "Password created successfully."
+            ),
             data={
                 "credentials": user_doc.email or user_doc.mobile_number,
                 "token": None,
