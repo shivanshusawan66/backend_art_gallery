@@ -127,7 +127,7 @@ def set_user_personal_details_constraints(apps, schema_editor):
             # Date constraints to prevent future dates
             cursor.execute(
                 """
-                ALTER TABLE your_table_name
+                ALTER TABLE user_personal_details
                 ADD CONSTRAINT chk_name_only_letters_spaces
                 CHECK (name IS NULL OR name ~ '^[a-zA-Z\s]+$');
                 """
