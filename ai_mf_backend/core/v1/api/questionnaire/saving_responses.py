@@ -80,34 +80,10 @@ async def submit_questionnaire_response(
                 question = await sync_to_async(
                     Question.objects.filter(pk=question_id, section_id=previous_section_id).first
                 )()
-                if not question:
-                    response.status_code = status.HTTP_404_NOT_FOUND
-                    return SubmitQuestionnaireResponse(
-                        status=False,
-                        message=f"Question ID {question_id} not found in previous section",
-                        data={
-                            "user_id": request.user_id,
-                            "question_id": question_id,
-                            "section_id": request.section_id,
-                            },
-                        status_code=404,
-                    )
 
                 allowed_response = await sync_to_async(
                     Allowed_Response.objects.filter(question_id=question_id, response=user_response_value).first
                 )()
-                if not allowed_response:
-                    response.status_code = status.HTTP_404_NOT_FOUND
-                    return SubmitQuestionnaireResponse(
-                        status=False,
-                        message=f"Invalid response '{user_response_value}' for question {question_id}",
-                        data={
-                            "user_id": request.user_id,
-                            "response": user_response_value,
-                            "question_id": question_id,
-                            },
-                        status_code=404,
-                    )
 
                 prev_section = await sync_to_async(Section.objects.get)(pk=previous_section_id)
                 
