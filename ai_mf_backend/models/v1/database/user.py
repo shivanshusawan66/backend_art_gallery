@@ -8,13 +8,18 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
-from ai_mf_backend.utils.v1.validators.profile_update import track_changes, validate_profile_modification_time
+from ai_mf_backend.utils.v1.validators.profile_update import (
+    track_changes,
+    validate_profile_modification_time,
+)
 from ai_mf_backend.utils.v1.validators.status import (
     validate_marital_status,
     validate_gender,
     validate_occupation,
 )
+
 logger = logging.getLogger(__name__)
+
 
 def validate_mobile_number(mobile_no: str) -> None:
 
@@ -129,13 +134,16 @@ class UserPersonalDetails(SoftDeleteModel):
     update_date = models.DateTimeField(
         auto_now=True, validators=[validate_not_future_date]
     )
-    modification_count = models.PositiveIntegerField(default=0)  # Track number of modifications
+    modification_count = models.PositiveIntegerField(
+        default=0
+    )  # Track number of modifications
+
     class Meta:
         db_table = "user_personal_details"
 
     def __str__(self):
         return self.name
-    
+
     def save(self, *args, **kwargs):
         # Only track changes and validate if this is an update (not creation)
         if self.pk:  # Object exists in the database

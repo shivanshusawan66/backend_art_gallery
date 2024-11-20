@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 # Updated validation function to consider both time and modification count
 def validate_profile_modification_time(instance):
     """
@@ -16,7 +17,7 @@ def validate_profile_modification_time(instance):
     restriction_period = timedelta(days=7)  # 7-day window
 
     # Ensure the instance has an `update_date` and `modification_count`
-    if not instance.pk or not instance.modification_count :
+    if not instance.pk or not instance.modification_count:
         return
 
     # Calculate the time since the last update
@@ -31,7 +32,9 @@ def validate_profile_modification_time(instance):
                 f"You have used up your {max_changes_per_window} changes, please try again after {days_left} days."
             )
     else:
-        instance.modification_count = 0  # Reset modification count after the 7-day window
+        instance.modification_count = (
+            0  # Reset modification count after the 7-day window
+        )
 
 
 def track_changes(old_instance, new_instance, fields_to_track):
