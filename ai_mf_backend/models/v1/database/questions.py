@@ -87,16 +87,16 @@ class ConditionalQuestion(SoftDeleteModel):
 
 
 class UserResponse(SoftDeleteModel):
-    user = models.ForeignKey(
+    user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    question = models.ForeignKey(
+    question_id = models.ForeignKey(
         Question, on_delete=models.SET_NULL, null=True, blank=True
     )
-    response = models.ForeignKey(
+    response_id = models.ForeignKey(
         Allowed_Response, on_delete=models.SET_NULL, null=True, blank=True
     )
-    section = models.ForeignKey(
+    section_id = models.ForeignKey(
         Section, on_delete=models.SET_NULL, null=True, blank=True
     )
     add_date = models.DateTimeField(auto_now_add=True)
@@ -108,4 +108,4 @@ class UserResponse(SoftDeleteModel):
         verbose_name_plural = "User Response"
 
     def __str__(self):
-        return f"Response by {self.user} for {self.question.question}"
+        return f"Response by {self.user_id} for {self.question_id.question}"

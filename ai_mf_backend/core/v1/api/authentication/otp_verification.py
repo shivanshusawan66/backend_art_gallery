@@ -209,9 +209,15 @@ async def otp_verification(
             "token_type": "login",
             "creation_time": timezone.now().timestamp(),
             "expiry": (
-                (timezone.now() + timedelta(hours=5)).timestamp()
+                (
+                    timezone.now()
+                    + timedelta(hours=api_config.OTP_EXPIRATION_DEFAULT_HOURS)
+                ).timestamp()
                 if not remember_me
-                else (timezone.now() + timedelta(days=365)).timestamp()
+                else (
+                    timezone.now()
+                    + timedelta(days=api_config.OTP_EXPIRATION_REMEMBER_DAYS)
+                ).timestamp()
             ),
         }
 
@@ -248,12 +254,17 @@ async def otp_verification(
             )
 
     elif payload["token_type"] == "forgot_password":
+        password_added = True if not user_doc.password else False
         user_doc.is_verified = True
         user_doc.password = password_encoder(request.password)
         await sync_to_async(user_doc.save)()
         return OTPVerificationResponse(
             status=True,
-            message="Password is changed successfully.",
+            message=(
+                "Password is changed successfully."
+                if not password_added
+                else "Password created successfully."
+            ),
             data={
                 "credentials": user_doc.email or user_doc.mobile_number,
                 "token": None,

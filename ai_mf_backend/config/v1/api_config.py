@@ -31,6 +31,12 @@ class APIConfig(BaseSettingsWrapper):
     MAX_OTP_REQUESTS: Optional[int] = 20
     THROTTLE_WINDOW_SECONDS: Optional[int] = 300  # 5 mins
 
+    MAX_CHANGES_PER_WINDOW: Optional[int] = 3
+    CHANGES_WINDOW: Optional[int] = 7
+
+    OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
+    OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
+
 
 api_config = APIConfig()
 

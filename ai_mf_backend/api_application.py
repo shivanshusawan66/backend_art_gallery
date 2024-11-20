@@ -230,6 +230,7 @@ class InvestmentAmountPerYearAdmin(admin.ModelAdmin):
 @admin.register(UserPersonalDetails)
 class UserPersonalDetailsAdmin(admin.ModelAdmin):
     list_display = (
+        "user",
         "name",
         "date_of_birth",
         "gender",
@@ -323,7 +324,7 @@ class ConditionalQuestionAdmin(admin.ModelAdmin):
     list_display = (
         "question",
         "dependent_question",
-        "condition",
+        "response",
         "visibility",
         "add_date",
         "update_date",

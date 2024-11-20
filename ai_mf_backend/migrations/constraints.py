@@ -128,9 +128,16 @@ def set_user_personal_details_constraints(apps, schema_editor):
             cursor.execute(
                 """
                 ALTER TABLE user_personal_details
+                ADD CONSTRAINT chk_name_only_letters_spaces
+                CHECK (name IS NULL OR name ~ '^[a-zA-Z\s]+$');
+                """
+            )
+            cursor.execute(
+                """
+                ALTER TABLE user_personal_details
                 ADD CONSTRAINT user_personal_details_dob_not_future
                 CHECK (date_of_birth IS NULL OR date_of_birth <= CURRENT_DATE);
-            """
+                """
             )
             cursor.execute(
                 """
@@ -347,6 +354,95 @@ def set_otp_valid_constraint(apps, schema_editor):
             print(f"Error applying OTP validity constraint: {e}")
 
 
+def set_user_contact_info_constraints(apps, schema_editor):
+    with connection.cursor() as cursor:
+        try:
+            # Email format validation (still allows NULL)
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_email_format_check
+                CHECK (
+                    email IS NULL OR 
+                    email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$'
+                );
+                """
+            )
+
+            # Mobile number validation: Must be in +91XXXXXXXXXX format
+            cursor.execute(
+                """
+                ALTER TABLE user_contact_info
+                ADD CONSTRAINT user_contact_info_mobile_number_check
+                CHECK (
+                    mobile_number IS NULL OR 
+                    mobile_number ~ '^\\+91[0-9]{10}$'
+                );
+                """
+            )
+
+            # trigger
+            cursor.execute(
+                """
+                -- Trigger function for INSERT
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_insert() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for INSERT
+                CREATE TRIGGER user_contact_info_before_insert
+                BEFORE INSERT ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_insert();
+                """
+            )
+
+            cursor.execute(
+                """
+                -- Trigger function for UPDATE
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_update() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for UPDATE
+                CREATE TRIGGER user_contact_info_before_update
+                BEFORE UPDATE ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_update();
+                """
+            )
+
+            # Add indexes for performance (on mobile_number and email)
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_user_contact_info_mobile_number 
+                ON user_contact_info (mobile_number);
+                """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_user_contact_info_email 
+                ON user_contact_info (email);
+                """
+            )
+
+        except Exception as e:
+            connection.rollback()
+            print(f"Error applying UserContactInfo constraints: {e}")
+
+
 class Migration(migrations.Migration):
     dependencies = [
         # Add the migration file on which this depends
@@ -365,4 +461,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(set_occupation_constraint),
         migrations.RunPython(set_user_personal_details_saving_category_constraint),
         migrations.RunPython(set_otp_valid_constraint),
+        migrations.RunPython(set_user_contact_info_constraints),
     ]

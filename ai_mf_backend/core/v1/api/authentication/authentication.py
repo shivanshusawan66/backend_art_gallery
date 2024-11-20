@@ -124,7 +124,6 @@ async def user_authentication_password(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
 
-
     if user_doc and not user_doc.is_verified:
         password = password_encoder(password=password)
         user_doc.password = password
@@ -180,10 +179,14 @@ async def user_authentication_password(
                 "creation_time": timezone.now().timestamp(),
                 "expiry": (
                     (
-                        timezone.now() + timedelta(hours=5)
+                        timezone.now()
+                        + timedelta(hours=api_config.OTP_EXPIRATION_DEFAULT_HOURS)
                     ).timestamp()  # Fixed to 5 hours
                     if not request.remember_me
-                    else (timezone.now() + timedelta(days=365)).timestamp()
+                    else (
+                        timezone.now()
+                        + timedelta(days=api_config.OTP_EXPIRATION_REMEMBER_DAYS)
+                    ).timestamp()
                 ),
             }
             if user_doc.email:
@@ -388,8 +391,8 @@ async def user_authentication_otp(
         user_otp_document.otp = otp
         user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
         await sync_to_async(user_otp_document.save)()
-        
-        token_type="login"
+
+        token_type = "login"
         if not user_doc.is_verified:
             token_type = "signup"
 
