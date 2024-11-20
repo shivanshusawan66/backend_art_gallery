@@ -374,17 +374,46 @@ def set_user_contact_info_constraints(apps, schema_editor):
                 """
             )
 
+            # trigger
             cursor.execute(
                 """
-                ALTER TABLE user_contact_info
-                ADD CONSTRAINT user_contact_info_email_or_mobile_with_password
-                CHECK (
-                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NOT NULL) OR
-                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NOT NULL) OR
-                    (email IS NOT NULL AND mobile_number IS NULL AND password IS NULL) OR
-                    (mobile_number IS NOT NULL AND email IS NULL AND password IS NULL) 
-                    
-                );
+                -- Trigger function for INSERT
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_insert() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for INSERT
+                CREATE TRIGGER user_contact_info_before_insert
+                BEFORE INSERT ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_insert();
+                """
+            )
+
+            cursor.execute(
+                """
+                -- Trigger function for UPDATE
+                CREATE OR REPLACE FUNCTION check_email_or_mobile_before_update() 
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    IF NEW.email IS NULL AND NEW.mobile_number IS NULL THEN
+                        RAISE EXCEPTION 'Either email or mobile_number must be provided, not both NULL.';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                -- Trigger for UPDATE
+                CREATE TRIGGER user_contact_info_before_update
+                BEFORE UPDATE ON user_contact_info
+                FOR EACH ROW
+                EXECUTE FUNCTION check_email_or_mobile_before_update();
                 """
             )
 
