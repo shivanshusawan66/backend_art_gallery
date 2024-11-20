@@ -128,9 +128,16 @@ def set_user_personal_details_constraints(apps, schema_editor):
             cursor.execute(
                 """
                 ALTER TABLE user_personal_details
+                ADD CONSTRAINT chk_name_only_letters_spaces
+                CHECK (name IS NULL OR name ~ '^[a-zA-Z\s]+$');
+                """
+            )
+            cursor.execute(
+                """
+                ALTER TABLE user_personal_details
                 ADD CONSTRAINT user_personal_details_dob_not_future
                 CHECK (date_of_birth IS NULL OR date_of_birth <= CURRENT_DATE);
-            """
+                """
             )
             cursor.execute(
                 """
