@@ -1,7 +1,7 @@
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.v1.api import limiter
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+from fastapi import APIRouter, HTTPException, Response, Request
+
 from ai_mf_backend.models.v1.api.mutual_fund_category import (
     ErrorResponse,
     FundCategory,
@@ -45,7 +45,6 @@ router = APIRouter()
 @router.get(
     "/mutual_funds_category",
     response_model=FrontendResponse,
-    dependencies=[Depends(login_checker)],
     status_code=200,
 )
 async def get_funds(request: Request, response: Response):
