@@ -124,16 +124,55 @@ async def user_authentication_password(
             UserContactInfo.objects.filter(mobile_number=mobile_no).first
         )()
 
-    if user_doc and user_doc.password:
-        if not user_doc.is_verified:
-            response.status_code = 403  # Set status code in the response
-            return UserAuthenticationPasswordResponse(
-                status=False,
-                message=f"This User is not verified yet.",
-                data={"credentials": email if email else mobile_no},
-                status_code=403,
-            )
+    if user_doc and not user_doc.is_verified:
+        password = password_encoder(password=password)
+        user_doc.password = password
+        await sync_to_async(user_doc.save)()
 
+        user_otp_document = await sync_to_async(
+            OTPlogs.objects.filter(user=user_doc.user_id).first
+        )()
+
+        otp = send_otp()
+        user_otp_document.otp = otp
+        user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
+
+        await sync_to_async(user_otp_document.save)()
+
+        user_logs = UserLogs(
+            user=user_doc,
+            ip_details=request.ip_details,
+            device_type=request.device_type,
+            last_access=timezone.now(),
+            action="signup",
+        )
+        await sync_to_async(user_logs.save)()
+
+        signup_payload = {
+            "token_type": "signup",
+            "creation_time": timezone.now().timestamp(),
+            "expiry": ((timezone.now() + timedelta(minutes=20)).timestamp()),
+        }
+
+        if email:
+            signup_payload["email"] = email
+        else:
+            signup_payload["mobile_number"] = mobile_no
+
+        jwt_token = jwt_token_checker(payload=signup_payload, encode=True)
+
+        response.status_code = 202  # Set status code in the response
+        return UserAuthenticationPasswordResponse(
+            status=True,
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
+            data={
+                "credentials": email if email else mobile_no,
+                "token": jwt_token,
+                "otp": otp,
+            },
+            status_code=202,
+        )
+    elif user_doc and user_doc.password:
         if password_checker(password, user_doc.password):
             new_payload = {
                 "token_type": "login",
@@ -185,12 +224,12 @@ async def user_authentication_password(
             )
 
     elif user_doc and not user_doc.password:
-        response.status_code = 400  # Set status code in the response
+        response.status_code = 204  # Set status code in the response
         return UserAuthenticationPasswordResponse(
-            status=False,
+            status=True,
             message=f"User password was not registered, please use Forget Password to reset your password",
             data={"credentials": email if email else mobile_no},
-            status_code=400,
+            status_code=204,
         )
     else:
         password = password_encoder(password=password)
@@ -349,8 +388,12 @@ async def user_authentication_otp(
         user_otp_document.otp_valid = timezone.now() + timedelta(minutes=15)
         await sync_to_async(user_otp_document.save)()
 
+        token_type = "login"
+        if not user_doc.is_verified:
+            token_type = "signup"
+
         login_payload = {
-            "token_type": "login",
+            "token_type": token_type,
             "creation_time": timezone.now().timestamp(),
             "expiry": (timezone.now() + timedelta(minutes=20)).timestamp(),
         }
@@ -363,7 +406,7 @@ async def user_authentication_otp(
         response.status_code = 202  # Set status code in the header
         return UserAuthenticationOTPResponse(
             status=True,
-            message=f"Otp has been send to {email if email else mobile_no}, please verify it. ",
+            message=f"Otp has been send to {email if email else mobile_no}, please verify it.",
             data={
                 "credentials": user_doc.email if email else user_doc.mobile_number,
                 "token": jwt_token,

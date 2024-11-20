@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, Response
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Response, Depends, Header
 
 from asgiref.sync import sync_to_async
 
-from django.core.exceptions import ValidationError
-from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
 
 from ai_mf_backend.models.v1.database.user import (
@@ -29,14 +28,20 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
-from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
+from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 
 router = APIRouter()
 
 
-@router.post("/user_personal_financial_details/")
+@router.post(
+    "/user_personal_financial_details/",
+    response_model=UserPersonalFinancialDetailsUpdateResponse,
+    dependencies=[Depends(login_checker)],
+)
 async def update_user_personal_financial_details(
-    request: UserPersonalFinancialDetailsUpdateRequest, response: Response
+    request: UserPersonalFinancialDetailsUpdateRequest,
+    response: Response,
+    Authorization: Optional[str] = Header(None),
 ):
     gender = None
     marital_status = None
@@ -138,7 +143,7 @@ async def update_user_personal_financial_details(
     status_code = 200
 
     if not user_personal:
-        user_personal = UserPersonalDetails()
+        user_personal = UserPersonalDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -152,7 +157,7 @@ async def update_user_personal_financial_details(
         user_personal.marital_status = marital_status
 
     if not user_financial:
-        user_financial = UserFinancialDetails()
+        user_financial = UserFinancialDetails(user=user)
         response_message = "User personal and financial details created successfully."
         status_code = 201
 
@@ -171,40 +176,23 @@ async def update_user_personal_financial_details(
     if request.investment_style:
         user_financial.investment_style = request.investment_style
 
-    # Before saving, validate if profile modification is allowed
     try:
-        validate_profile_modification_time(user_financial)
+        await sync_to_async(
+            user_personal.full_clean
+        )()  # Run validation for user personal details
+        await sync_to_async(
+            user_financial.full_clean
+        )()  # Run validation for user financial details
+        await sync_to_async(user_personal.save)()
+        await sync_to_async(user_financial.save)()
     except ValidationError as e:
-        response.status_code = 403  # Forbidden due to modification time
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message=str(e),
-            data={},
-            status_code=403,
-        )
-
-    try:
-        await sync_to_async(user_personal.full_clean)()  # Validation before saving
-        await sync_to_async(user_personal.save)()  # Save user personal details
-    except ValidationError as e:
-        response.status_code = 422
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message="Validation error in personal details",
-            data={},
+        raise HTTPException(
             status_code=422,
-        )
-
-    try:
-        await sync_to_async(user_financial.full_clean)()  # Validation before saving
-        await sync_to_async(user_financial.save)()  # Save user financial details
-    except ValidationError as e:
-        response.status_code = 422
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message="Validation error in financial details",
-            data={},
-            status_code=422,
+            detail={
+                "status": False,
+                "message": "Validation Error while saving details to the database.",
+                "errors": str(e),
+            },
         )
 
     return UserPersonalFinancialDetailsUpdateResponse(
