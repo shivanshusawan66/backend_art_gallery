@@ -41,7 +41,7 @@ router = APIRouter()
 async def update_user_personal_financial_details(
     request: UserPersonalFinancialDetailsUpdateRequest,
     response: Response,
-    Authorization: Optional[str] = Header(None),
+    Authorization: str = Header(),
 ):
     gender = None
     marital_status = None

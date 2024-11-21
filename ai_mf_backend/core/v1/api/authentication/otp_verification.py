@@ -50,9 +50,7 @@ router = APIRouter()
 async def otp_verification(
     request: OTPVerificationRequest,
     response: Response,  # Use FastAPI Response object
-    Authorization: Optional[str] = Header(
-        None
-    ),  # Expect token in the Authorization header
+    Authorization: str = Header()  # Expect token in the Authorization header
 ) -> OTPVerificationResponse:
 
     otp_sent = request.otp
