@@ -139,21 +139,6 @@ def set_user_personal_details_constraints(apps, schema_editor):
                 CHECK (date_of_birth IS NULL OR date_of_birth <= CURRENT_DATE);
                 """
             )
-            cursor.execute(
-                """
-                ALTER TABLE user_personal_details
-                ADD CONSTRAINT user_personal_details_add_date_not_future
-                CHECK (add_date IS NULL OR add_date <= CURRENT_TIMESTAMP);
-            """
-            )
-            cursor.execute(
-                """
-                ALTER TABLE user_personal_details
-                ADD CONSTRAINT user_personal_details_update_date_not_future
-                CHECK (update_date IS NULL OR update_date <= CURRENT_TIMESTAMP);
-            """
-            )
-
             # Constraint to ensure `name` is not null or empty
             cursor.execute(
                 """
@@ -162,7 +147,6 @@ def set_user_personal_details_constraints(apps, schema_editor):
                 CHECK (name IS NOT NULL AND TRIM(name) <> '');
             """
             )
-
         except Exception as e:
             connection.rollback()
             print(f"Error applying constraints: {e}")
