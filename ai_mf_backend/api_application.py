@@ -307,16 +307,16 @@ class AllowedResponseAdmin(admin.ModelAdmin):
 @admin.register(UserResponse)
 class UserResponseAdmin(admin.ModelAdmin):
     list_display = (
-        "user",
-        "question",
-        "response",
-        "section",
+        "user_id",
+        "question_id",
+        "response_id",
+        "section_id",
         "add_date",
         "update_date",
     )
-    search_fields = ("user__email", "question__question")
-    list_filter = ("section", "question")
-    ordering = ("user",)
+    search_fields = ("user_id__email", "question_id__question")
+    list_filter = ("section_id", "question_id")
+    ordering = ("user_id",)
 
 
 @admin.register(ConditionalQuestion)
