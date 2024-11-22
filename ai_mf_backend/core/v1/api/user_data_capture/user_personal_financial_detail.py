@@ -34,7 +34,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/user_personal_financial_details/",
+    "/user_personal_financial_details",
     response_model=UserPersonalFinancialDetailsUpdateResponse,
     dependencies=[Depends(login_checker)],
 )
