@@ -3,6 +3,7 @@ from typing import List
 
 from asgiref.sync import sync_to_async
 
+from django.db import DatabaseError
 from fastapi import APIRouter, Response, Depends, Request
 
 from ai_mf_backend.core.v1.api import limiter
@@ -83,15 +84,14 @@ async def get_all_sections(request: Request, response: Response):
 )
 async def get_section_wise_questions(request: SectionRequest, response: Response):
     try:
-        # Check if section_id is valid
+        # Check if section_id is provided
         specified_section_id = request.section_id
-        if not specified_section_id:
+        if specified_section_id is None:
             logger.warning("Section ID is missing or empty.")
             response.status_code = 422
             return SectionQuestionsResponse(
                 status=False,
                 message="section_id cannot be empty.",
-                data=dict(),
                 status_code=422,
             )
 
@@ -100,8 +100,7 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             response.status_code = 422
             return SectionQuestionsResponse(
                 status=False,
-                message="section_id must be a string.",
-                data=dict(),
+                message="section_id must be an integer.",
                 status_code=422,
             )
 
@@ -117,7 +116,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             return SectionQuestionsResponse(
                 status=False,
                 message="Section not found.",
-                data=dict(),
                 status_code=404,
             )
 
@@ -159,14 +157,20 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                     condition_response.response if condition_response else None
                 )
 
+                # Build visibility condition
                 condition = {
                     "value": [condition_value],
+                    "show": (
+                        [dependent_question]
+                        if conditional_info["visibility"] == "show"
+                        else []
+                    ),
+                    "hide": (
+                        [dependent_question]
+                        if conditional_info["visibility"] == "hide"
+                        else []
+                    ),
                 }
-
-                if conditional_info["visibility"] == "show":
-                    condition["show"] = [dependent_question]
-                elif conditional_info["visibility"] == "hide":
-                    condition["hide"] = [dependent_question]
 
                 visibility_decisions.if_.append(VisibilityCondition(**condition))
 
@@ -187,17 +191,24 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
             section_name=current_section.section,
             questions=question_data_list,
         )
+
         response.status_code = 200
         return SectionQuestionsResponse(
             status=True,
-            message="Succesfully fetched section wise questions and responses",
+            message="Successfully fetched section wise questions and responses",
             data=response_data,
             status_code=200,
+        )
+    except DatabaseError as db_error:
+        logger.error(f"Database error while fetching questions: {str(db_error)}")
+        response.status_code = 500
+        return SectionQuestionsResponse(
+            status=False, message="A database error occurred.", status_code=500
         )
 
     except Exception as e:
         logger.error(f"Unexpected error while fetching questions: {str(e)}")
         response.status_code = 500
         return SectionQuestionsResponse(
-            status=False, message=str(e), data=dict(), status_code=500
+            status=False, message="An unexpected error occurred.", status_code=500
         )
