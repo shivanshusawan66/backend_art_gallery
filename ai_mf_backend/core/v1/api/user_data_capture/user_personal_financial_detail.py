@@ -34,14 +34,14 @@ router = APIRouter()
 
 
 @router.post(
-    "/user_personal_financial_details/",
+    "/user_personal_financial_details",
     response_model=UserPersonalFinancialDetailsUpdateResponse,
     dependencies=[Depends(login_checker)],
 )
 async def update_user_personal_financial_details(
     request: UserPersonalFinancialDetailsUpdateRequest,
     response: Response,
-    Authorization: str = Header(),
+    
 ):
     gender = None
     marital_status = None
