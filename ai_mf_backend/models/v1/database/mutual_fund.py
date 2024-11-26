@@ -112,6 +112,8 @@ class AnnualReturn(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"{self.fund.scheme_name} ({self.year}) - Fund Return: {self.fund_return}%"
 
 class FundData(models.Model):
     fund = models.OneToOneField(
