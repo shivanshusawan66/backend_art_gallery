@@ -43,3 +43,7 @@ api_config = APIConfig()
 
 class DjangoAppConfig(AppConfig):
     name = api_config.PROJECT_NAME
+
+    def ready(self):
+        
+        import ai_mf_backend.signals
