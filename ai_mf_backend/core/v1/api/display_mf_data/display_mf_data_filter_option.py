@@ -19,7 +19,7 @@ MORNINGSTAR_RATING_MAP = {"*": 1, "**": 2, "***": 3, "****": 4, "*****": 5, "": 
     "/mutual_funds_filter_options/",
     response_model=SuccessResponse,
 )
-async def get_fund_families(request: Request, response: Response):
+async def mutual_funds_filter_options(request: Request, response: Response):
 
     try:
         fund_families = await sync_to_async(list)(
