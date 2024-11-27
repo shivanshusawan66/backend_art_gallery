@@ -145,8 +145,8 @@ async def submit_questionnaire_response(
                 "user_id": user_id,
                 "question_id": question_id,
                 "response": response_id,
-                "section": section_id
-                },
+                "section": section_id,
+            },
             status_code=response_status_code,
         )
 
