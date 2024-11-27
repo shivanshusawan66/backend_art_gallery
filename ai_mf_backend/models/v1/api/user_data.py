@@ -23,3 +23,8 @@ class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
 # Response model for updating UserFinancialDetails
 class UserPersonalFinancialDetailsUpdateResponse(Response):
     pass
+
+
+
+class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
+    pass

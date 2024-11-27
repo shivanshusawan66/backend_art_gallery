@@ -3,7 +3,7 @@
 import os
 import sys
 
-
+sys.path.append(r"D:\ai-mf-platform")
 def main():
     """Run administrative tasks."""
     os.environ.setdefault(
