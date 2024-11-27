@@ -17,7 +17,7 @@ router = APIRouter()
     response_model=SuccessResponse,
     responses={200: {"model": SuccessResponse}, 404: {"model": ErrorResponse}},
 )
-async def get_references_column(request: Request, response: Response):
+async def mutual_funds_all_columns(request: Request, response: Response):
     try:
         column_names = await sync_to_async(list)(
             Reference.objects.values_list("column_name", flat=True)
