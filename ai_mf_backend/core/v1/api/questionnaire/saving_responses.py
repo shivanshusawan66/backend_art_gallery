@@ -133,7 +133,7 @@ async def submit_questionnaire_response(
                     status_code=422,
                 )
 
-        response.status_code = status.HTTP_200_OK
+        response.status_code = response_status_code
         return SubmitQuestionnaireResponse(
             status=True,
             message=(
