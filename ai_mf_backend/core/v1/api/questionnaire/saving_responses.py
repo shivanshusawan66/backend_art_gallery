@@ -12,6 +12,7 @@ from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.api.questionnaire_responses import (
     SubmitQuestionnaireRequest,
     SubmitQuestionnaireResponse,
+    ResponseItem
 )
 from ai_mf_backend.models.v1.database.questions import (
     Question,
@@ -36,6 +37,15 @@ async def submit_questionnaire_response(
     request: SubmitQuestionnaireRequest, response: Response
 ):
     try:
+        
+        if not request.user_id:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            return SubmitQuestionnaireResponse(
+                status=False,
+                message="User ID is required",
+                data={},
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
 
         user_id = request.user_id
         section_id = request.section_id
@@ -62,12 +72,41 @@ async def submit_questionnaire_response(
                 data={"user_id": user_id},
                 status_code=404,
             )
-
+        
+        # Validate responses structure
+        if not isinstance(request.responses, list) or not all(isinstance(r, ResponseItem) for r in request.responses):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return SubmitQuestionnaireResponse(
+                status=False,
+                message="Each response in the array must be an object containing question_id and response_id.",
+                data={"user_id": user_id},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        
         # Process and save all responses from previous section
         for user_response in responses:
+            # Ensure each response contains required keys
+            if "question_id" not in user_response or "response_id" not in user_response:
+                response.status_code = status.HTTP_400_BAD_REQUEST
+                return SubmitQuestionnaireResponse(
+                    status=False,
+                    message="Each response must contain question_id and response_id.",
+                    data={"user_id": user_id},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
             question_id = user_response.question_id
             response_id = user_response.response_id
 
+            # Validate that question_id and response_id are numeric
+            if not str(question_id).isdigit() or not str(response_id).isdigit():
+                response.status_code = status.HTTP_404_NOT_FOUND
+                return SubmitQuestionnaireResponse(
+                    status=False,
+                    message="Question ID and Response ID must be numeric values",
+                    data={"user_id": user_id},
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
+            
             # Validate question and allowed response
             question = await sync_to_async(
                 Question.objects.filter(pk=question_id, section_id=section_id).first
