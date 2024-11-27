@@ -1,15 +1,16 @@
 from math import ceil
 from decimal import Decimal
+from fastapi import Request
 from typing import Optional
 from django.db.models import Q
 from pydantic import ValidationError
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from asgiref.sync import sync_to_async
 from ai_mf_backend.core.v1.api import limiter
-from ai_mf_backend.config.v1 import api_config
+from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.utils.v1.Pagination import paginate_queryset
 from ai_mf_backend.models.v1.database.mutual_fund import MutualFund
-from ai_mf_backend.models.v1.database.mutual_fund import Reference
+
 from ai_mf_backend.models.v1.api.display_mf_data_by_filters import (
     MutualFundFilterResponse,
     MutualFundModel,
@@ -22,6 +23,7 @@ router = APIRouter()
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mutual-funds/filter", response_model=MutualFundFilterResponse)
 async def filter_mutual_funds(
+    request: Request,
     fund_family: Optional[str] = Query(None),
     morningstar_rating: Optional[str] = Query(None),
     min_investment_range_start: Optional[Decimal] = Query(None),
@@ -30,14 +32,20 @@ async def filter_mutual_funds(
     page_size: int = Query(10, ge=1, le=100),
 ):
     try:
-        query = MutualFund.objects.select_related("overview", "fund_data").only(
-            "scheme_name",
-            "net_asset_value",
-            "overview__morningstar_rating",
-            "overview__fund_family",
-            "fund_data__min_initial_investment",
-            "overview__ytd_return",
-        )
+
+        @sync_to_async
+        def get_query():
+            return MutualFund.objects.select_related("overview", "fund_data").only(
+                "scheme_name",
+                "net_asset_value",
+                "overview__morningstar_rating",
+                "overview__fund_family",
+                "fund_data__min_initial_investment",
+                "overview__ytd_return",
+            )
+
+        query = await get_query()
+
         filters = Q()
         if fund_family and fund_family.lower() != "string":
             filters &= Q(overview__fund_family__iexact=fund_family)
@@ -68,9 +76,12 @@ async def filter_mutual_funds(
 
         base_query = query.filter(filters) if filters != Q() else query
 
-        paginated_funds, total_count = await sync_to_async(paginate_queryset)(
-            base_query, page=page, page_size=page_size
-        )
+        # Use sync_to_async for pagination
+        @sync_to_async
+        def paginate(queryset, page, page_size):
+            return paginate_queryset(queryset, page=page, page_size=page_size)
+
+        paginated_funds, total_count = await paginate(base_query, page, page_size)
 
         if total_count == 0:
             return MutualFundFilterResponse(
