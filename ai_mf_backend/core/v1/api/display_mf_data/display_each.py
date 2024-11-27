@@ -13,7 +13,7 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
 router = APIRouter()
 
 
-@router.get("api/v1/fund_annual_return/{id}")
+@router.get("/fund_annual_return/{id}")
 async def get_annual_returns(fund_id: int):
     annual_returns = await sync_to_async(list)(
         AnnualReturn.objects.filter(fund_id=fund_id)
@@ -31,7 +31,7 @@ async def get_annual_returns(fund_id: int):
     }
 
 
-@router.get("api/v1/fund_risk_statistics/{id}")
+@router.get("/fund_risk_statistics/{id}")
 async def get_risk_statistics(fund_id: int):
     risk_statistics = await sync_to_async(list)(
         RiskStatistics.objects.filter(fund_id=fund_id)
@@ -54,7 +54,7 @@ async def get_risk_statistics(fund_id: int):
     }
 
 
-@router.get("api/v1/fund_performance/{id}")
+@router.get("/fund_performance/{id}")
 async def get_performance(fund_id: int):
 
     performance = await sync_to_async(
@@ -73,7 +73,7 @@ async def get_performance(fund_id: int):
     }
 
 
-@router.get("api/v1/fund_trailing_return/{id}")
+@router.get("/fund_trailing_return/{id}")
 async def get_trailing_return(fund_id: int):
     trailing_return = await sync_to_async(list)(
         TrailingReturn.objects.filter(fund_id=fund_id)
@@ -91,7 +91,7 @@ async def get_trailing_return(fund_id: int):
     }
 
 
-@router.get("api/v1/fund_historical_data/{id}")
+@router.get("/fund_historical_data/{id}")
 async def get_historical_data(fund_id: int):
     historical_data = await sync_to_async(list)(
         HistoricalData.objects.filter(fund_id=fund_id)
