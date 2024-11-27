@@ -20,13 +20,7 @@ MORNINGSTAR_RATING_MAP = {"*": 1, "**": 2, "***": 3, "****": 4, "*****": 5, "": 
     response_model=SuccessResponse,
 )
 async def get_fund_families(request: Request, response: Response):
-    """
-    Fetch distinct fund families, Morningstar ratings, and minimum initial investments.
 
-    Returns:
-        - SuccessResponse: When data is successfully fetched.
-        - ErrorResponse: When no data is found or an error occurs.
-    """
     try:
         fund_families = await sync_to_async(list)(
             FundOverview.objects.values_list("fund_family", flat=True).distinct()
