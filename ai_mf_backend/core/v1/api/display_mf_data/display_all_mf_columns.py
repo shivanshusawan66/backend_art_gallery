@@ -1,5 +1,7 @@
 from asgiref.sync import sync_to_async
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
+from ai_mf_backend.core.v1.api import limiter
+from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.models.v1.database.mutual_fund import Reference
 from ai_mf_backend.models.v1.api.display_all_mf_columns import (
     ColumnModel,
@@ -10,12 +12,13 @@ from ai_mf_backend.models.v1.api.display_all_mf_columns import (
 router = APIRouter()
 
 
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
     "/references/",
     response_model=SuccessResponse,
     responses={200: {"model": SuccessResponse}, 404: {"model": ErrorResponse}},
 )
-async def get_references_column(response: Response):
+async def get_references_column(request: Request, response: Response):
     try:
         column_names = await sync_to_async(list)(
             Reference.objects.values_list("column_name", flat=True)
