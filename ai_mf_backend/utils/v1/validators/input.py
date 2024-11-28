@@ -13,7 +13,7 @@ def validate_number_dash_number(income_category):
         raise ValidationError(f"Category cannot be empty or only whitespace.")
     
 def validate_fund_id(fund_id: str):
-    if not fund_id.isdigit():
+    if not fund_id.isdigit() or fund_id == 0:
         raise HTTPException(
             status_code=400, detail="Fund ID must be a positive integer."
         )

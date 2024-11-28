@@ -3,17 +3,73 @@ from fastapi import APIRouter, HTTPException, Depends
 from asgiref.sync import sync_to_async
 
 from ai_mf_backend.models.v1.database.mutual_fund import (
+    MutualFund, 
     AnnualReturn,
     PerformanceData,
     RiskStatistics,
     TrailingReturn,
     HistoricalData,
+    
 )
 from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 
 
 router = APIRouter()
+
+
+
+@router.get("/fund_overview/{fund_id}")
+async def get_overview(fund_id: int = Depends(validate_fund_id)):
+    try:
+        
+        fund_overview = await sync_to_async(
+            lambda: MutualFund.objects.get(id=fund_id)
+        )()
+        
+        
+        return {
+            "fund_id": fund_id,
+            "fund_overview": {
+                "name": fund_overview.scheme_name,
+                "q_param": fund_overview.q_param,
+                "nav": fund_overview.net_asset_value,
+                "symbol": fund_overview.symbol,
+            },
+        }
+    except MutualFund.DoesNotExist:
+        
+        raise HTTPException(
+            status_code=404,
+            detail=f"No performance data found for fund ID {fund_id}",
+        )
+
+
+
+@router.get("/fund_performance/{fund_id}")
+async def get_performance(fund_id: int = Depends(validate_fund_id)):
+    try:
+        performance = await sync_to_async(
+            lambda: PerformanceData.objects.get(fund_id=fund_id)
+        )()
+    
+        return {
+            "fund_id": fund_id,
+            "ytd_return": performance.ytd_return,
+            "average_return_5y": performance.average_return_5y,
+            "number_of_years_up": performance.number_of_years_up,
+            "number_of_years_down": performance.number_of_years_down,
+            "best_1y_total_return": performance.best_1y_total_return,
+            "worst_1y_total_return": performance.worst_1y_total_return,
+            "best_3y_total_return": performance.best_3y_total_return,
+            "worst_3y_total_return": performance.worst_3y_total_return,
+        }
+    except PerformanceData.DoesNotExist :
+        raise HTTPException(
+            status_code=404,
+            detail=f"No fund with fund ID {fund_id}"
+        )
+    
 
 
 @router.get("/fund_annual_return/{fund_id}")
@@ -25,7 +81,7 @@ async def get_annual_returns(fund_id: int = Depends(validate_fund_id)):
     )
     if not annual_returns :
         raise HTTPException (
-            status_code = 404, detail  = f"No annual returns found for  fund ID {fund_id}"
+            status_code = 404, detail  = f"No annual returns found for fund ID {fund_id}"
         )
 
     return {
@@ -65,30 +121,6 @@ async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
             for rs in risk_statistics
         ],
     }
-
-
-@router.get("/fund_performance/{fund_id}")
-async def get_performance(fund_id: int = Depends(validate_fund_id)):
-
-    performance = await sync_to_async(
-        lambda: PerformanceData.objects.get(fund_id=fund_id)
-    )()
-    if not performance :
-        raise HTTPException (
-            status_code = 404, detail  = f"No performance data found for  fund ID {fund_id}"
-        )
-    return {
-        "fund_id": fund_id,
-        "ytd_return": performance.ytd_return,
-        "average_return_5y": performance.average_return_5y,
-        "number_of_years_up": performance.number_of_years_up,
-        "number_of_years_down": performance.number_of_years_down,
-        "best_1y_total_return": performance.best_1y_total_return,
-        "worst_1y_total_return": performance.worst_1y_total_return,
-        "best_3y_total_return": performance.best_3y_total_return,
-        "worst_3y_total_return": performance.worst_3y_total_return,
-    }
-
 
 @router.get("/fund_trailing_return/{fund_id}")
 async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
