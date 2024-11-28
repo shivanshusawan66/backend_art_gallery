@@ -8,22 +8,18 @@ class CustomMutualFundOverviewCustomResponse(Response):
 class AnnualReturnCustomResponse(Response):
     pass
 
+
 class PerformanceDataCustomResponse(Response):
     pass
+
 
 class RiskStatisticsCustomResponse(Response):
     pass
 
+
 class TrailingReturnCustomResponse(Response):
     pass
 
+
 class HistoricalDataCustomResponse(Response):
     pass
-    
-
-
-
-
-
-
-
