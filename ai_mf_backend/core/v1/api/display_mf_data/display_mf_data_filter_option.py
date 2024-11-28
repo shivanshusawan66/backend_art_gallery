@@ -11,8 +11,8 @@ from ai_mf_backend.models.v1.api.display_mf_data_filter_option import (
 
 router = APIRouter()
 
-MORNINGSTAR_RATING_MAP = {"*": 1, "**": 2, "***": 3, "****": 4, "*****": 5, "": 0}
-
+def convert_morningstar_rating(rating: str) -> int:
+    return len(rating) if rating else 0
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
@@ -20,22 +20,26 @@ MORNINGSTAR_RATING_MAP = {"*": 1, "**": 2, "***": 3, "****": 4, "*****": 5, "": 
     response_model=SuccessResponse,
 )
 async def mutual_funds_filter_options(request: Request, response: Response):
-
     try:
+
         fund_families = await sync_to_async(list)(
             FundOverview.objects.values_list("fund_family", flat=True).distinct()
         )
+
         morningstar_ratings = await sync_to_async(list)(
             FundOverview.objects.values_list("morningstar_rating", flat=True).distinct()
         )
+
         min_initial_investments = await sync_to_async(list)(
             FundData.objects.values_list("min_initial_investment", flat=True).distinct()
         )
 
         fund_families_sorted = sorted(fund_families)
+
         morningstar_ratings_numeric = sorted(
-            [MORNINGSTAR_RATING_MAP.get(rating, 0) for rating in morningstar_ratings]
+            map(convert_morningstar_rating, morningstar_ratings)
         )
+
         min_initial_investments_sorted = sorted(
             float(i) for i in min_initial_investments
         )
