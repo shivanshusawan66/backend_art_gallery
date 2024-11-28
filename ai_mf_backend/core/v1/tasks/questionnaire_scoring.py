@@ -38,7 +38,7 @@ def calculate_question_score(question_id):
         num_options = responses.count()
 
         if num_options > 0:
-            question.question_score = question.initial_weight * (total_option_scores / num_options)
+            question.question_score = question.initial_weight * total_option_scores/num_options
         else:
             question.question_score = 0.0
 

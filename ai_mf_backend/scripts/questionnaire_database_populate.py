@@ -2,7 +2,7 @@ import os
 import django
 from datetime import datetime
 from django.db import transaction
-
+from ai_mf_backend.core.v1.tasks.questionnaire_scoring import calculate_option_scores, calculate_question_score, calculate_section_score
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
 )  # Use your project’s settings path
@@ -18,7 +18,8 @@ from ai_mf_backend.models.v1.database.questions import (
 )
 
 
-# Clear existing data
+from ai_mf_backend.signals import signals_disabled
+# Function to populate the section, question, and allowed_response tables
 def clear_tables():
     """Clear existing data from all relevant tables."""
     Section.objects.all().delete()
@@ -61,6 +62,7 @@ def populate_data(data):
             # Insert Questions and Allowed Responses
             for index, question_info in enumerate(questions_list):
                 question_id = base_question_id + index + 1
+                
                 question = Question.objects.create(
                     id=question_id,
                     section=section,
@@ -131,18 +133,34 @@ def populate_conditional_questions(conditional_questions):
 
 
 # Main function to orchestrate the population process
+
+# Main function to orchestrate the population process
 def main(data, conditional_questions):
     try:
         clear_tables()
-
         # Populate section, question, allowed_response
-        populate_data(data)
+        with signals_disabled():
+            populate_data(data)
 
-        # Populate conditional_question table
-        populate_conditional_questions(conditional_questions)
+            # Populate conditional_question table
+            populate_conditional_questions(conditional_questions)
+
+        trigger_calculations()
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
+def trigger_calculations():
+    for question in Question.objects.all():  
+
+        calculate_option_scores(question.id)
+        calculate_question_score(question.id)
+    for section in Section.objects.all():
+        calculate_section_score(section.id)  # Example for section score calculation
+
+    # Example for response score calculation
+
+    print("Manual recalculations triggered successfully.")
 
 
 data = {
