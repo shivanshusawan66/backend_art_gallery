@@ -188,7 +188,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
 async def change_password(
     request: ChangePasswordRequest,
     response: Response,  # Inject FastAPI Response object
-    Authorization: str = Header() # Expect token in the Authorization header
+    Authorization: str = Header(),  # Expect token in the Authorization header
 ):
     if not Authorization:
         response.status_code = 422
