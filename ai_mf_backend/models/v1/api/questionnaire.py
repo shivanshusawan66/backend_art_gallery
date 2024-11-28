@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 from ai_mf_backend.models.v1.api import Response
@@ -10,7 +10,7 @@ class Option(BaseModel):
 
 
 class VisibilityCondition(BaseModel):
-    value: List[str]
+    value: List[Dict[str, Union[int, str]]]
     show: Optional[List[int]] = []
     hide: Optional[List[int]] = []
 
