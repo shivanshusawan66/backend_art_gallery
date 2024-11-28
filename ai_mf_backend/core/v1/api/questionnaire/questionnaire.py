@@ -44,10 +44,8 @@ logger = logging.getLogger(__name__)
 async def get_all_sections(request: Request, response: Response):
     try:
 
-        # Fetch sections using async to avoid sync issues
         sections = await sync_to_async(list)(Section.objects.all())
 
-        # Prepare the list of SectionBase objects
         sections_data = [
             SectionBase(section_id=section.pk, section_name=section.section)
             for section in sections
@@ -58,19 +56,18 @@ async def get_all_sections(request: Request, response: Response):
         return SectionsResponse(
             status=True,
             message="Sections fetched successfully.",
-            data=sections_data,  # Directly use the list of SectionBase.
+            data=sections_data,
             status_code=200,
         )
     except Exception as e:
 
         logger.error(f"Error fetching sections: {e}")
 
-        # Return error response
         response.status_code = 500
         return SectionsResponse(
             status=False,
             message="Failed to fetch sections.",
-            data=None,  # Set data as None for errors
+            data=None,
             status_code=500,
         )
 
@@ -84,15 +81,15 @@ async def get_all_sections(request: Request, response: Response):
 )
 async def get_section_wise_questions(request: SectionRequest, response: Response):
     try:
-        # Check if section_id is provided
+
         specified_section_id = request.section_id
         if specified_section_id is None:
-            logger.warning("Section ID is missing or empty.")
-            response.status_code = 422
+            logger.warning("Section ID is required.")
+            response.status_code = 400
             return SectionQuestionsResponse(
                 status=False,
-                message="section_id cannot be empty.",
-                status_code=422,
+                message="Section ID is required.",
+                status_code=400,
             )
 
         if not isinstance(specified_section_id, int):
@@ -103,8 +100,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                 message="section_id must be an integer.",
                 status_code=422,
             )
-
-        # Fetch the current section using the specified ID
 
         current_section = await sync_to_async(
             Section.objects.filter(pk=specified_section_id).first
@@ -118,8 +113,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                 message="Section not found.",
                 status_code=404,
             )
-
-        # Fetch questions associated with the section
 
         questions = await sync_to_async(list)(
             Question.objects.filter(section=current_section)
@@ -153,11 +146,15 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                     ).first
                 )()
 
-                condition_value = (
-                    condition_response.response if condition_response else None
-                )
+                condition_value = {
+                    "response_id": (
+                        condition_response.pk if condition_response else None
+                    ),
+                    "response_value": (
+                        condition_response.response if condition_response else None
+                    ),
+                }
 
-                # Build visibility condition
                 condition = {
                     "value": [condition_value],
                     "show": (
