@@ -11,6 +11,18 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
     HistoricalData,
     
 )
+from ai_mf_backend.models.v1.api.display_each_mf import (
+    CustomMutualFundOverviewCustomResponse,
+    AnnualReturnCustomResponse,
+    PerformanceDataCustomResponse,
+    RiskStatisticsCustomResponse,
+    TrailingReturnCustomResponse,
+    HistoricalDataCustomResponse,
+)
+    
+    
+
+from ai_mf_backend.models.v1.api import Response
 from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 
@@ -22,13 +34,13 @@ router = APIRouter()
 @router.get("/fund_overview/{fund_id}")
 async def get_overview(fund_id: int = Depends(validate_fund_id)):
     try:
-        
+       
         fund_overview = await sync_to_async(
             lambda: MutualFund.objects.get(id=fund_id)
         )()
+
         
-        
-        return {
+        response_data = {
             "fund_id": fund_id,
             "fund_overview": {
                 "name": fund_overview.scheme_name,
@@ -37,11 +49,19 @@ async def get_overview(fund_id: int = Depends(validate_fund_id)):
                 "symbol": fund_overview.symbol,
             },
         }
+
+        
+        return CustomMutualFundOverviewCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
     except MutualFund.DoesNotExist:
         
         raise HTTPException(
             status_code=404,
-            detail=f"No performance data found for fund ID {fund_id}",
+            detail = f"No fund found for fund ID {fund_id}"
         )
 
 
@@ -52,8 +72,8 @@ async def get_performance(fund_id: int = Depends(validate_fund_id)):
         performance = await sync_to_async(
             lambda: PerformanceData.objects.get(fund_id=fund_id)
         )()
-    
-        return {
+
+        response_data = {
             "fund_id": fund_id,
             "ytd_return": performance.ytd_return,
             "average_return_5y": performance.average_return_5y,
@@ -64,10 +84,17 @@ async def get_performance(fund_id: int = Depends(validate_fund_id)):
             "best_3y_total_return": performance.best_3y_total_return,
             "worst_3y_total_return": performance.worst_3y_total_return,
         }
+    
+        return PerformanceDataCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
     except PerformanceData.DoesNotExist :
         raise HTTPException(
             status_code=404,
-            detail=f"No fund with fund ID {fund_id}"
+            detail = f"No fund found for fund ID {fund_id}"
         )
     
 
@@ -80,11 +107,11 @@ async def get_annual_returns(fund_id: int = Depends(validate_fund_id)):
         AnnualReturn.objects.filter(fund_id=fund_id)
     )
     if not annual_returns :
-        raise HTTPException (
-            status_code = 404, detail  = f"No annual returns found for fund ID {fund_id}"
+        raise HTTPException(
+            status_code=404,
+            detail = f"No fund found for fund ID {fund_id}"
         )
-
-    return {
+    response_data = {
         "fund_id": fund_id,
         "annual_returns": [
             {
@@ -95,6 +122,13 @@ async def get_annual_returns(fund_id: int = Depends(validate_fund_id)):
         ],
     }
 
+    return AnnualReturnCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
+
 
 @router.get("/fund_risk_statistics/{fund_id}")
 async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
@@ -102,10 +136,11 @@ async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
         RiskStatistics.objects.filter(fund_id=fund_id)
     )
     if not risk_statistics :
-        raise HTTPException (
-            status_code = 404, detail  = f"No risk statistics found for  fund ID {fund_id}"
+        raise HTTPException(
+            status_code=404,
+            detail = f"No fund found for fund ID {fund_id}"
         )
-    return {
+    response_data = {
         "fund_id": fund_id,
         "risk_statistics": [
             {
@@ -121,6 +156,12 @@ async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
             for rs in risk_statistics
         ],
     }
+    return RiskStatisticsCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
 
 @router.get("/fund_trailing_return/{fund_id}")
 async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
@@ -128,10 +169,11 @@ async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
         TrailingReturn.objects.filter(fund_id=fund_id)
     )
     if not trailing_return :
-        raise HTTPException (
-            status_code = 404, detail  = f"No trailing return data found for  fund ID {fund_id}"
+        raise HTTPException(
+            status_code=404,
+            detail = f"No fund found for fund ID {fund_id}"
         )
-    return {
+    response_data =  {
         "fund_id": fund_id,
         "performance": [
             {
@@ -142,6 +184,12 @@ async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
             for tr in trailing_return
         ],
     }
+    return TrailingReturnCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
 
 
 @router.get("/fund_historical_data/{fund_id}")
@@ -150,10 +198,11 @@ async def get_historical_data(fund_id: int = Depends(validate_fund_id)):
         HistoricalData.objects.filter(fund_id=fund_id)
     )
     if not historical_data :
-        raise HTTPException (
-            status_code = 404, detail  = f"No historical data found for  fund ID {fund_id}"
+        raise HTTPException(
+            status_code=404,
+            detail = f"No fund found for fund ID {fund_id}"
         )
-    return {
+    response_data = {
         "fund_id": fund_id,
         "historical_data": [
             {
@@ -168,3 +217,10 @@ async def get_historical_data(fund_id: int = Depends(validate_fund_id)):
             for hd in historical_data
         ],
     }
+
+    return HistoricalDataCustomResponse(
+            status=True,
+            message=f"Fund with ID {fund_id} found",
+            data=response_data,
+            status_code=200,
+        )
