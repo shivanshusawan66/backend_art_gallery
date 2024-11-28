@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/submit-questionnaire-response",
-    status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(login_checker)],
     response_model=SubmitQuestionnaireResponse,
 )
@@ -38,73 +37,93 @@ async def submit_questionnaire_response(
 ):
     try:
         
-        if not request.user_id:
-            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        new_document = False
+        response_status_code = status.HTTP_200_OK
+        question_id = None
+        response_id = None
+        
+        if request.user_id is None:
+            response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message="User ID is required",
                 data={},
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=response_status_code,
             )
 
         user_id = request.user_id
         section_id = request.section_id
         responses = request.responses
-
+        
         # Fetch user
         user = await sync_to_async(UserContactInfo.objects.filter(pk=user_id).first)()
         if not user:
-            response.status_code = status.HTTP_404_NOT_FOUND
+            response_status_code = status.HTTP_404_NOT_FOUND
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message=f"This user with user id {user_id} does not exist.",
                 data={"user_id": user_id},
-                status_code=404,
+                status_code=response_status_code,
             )
 
         # Validate section
         section = await sync_to_async(Section.objects.filter(pk=section_id).first)()
         if not section:
-            response.status_code = status.HTTP_404_NOT_FOUND
+            response_status_code = status.HTTP_404_NOT_FOUND
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message=f"Section with ID {section_id} not found",
                 data={"user_id": user_id},
-                status_code=404,
+                status_code=response_status_code,
+            )
+            
+        if not responses:
+            response_status_code = status.HTTP_400_BAD_REQUEST
+            response.status_code = response_status_code
+            return SubmitQuestionnaireResponse(
+                status=False,
+                message="The responses array cannot be empty. Provide at least one question-response pair.",
+                data={"user_id": request.user_id},
+                status_code=response_status_code,
             )
         
         # Validate responses structure
         if not isinstance(request.responses, list) or not all(isinstance(r, ResponseItem) for r in request.responses):
-            response.status_code = status.HTTP_400_BAD_REQUEST
+            response_status_code = status.HTTP_400_BAD_REQUEST
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message="Each response in the array must be an object containing question_id and response_id.",
                 data={"user_id": user_id},
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=response_status_code,
             )
         
         # Process and save all responses from previous section
         for user_response in responses:
             # Ensure each response contains required keys
-            if "question_id" not in user_response or "response_id" not in user_response:
-                response.status_code = status.HTTP_400_BAD_REQUEST
+            if not (hasattr(user_response, 'question_id') and hasattr(user_response, 'response_id')):
+                response_status_code = status.HTTP_400_BAD_REQUEST
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message="Each response must contain question_id and response_id.",
                     data={"user_id": user_id},
-                    status_code=status.HTTP_400_BAD_REQUEST,
+                    status_code=response_status_code,
                 )
             question_id = user_response.question_id
             response_id = user_response.response_id
-
             # Validate that question_id and response_id are numeric
-            if not str(question_id).isdigit() or not str(response_id).isdigit():
-                response.status_code = status.HTTP_404_NOT_FOUND
+            if not isinstance(question_id, int) or not isinstance(response_id, int):
+                response_status_code = status.HTTP_400_BAD_REQUEST
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
-                    message="Question ID and Response ID must be numeric values",
+                    message="Question ID and Response ID must be integer values",
                     data={"user_id": user_id},
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=response_status_code,
                 )
             
             # Validate question and allowed response
@@ -112,12 +131,13 @@ async def submit_questionnaire_response(
                 Question.objects.filter(pk=question_id, section_id=section_id).first
             )()
             if not question:
-                response.status_code = status.HTTP_404_NOT_FOUND
+                response_status_code = status.HTTP_404_NOT_FOUND
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Question with ID {question_id} not found",
                     data={"user_id": user_id},
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=response_status_code,
                 )
 
             allowed_response = await sync_to_async(
@@ -126,13 +146,13 @@ async def submit_questionnaire_response(
                 ).first
             )()
             if not allowed_response:
-                status_code = status.HTTP_400_BAD_REQUEST
-                response.status_code = status_code
+                response_status_code = status.HTTP_400_BAD_REQUEST
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Response for Question with ID {question_id} is not valid",
                     data={"user_id": user_id},
-                    status_code=status_code,
+                    status_code=response_status_code,
                 )
 
             # Get existing response or create new one
@@ -156,7 +176,6 @@ async def submit_questionnaire_response(
                 response_status_code = status.HTTP_201_CREATED
             else:
                 user_response_instance.response_id = allowed_response
-                new_document = False
                 response_status_code = status.HTTP_200_OK
 
             try:
@@ -164,15 +183,16 @@ async def submit_questionnaire_response(
                 await sync_to_async(user_response_instance.full_clean)()
                 await sync_to_async(user_response_instance.save)()
             except ValidationError as e:
-                response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Invalid response validation for question {question_id}",
                     data={"errors": e.message_dict},
-                    status_code=422,
+                    status_code=response_status_code,
                 )
 
-        response.status_code = status.HTTP_200_OK
+        response.status_code = response_status_code
         return SubmitQuestionnaireResponse(
             status=True,
             message=(
@@ -193,10 +213,11 @@ async def submit_questionnaire_response(
         logger.error(
             f"Error processing questionnaire response: {str(e)}", exc_info=True
         )
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response.status_code = response_status_code
         return SubmitQuestionnaireResponse(
             status=False,
             message=f"Processing failed: {str(e)}",
             data={},
-            status_code=500,
+            status_code=response_status_code,
         )
