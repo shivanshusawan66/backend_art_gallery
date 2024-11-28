@@ -17,3 +17,6 @@ class SubmitQuestionnaireRequest(BaseModel):
 
 class SubmitQuestionnaireResponse(Response):
     pass
+
+class UserQuestionnaireResponse(Response):
+    pass
