@@ -24,7 +24,19 @@ class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
 class UserPersonalFinancialDetailsUpdateResponse(Response):
     pass
 
+class UserPersonalFinancialFormData(BaseModel):
+    name: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[int] = None
+    marital_status: Optional[int] = None
+    occupation: Optional[int] = None
+    annual_income: Optional[int] = None
+    monthly_saving_capacity: Optional[int] = None
+    investment_amount_per_year: Optional[int] = None
+    regular_source_of_income: Optional[bool] = None
+    lock_in_period_accepted: Optional[bool] = None
+    investment_style: Optional[str] = None
 
 
 class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
-    pass
+    data:UserPersonalFinancialFormData

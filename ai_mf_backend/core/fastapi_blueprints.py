@@ -37,7 +37,7 @@ from ai_mf_backend.core.v1.api.questionnaire.saving_responses import (
 from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import (
     router as mutual_fund_category_router,
 )
-from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import(
+from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import (
     router as display_user_form_responses_router_v1,
 )
 
