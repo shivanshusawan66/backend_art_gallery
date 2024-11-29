@@ -24,6 +24,7 @@ class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
 class UserPersonalFinancialDetailsUpdateResponse(Response):
     pass
 
+
 class UserPersonalFinancialFormData(BaseModel):
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
@@ -39,4 +40,4 @@ class UserPersonalFinancialFormData(BaseModel):
 
 
 class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
-    data:UserPersonalFinancialFormData
+    pass
