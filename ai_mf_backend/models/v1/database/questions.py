@@ -4,7 +4,7 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 
 class Section(SoftDeleteModel):
-    section = models.CharField(max_length=100)
+    section = models.CharField(max_length=100, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
