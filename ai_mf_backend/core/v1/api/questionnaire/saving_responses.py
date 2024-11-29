@@ -90,42 +90,10 @@ async def submit_questionnaire_response(
                 status_code=response_status_code,
             )
         
-        # Validate responses structure
-        if not isinstance(request.responses, list) or not all(isinstance(r, ResponseItem) for r in request.responses):
-            response_status_code = status.HTTP_400_BAD_REQUEST
-            response.status_code = response_status_code
-            return SubmitQuestionnaireResponse(
-                status=False,
-                message="Each response in the array must be an object containing question_id and response_id.",
-                data={"user_id": user_id},
-                status_code=response_status_code,
-            )
-        
         # Process and save all responses from previous section
         for user_response in responses:
-            # Ensure each response contains required keys
-            if not (hasattr(user_response, 'question_id') and hasattr(user_response, 'response_id')):
-                response_status_code = status.HTTP_400_BAD_REQUEST
-                response.status_code = response_status_code
-                return SubmitQuestionnaireResponse(
-                    status=False,
-                    message="Each response must contain question_id and response_id.",
-                    data={"user_id": user_id},
-                    status_code=response_status_code,
-                )
             question_id = user_response.question_id
             response_id = user_response.response_id
-            # Validate that question_id and response_id are numeric
-            if not isinstance(question_id, int) or not isinstance(response_id, int):
-                response_status_code = status.HTTP_400_BAD_REQUEST
-                response.status_code = response_status_code
-                return SubmitQuestionnaireResponse(
-                    status=False,
-                    message="Question ID and Response ID must be integer values",
-                    data={"user_id": user_id},
-                    status_code=response_status_code,
-                )
-            
             # Validate question and allowed response
             question = await sync_to_async(
                 Question.objects.filter(pk=question_id, section_id=section_id).first
