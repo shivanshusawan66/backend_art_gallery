@@ -40,6 +40,12 @@ from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import 
 from ai_mf_backend.core.v1.api.display_mf_data.display_each import (
     router as display_each_router_v1,
 )
+from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import (
+    router as display_user_form_responses_router_v1,
+)
+from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import (
+    router as display_user_form_responses_router_v1,
+)
 
 connect_router.include_router(authentication_router_v1)
 connect_router.include_router(forget_password_router_v1)
@@ -54,3 +60,4 @@ connect_router.include_router(soft_delete_router_v1)
 connect_router.include_router(saving_response_router_v1)
 connect_router.include_router(mutual_fund_category_router_v1)
 connect_router.include_router(display_each_router_v1)
+connect_router.include_router(display_user_form_responses_router_v1)

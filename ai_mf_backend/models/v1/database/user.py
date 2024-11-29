@@ -142,7 +142,7 @@ class UserPersonalDetails(SoftDeleteModel):
         db_table = "user_personal_details"
 
     def __str__(self):
-        return str(self.user)
+        return f"Personal Details for {self.user}"
 
     def save(self, *args, **kwargs):
         # Only track changes and validate if this is an update (not creation)
