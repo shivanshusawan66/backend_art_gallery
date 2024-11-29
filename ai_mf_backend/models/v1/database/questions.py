@@ -21,7 +21,7 @@ class Question(SoftDeleteModel):
     section = models.ForeignKey(
         Section, on_delete=models.SET_NULL, null=True, blank=True
     )
-    question = models.CharField(max_length=500, unique=True)
+    question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
