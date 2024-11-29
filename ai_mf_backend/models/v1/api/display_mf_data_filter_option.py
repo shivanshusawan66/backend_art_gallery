@@ -8,18 +8,8 @@ class FundFamiliesResponseModel(BaseModel):
     min_initial_investment: List[float]
 
 
-class SuccessResponse(BaseModel):
+class APIResponse(BaseModel):
     status: bool
     message: str
     data: Optional[FundFamiliesResponseModel] = None
     status_code: int
-
-
-class ErrorResponse(BaseModel):
-    status: bool
-    message: str
-    error_details: Optional[str] = None
-    status_code: int
-
-    class Config:
-        orm_mode = True

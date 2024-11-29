@@ -25,14 +25,14 @@ from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
 )
 from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
-    router as soft_delete_router,
+    router as soft_delete_router_v1,
 )
 
 from ai_mf_backend.core.v1.api.questionnaire.saving_responses import (
-    router as saving_response_v1,
+    router as saving_response_router_v1,
 )
 from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import (
-    router as mutual_fund_category_router,
+    router as mutual_fund_category_router_v1,
 )
 from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import (
     router as display_user_form_responses_router_v1,
@@ -50,8 +50,8 @@ connect_router.include_router(yf_data_pull_router_v1)
 connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
 
-connect_router.include_router(soft_delete_router)
-connect_router.include_router(saving_response_v1)
-connect_router.include_router(mutual_fund_category_router)
+connect_router.include_router(soft_delete_router_v1)
+connect_router.include_router(saving_response_router_v1)
+connect_router.include_router(mutual_fund_category_router_v1)
 connect_router.include_router(display_user_form_responses_router_v1)
 connect_router.include_router(display_mf_data_filter_option_router_v1)
