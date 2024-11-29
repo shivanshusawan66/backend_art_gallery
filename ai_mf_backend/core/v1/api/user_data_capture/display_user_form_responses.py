@@ -24,14 +24,13 @@ router = APIRouter()
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
-    "/user_personal_financial_details_user_response",
+    "/get_user_details_response",
     response_model=UserPersonalFinancialDetailsResponsesDisplayResponse,
     dependencies=[Depends(login_checker)],
 )
 async def get_user_personal_financial_details(
     response: Response,
     user_id: Optional[int] = Query(None, description="User ID"),
-    Authorization: str = Header(),
 ):
     try:
         # Fetch user contact info
