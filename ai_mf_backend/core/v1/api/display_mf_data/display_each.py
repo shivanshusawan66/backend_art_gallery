@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
-
+from fastapi import APIRouter, Depends
 from asgiref.sync import sync_to_async
 
+
+from ai_mf_backend.config.v1.api_config import api_config
+from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.models.v1.database.mutual_fund import (
     MutualFund,
     AnnualReturn,
@@ -35,9 +37,11 @@ from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 router = APIRouter()
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_overview/{fund_id}")
 async def get_overview(fund_id: int = Depends(validate_fund_id)):
+
+    
     try:
 
         fund_overview = await sync_to_async(
@@ -69,7 +73,7 @@ async def get_overview(fund_id: int = Depends(validate_fund_id)):
             status_code=404,
         )
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_performance/{fund_id}")
 async def get_performance(fund_id: int = Depends(validate_fund_id)):
     try:
@@ -113,7 +117,7 @@ async def get_performance(fund_id: int = Depends(validate_fund_id)):
             status_code=404,
         )
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_annual_return/{fund_id}")
 async def get_annual_returns(fund_id: int = Depends(validate_fund_id)):
 
@@ -142,7 +146,7 @@ async def get_annual_returns(fund_id: int = Depends(validate_fund_id)):
         status_code=200,
     )
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_risk_statistics/{fund_id}")
 async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
     risk_statistics = await sync_to_async(list)(
@@ -179,7 +183,7 @@ async def get_risk_statistics(fund_id: int = Depends(validate_fund_id)):
         status_code=200,
     )
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_trailing_return/{fund_id}")
 async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
     trailing_return = await sync_to_async(list)(
@@ -210,7 +214,7 @@ async def get_trailing_return(fund_id: int = Depends(validate_fund_id)):
         status_code=200,
     )
 
-
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_historical_data/{fund_id}")
 async def get_historical_data(fund_id: int = Depends(validate_fund_id)):
     historical_datas = await sync_to_async(list)(
