@@ -1,9 +1,11 @@
 from typing import Optional
 
 
-from fastapi import APIRouter, Response, Header, Depends
+from fastapi import APIRouter, Response, Header, Depends, Query
 from asgiref.sync import sync_to_async
 from django.forms.models import model_to_dict
+
+from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 from ai_mf_backend.models.v1.database.user import (
@@ -15,20 +17,21 @@ from ai_mf_backend.models.v1.api.user_data import UserPersonalFinancialFormData
 from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsResponsesDisplayResponse,
 )
-
+from ai_mf_backend.config.v1.api_config import api_config
 
 router = APIRouter()
 
 
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
-    "/user_personal_financial_details_user_response/{user_id}",
+    "/user_personal_financial_details_user_response",
     response_model=UserPersonalFinancialDetailsResponsesDisplayResponse,
     dependencies=[Depends(login_checker)],
 )
 async def get_user_personal_financial_details(
-    user_id: int,
     response: Response,
-    Authorization: str = Header(),  # Optional header
+    user_id: Optional[int] = Query(None, description="User ID"),
+    Authorization: str = Header(),
 ):
     try:
         # Fetch user contact info
