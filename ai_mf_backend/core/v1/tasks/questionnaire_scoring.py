@@ -1,12 +1,17 @@
 import logging
 from celery import chain
-from celery import shared_task
-from ai_mf_backend.models.v1.database.questions import Question, Allowed_Response, Section
+from ai_mf_backend.core import celery_app
+from ai_mf_backend.models.v1.database.questions import (
+    Question,
+    Allowed_Response,
+    Section,
+)
 
 logger = logging.getLogger(__name__)
 
-@shared_task
-def calculate_option_scores(question_id):
+
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
+def calculate_option_scores(self, question_id):
     """Calculate weight_per_option and option_score for each allowed response."""
     try:
         question = Question.objects.get(id=question_id)
@@ -27,8 +32,8 @@ def calculate_option_scores(question_id):
         print(f"Error in calculate_option_scores: {e}")
 
 
-@shared_task
-def calculate_question_score(question_id):
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
+def calculate_question_score(self, question_id):
     """Calculate the aggregated score for a question."""
     try:
         question = Question.objects.get(id=question_id)
@@ -38,7 +43,7 @@ def calculate_question_score(question_id):
         num_options = responses.count()
 
         if num_options > 0:
-            question.question_score = question.initial_weight * total_option_scores/num_options
+            question.question_score = question.initial_weight * total_option_scores
         else:
             question.question_score = 0.0
 
@@ -48,8 +53,8 @@ def calculate_question_score(question_id):
         logger.error(f"Error in calculate_question_score: {e}")
 
 
-@shared_task
-def calculate_section_score(section_id):
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
+def calculate_section_score(self, section_id):
     """Calculate the aggregated score for a section."""
     section = Section.objects.get(id=section_id)
     questions = Question.objects.filter(section=section)
@@ -65,18 +70,36 @@ def calculate_section_score(section_id):
     section.save()
 
 
-@shared_task
-def recalculate_scores_on_update():
-    """Recalculate all scores when there are updates."""
-    sections = Section.objects.all()
-    for section in sections:
-        question_tasks = [
-            chain(
-                calculate_option_scores.s(question.id),
-                calculate_question_score.s(question.id)
-            )
-            for question in Question.objects.filter(section=section)
-        ]
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
+def recalculate_scores_on_update(self, section_ids=None):
+    """Recalculate all scores when there are updates. Optionally for specific sections."""
+    try:
+        # If no section_ids are provided, recalculate for all sections
+        if section_ids is None:
+            sections = Section.objects.all()
+        else:
+            # Recalculate for the specified sections only
+            sections = Section.objects.filter(id__in=section_ids)
 
-        section_task = chain(*question_tasks, calculate_section_score.s(section.id))
-        section_task.apply_async()
+        if not sections:
+            logger.warning(
+                "No sections found for the provided section IDs or all sections."
+            )
+            return
+
+        for section in sections:
+            question_tasks = [
+                chain(
+                    calculate_option_scores.s(question.id),
+                    calculate_question_score.s(question.id),
+                )
+                for question in Question.objects.filter(section=section)
+            ]
+            section_task = chain(*question_tasks, calculate_section_score.s(section.id))
+
+            section_task.apply_async()
+            logger.info(f"Triggered recalculation for Section ID {section.id}")
+
+    except Exception as e:
+        logger.error(f"Error in recalculate_scores_on_update: {e}")
+        raise

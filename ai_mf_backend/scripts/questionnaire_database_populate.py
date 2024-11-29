@@ -2,7 +2,13 @@ import os
 import django
 from datetime import datetime
 from django.db import transaction
-from ai_mf_backend.core.v1.tasks.questionnaire_scoring import calculate_option_scores, calculate_question_score, calculate_section_score
+from ai_mf_backend.core.v1.tasks.questionnaire_scoring import (
+    calculate_option_scores,
+    calculate_question_score,
+    calculate_section_score,
+    recalculate_scores_on_update,
+)
+
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
 )  # Use your project’s settings path
@@ -16,17 +22,6 @@ from ai_mf_backend.models.v1.database.questions import (
     Allowed_Response,
     ConditionalQuestion,
 )
-
-
-from ai_mf_backend.signals import signals_disabled
-# Function to populate the section, question, and allowed_response tables
-def clear_tables():
-    """Clear existing data from all relevant tables."""
-    Section.objects.all().delete()
-    Question.objects.all().delete()
-    Allowed_Response.objects.all().delete()
-    ConditionalQuestion.objects.all().delete()
-    print("Existing data cleared successfully.")
 
 
 # Function to populate the section, question, and allowed_response tables
@@ -54,35 +49,51 @@ def populate_data(data):
     with transaction.atomic():
         for section_name, questions_list in data.items():
             section_id = section_id_mapping.get(section_name)
+
+            # Check if the section already exists
+            section, created = Section.objects.get_or_create(
+                id=section_id, defaults={"section": section_name}
+            )
+            if created:
+                print(f"Section '{section_name}' created.")
+            else:
+                print(f"Section '{section_name}' already exists, skipping.")
+
             base_question_id = base_question_id_mapping.get(section_name)
-
-            # Insert Section
-            section = Section.objects.create(id=section_id, section=section_name)
-
-            # Insert Questions and Allowed Responses
             for index, question_info in enumerate(questions_list):
                 question_id = base_question_id + index + 1
-                
-                question = Question.objects.create(
-                    id=question_id,
-                    section=section,
-                    question=question_info["question_text"],
-                )
 
-                # Initialize position counter for responses
+                # Check if the question ID already exists
+                if Question.objects.filter(id=question_id).exists():
+                    print(f"Question with ID {question_id} already exists, skipping.")
+                    question = Question.objects.get(id=question_id)
+                else:
+                    # Create the question
+                    question = Question.objects.create(
+                        id=question_id,
+                        section=section,
+                        question=question_info["question_text"],
+                    )
+                    print(f"Question '{question_info['question_text']}' created.")
+
+                # Check and insert Allowed Responses
                 position = 1
-
                 for response_text in question_info["responses"]:
-                    # Create Allowed_Response with position field
-                    Allowed_Response.objects.create(
+                    allowed_response, created = Allowed_Response.objects.get_or_create(
                         question=question,
                         section=section,
                         response=response_text,
-                        position=position,  # Set the position dynamically
+                        position=position,
                     )
-                    position += 1  # Increment position for the next option
+                    if created:
+                        print(f"Allowed Response '{response_text}' created.")
+                    else:
+                        print(
+                            f"Allowed Response '{response_text}' already exists, skipping."
+                        )
+                    position += 1
 
-        print("Sections, questions, and allowed responses populated successfully.")
+    print("Sections, questions, and allowed responses populated successfully.")
 
 
 # Function to populate conditional_question table
@@ -121,44 +132,52 @@ def populate_conditional_questions(conditional_questions):
                     for position, response_id in response_id_map.items():
                         visibility = "show" if position in condition_answers else "hide"
 
-                        ConditionalQuestion.objects.create(
-                            question_id=condition_question_id,
-                            dependent_question_id=dependent_question_id,
-                            response_id=response_id,
-                            visibility=visibility,
-                            add_date=datetime.now(),
-                            update_date=datetime.now(),
+                        # Check if the conditional question already exists
+                        conditional_question, created = (
+                            ConditionalQuestion.objects.get_or_create(
+                                question_id=condition_question_id,
+                                dependent_question_id=dependent_question_id,
+                                response_id=response_id,
+                                defaults={
+                                    "visibility": visibility,
+                                    "add_date": datetime.now(),
+                                    "update_date": datetime.now(),
+                                },
+                            )
                         )
+                        if created:
+                            print(
+                                f"Conditional Question for response ID {response_id} created."
+                            )
+                        else:
+                            print(
+                                f"Conditional Question for response ID {response_id} already exists, skipping."
+                            )
+
         print("Conditional questions populated successfully.")
 
 
 # Main function to orchestrate the population process
 
+
 # Main function to orchestrate the population process
 def main(data, conditional_questions):
     try:
-        clear_tables()
-        # Populate section, question, allowed_response
-        with signals_disabled():
-            populate_data(data)
-
-            # Populate conditional_question table
-            populate_conditional_questions(conditional_questions)
-
+        populate_data(data)
+        populate_conditional_questions(conditional_questions)
         trigger_calculations()
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def trigger_calculations():
-    for question in Question.objects.all():  
 
+def trigger_calculations():
+    for question in Question.objects.all():
         calculate_option_scores(question.id)
         calculate_question_score(question.id)
-    for section in Section.objects.all():
-        calculate_section_score(section.id)  # Example for section score calculation
 
-    # Example for response score calculation
+    for section in Section.objects.all():
+        calculate_section_score(section.id)
 
     print("Manual recalculations triggered successfully.")
 

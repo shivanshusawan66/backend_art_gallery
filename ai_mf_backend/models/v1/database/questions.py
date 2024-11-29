@@ -8,6 +8,7 @@ class Section(SoftDeleteModel):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     section_score = models.FloatField(default=1.0)
+
     class Meta:
         db_table = "section"
         verbose_name = "Section"
@@ -26,7 +27,8 @@ class Question(SoftDeleteModel):
     update_date = models.DateTimeField(auto_now=True)
     question_score = models.FloatField(default=1.0)
     base_weight = models.FloatField(default=5.0)
-    initial_weight=models.PositiveIntegerField(default=1)
+    initial_weight = models.PositiveIntegerField(default=1)
+
     class Meta:
         db_table = "question"
         verbose_name = "Question"
@@ -44,7 +46,7 @@ class Allowed_Response(SoftDeleteModel):
         Section, on_delete=models.SET_NULL, null=True, blank=True
     )
     response = models.CharField(max_length=500)
-    position = models.PositiveIntegerField(null=True, blank=True,default=0)
+    position = models.PositiveIntegerField(null=True, blank=True, default=0)
     weight_per_option = models.FloatField(default=0.0)
     option_score = models.FloatField(default=1.0)
     add_date = models.DateTimeField(auto_now_add=True)
