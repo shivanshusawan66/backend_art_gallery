@@ -17,7 +17,6 @@ def get_mutual_funds_filters_query(
     morningstar_rating: Optional[str] = None,
     min_investment: Optional[Decimal] = None,
 ) -> Any:
-
     query = MutualFund.objects.select_related(
         "overview", "performance_data", "fund_data"
     ).prefetch_related("trailing_returns", "annual_returns", "risk_statistics")
@@ -36,29 +35,15 @@ def get_mutual_funds_filters_query(
         if 1 <= star_count <= 5:
             filters &= Q(overview__morningstar_rating="*" * star_count)
 
-    if isinstance(min_investment, str):
-        min_investment = Decimal(min_investment)
-
     if min_investment is not None and min_investment > Decimal("0"):
-        filters &= Q(fund_data__min_initial_investment__gte=min_investment)
+        filters &= Q(fund_data__min_initial_investment=min_investment)
 
-    base_query = query.filter(filters) if filters else query
-    return base_query
+    return query.filter(filters) if filters else query
 
 
 @sync_to_async
 def get_paginated_mutual_funds(base_query, page: int, page_size: int):
     return paginate_queryset(base_query, page=page, page_size=page_size)
-
-
-@sync_to_async
-def get_annual_returns(fund):
-    return fund.annual_returns.all()
-
-
-@sync_to_async
-def get_trailing_returns(fund):
-    return fund.trailing_returns.all()
 
 
 @sync_to_async
@@ -74,9 +59,9 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
     mutual_funds = []
 
     for fund in paginated_funds:
-        overview = getattr(fund, "overview", None)
-        performance_data = getattr(fund, "performance_data", None)
-        fund_data = getattr(fund, "fund_data", None)
+        overview = fund.overview
+        performance_data = fund.performance_data
+        fund_data = fund.fund_data
 
         risk_statistic = await get_risk_statistic(fund)
 
@@ -86,7 +71,7 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                 fund_return=tr.fund_return,
                 benchmark_return=tr.benchmark_return,
             )
-            for tr in await get_trailing_returns(fund)
+            for tr in fund.trailing_returns.all()
         ]
 
         annual_returns = [
@@ -95,7 +80,7 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                 fund_return=ar.fund_return,
                 category_return=ar.category_return,
             )
-            for ar in await get_annual_returns(fund)
+            for ar in fund.annual_returns.all()
         ]
 
         mutual_funds.append(
