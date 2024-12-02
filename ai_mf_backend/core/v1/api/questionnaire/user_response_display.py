@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter,Response,Depends,Query
+from fastapi import APIRouter, Response, Depends, Query, Request
 from asgiref.sync import sync_to_async
 from django.forms.models import model_to_dict
 
@@ -15,23 +15,25 @@ from ai_mf_backend.models.v1.database.questions import (
 )
 from ai_mf_backend.models.v1.api.questionnaire_responses import (
     UserQuestionnaireResponse,
+    UserResponseSchema,
 )
 from ai_mf_backend.config.v1.api_config import api_config
 
-router=APIRouter()
+router = APIRouter()
 
-# @limiter.limit(api_config.REQUEST_PER_MIN)
+
+@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
     "/get_user_questionnaire_response",
     response_model=UserQuestionnaireResponse,
     dependencies=[Depends(login_checker)],
 )
 async def get_user_personal_financial_details(
+    request: Request,
     response: Response,
-    user_id: Optional[int] = Query(None, description="User ID"),                               
+    user_id: Optional[int] = Query(None, description="User ID"),
 ):
     try:
-        # Fetch user contact info
         if not user_id:
             response.status_code = 404
             return UserQuestionnaireResponse(
@@ -52,15 +54,9 @@ async def get_user_personal_financial_details(
                 status_code=404,
             )
 
-        # Fetch user responses
-        print("step1")
-        user_responses = await sync_to_async(
-                UserResponse.objects.filter(
-                    user_id=user_id
-                )
-            )()
-        print(user_responses)
-
+        user_responses = await sync_to_async(list)(
+            UserResponse.objects.filter(user_id=user_id)
+        )
         if not user_responses:
             response.status_code = 404
             return UserQuestionnaireResponse(
@@ -70,27 +66,22 @@ async def get_user_personal_financial_details(
                 status_code=404,
             )
 
-        # Organize responses by section and question
-        # data = {}
-        # for user_response in user_responses:
-        #     # Check if section and question exist
-        #     if not user_response.section_id or not user_response.question_id:
-        #         continue
+        user_responses = (
+            [model_to_dict(response) for response in user_responses]
+            if user_responses
+            else []
+        )
 
-        #     section_name = user_response.section_id.name
-        #     question_text = user_response.question_id.question
-        #     response_text = user_response.response_id.response if user_response.response_id else None
+        user_responses = [
+            UserResponseSchema.model_validate(response) for response in user_responses
+        ]
 
-        #     # Group responses by section
-        #     if section_name not in data:
-        #         data[section_name] = {}
-
-        #     data[section_name][question_text] = response_text
+        user_responses = [response.model_dump() for response in user_responses]
 
         return UserQuestionnaireResponse(
             status=True,
             message="Fetched user responses successfully.",
-            data={},
+            data={"user_id": user_id, "responses": user_responses},
             status_code=200,
         )
     except Exception as e:
