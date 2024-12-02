@@ -56,7 +56,7 @@ def populate_data(data):
             base_question_id = base_question_id_mapping.get(section_name)
 
             # Insert Section
-            section = Section.objects.create(id=section_id, section_name=section_name)
+            section = Section.objects.create(id=section_id, section=section_name)
 
             # Insert Questions and Allowed Responses
             for index, question_info in enumerate(questions_list):
@@ -113,7 +113,7 @@ def populate_conditional_questions(conditional_questions):
                         ConditionalQuestion.objects.create(
                             question_id=condition_question_id,
                             dependent_question_id=dependent_question_id,
-                            condition_id=response_id,
+                            response_id=response_id,
                             visibility=visibility,
                             add_date=datetime.now(),
                             update_date=datetime.now(),
@@ -431,7 +431,7 @@ data = {
         },
         {
             "question_id": 5003,
-            "question_text": "How would you feel if your portfolio underperforms compared to others’?",
+            "question_text": "How would you feel if your portfolio underperforms compared to others?",
             "responses": [
                 "Upset and likely to change my strategy.",
                 "Curious but not overly concerned.",
@@ -439,12 +439,12 @@ data = {
             ],
         },
         {
-            "question_id": 5003,
-            "question_text": "How would you feel if your portfolio underperforms compared to others’?",
+            "question_id": 5004,
+            "question_text": "If the media reports a potential market crash, what are you most likely to do?",
             "responses": [
-                "Upset and likely to change my strategy.",
-                "Curious but not overly concerned.",
-                "Indifferent, as long as I’m meeting my own goals.",
+                "Panic and sell my investments.",
+                "Research further and decide based on the data.",
+                "Ignore the news and stay on course.",
             ],
         },
         {
