@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
 from ai_mf_backend.models.v1.api import Response
 
@@ -10,7 +10,7 @@ class ResponseItem(BaseModel):
 
 
 class SubmitQuestionnaireRequest(BaseModel):
-    user_id: Optional[int] = None
+    user_id: int
     section_id: int
     responses: List[ResponseItem]  # A list of ResponseItem objects
 
