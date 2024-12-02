@@ -6,10 +6,9 @@ from fastapi import APIRouter, Query, Request, Response
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.constants import (
     COLUMN_MAPPING,
-    VALID_COLUMNS,
     ERROR_MESSAGES,
 )
-from ai_mf_backend.utils.v1.display_mf_data_by_filter.display_mf_data_by_filter import (
+from ai_mf_backend.utils.v1.database.display_mf_data_by_filter import (
     get_mutual_funds_filters_query,
     process_mutual_funds,
 )
@@ -32,7 +31,9 @@ async def filter_mutual_funds(
     min_investment: Optional[float] = Query(None),
     selected_columns: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100),
+    page_size: int = Query(
+        api_config.DEFAULT_PAGE_SIZE, ge=1, le=api_config.MAX_PAGE_SIZE
+    ),
 ):
     try:
         selected_fields = (
@@ -41,19 +42,8 @@ async def filter_mutual_funds(
             else []
         )
 
-        invalid_columns = set(selected_fields) - VALID_COLUMNS
-        if invalid_columns:
-            return MutualFundFilterResponse(
-                status=False,
-                message=ERROR_MESSAGES["invalid_columns"].format(
-                    columns=", ".join(invalid_columns)
-                ),
-                data=[],
-                total_count=0,
-                current_page=page,
-                total_pages=0,
-                status_code=400,
-            )
+        if not len(selected_fields):
+            selected_fields = api_config.DEFAULT_DISPLAY_COLUMNS
 
         select_related_models: List[str] = []
 

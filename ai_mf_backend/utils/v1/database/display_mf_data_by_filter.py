@@ -1,8 +1,12 @@
 from decimal import Decimal
 from typing import Optional, Any
+
 from asgiref.sync import sync_to_async
+
 from django.db.models import Q
-from ai_mf_backend.utils.v1.Pagination import paginate_queryset
+
+from ai_mf_backend.utils.v1.pagination import paginate_queryset
+
 from ai_mf_backend.models.v1.database.mutual_fund import MutualFund
 from ai_mf_backend.models.v1.api.display_mf_data_by_filters import (
     AnnualReturnModel,
