@@ -46,7 +46,7 @@ class MFFilterOptions(Singleton):
         return self
 
 
-class MFProjectionTableMappings(Singletonu):
+class MFProjectionTableMappings(Singleton):
     def __init__(self):
         self.mapping = None
         self.valid_projections = None
