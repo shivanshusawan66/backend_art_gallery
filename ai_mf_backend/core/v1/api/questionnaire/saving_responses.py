@@ -56,7 +56,7 @@ async def submit_questionnaire_response(
         # Validate section
         section = await sync_to_async(Section.objects.filter(pk=section_id).first)()
         if not section:
-            response_status_code= status.HTTP_404_NOT_FOUND
+            response_status_code = status.HTTP_404_NOT_FOUND
             response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
@@ -75,7 +75,7 @@ async def submit_questionnaire_response(
                 Question.objects.filter(pk=question_id, section_id=section_id).first
             )()
             if not question:
-                response_status_code= status.HTTP_404_NOT_FOUND
+                response_status_code = status.HTTP_404_NOT_FOUND
                 response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
