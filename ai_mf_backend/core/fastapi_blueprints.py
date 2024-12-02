@@ -50,7 +50,6 @@ connect_router.include_router(user_personal_financial_detail_router_v1)
 connect_router.include_router(yf_data_pull_router_v1)
 connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
-
 connect_router.include_router(soft_delete_router_v1)
 connect_router.include_router(saving_response_v1)
 connect_router.include_router(display_user_form_responses_router_v1)
