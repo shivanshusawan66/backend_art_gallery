@@ -1,18 +1,26 @@
+import logging
+
 from asgiref.sync import sync_to_async
-from fastapi import APIRouter, Request, Response
+
+from fastapi import APIRouter, Request, Response, status
+
 from ai_mf_backend.core.v1.api import limiter
+
 from ai_mf_backend.models.v1.api.display_all_mf_columns import ResponseModel
 from ai_mf_backend.models.v1.database.mutual_fund import Reference
+
 from ai_mf_backend.config.v1.api_config import api_config
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
-    "/mutual_funds_all_columns/",
+    "/mutual_funds_all_columns",
+    status_code=status.HTTP_200_OK,
     response_model=ResponseModel,
-    responses={200: {"model": ResponseModel}, 404: {"model": ResponseModel}},
 )
 async def mutual_funds_all_columns(request: Request, response: Response):
     try:
@@ -33,6 +41,7 @@ async def mutual_funds_all_columns(request: Request, response: Response):
             return ResponseModel(
                 status=False,
                 message="No mutual funds columns found",
+                columns=list(),
                 status_code=404,
             )
 
@@ -40,6 +49,7 @@ async def mutual_funds_all_columns(request: Request, response: Response):
         response.status_code = 500
         return ResponseModel(
             status=False,
-            message="Failed to retrieve mutual funds columns",
+            message=f"Failed to retrieve mutual funds columns -> {e}",
+            columns=list(),
             status_code=500,
         )
