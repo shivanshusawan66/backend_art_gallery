@@ -36,10 +36,12 @@ async def filter_mutual_funds(
     page_size: int = Query(10, ge=1, le=100),
 ):
     try:
-        # Split selected columns if provided, otherwise set to empty list
-        selected_fields = selected_columns.split(",") if selected_columns else []
+        selected_fields = (
+            [col.strip() for col in selected_columns.split(",")]
+            if selected_columns
+            else []
+        )
 
-        # Validate and map user-requested columns
         invalid_columns = set(selected_fields) - VALID_COLUMNS
         if invalid_columns:
             return MutualFundFilterResponse(
@@ -56,7 +58,6 @@ async def filter_mutual_funds(
 
         select_related_models: List[str] = []
 
-        # Collect related models from selected columns
         for col in selected_fields + FIXED_COLUMNS:
             if col in COLUMN_MAPPING:
                 related_model = COLUMN_MAPPING[col][1]
@@ -66,6 +67,9 @@ async def filter_mutual_funds(
         base_query = MutualFund.objects.select_related(
             *select_related_models
         ).prefetch_related("trailing_returns", "annual_returns", "risk_statistics")
+
+        selected_fields_for_query = FIXED_COLUMNS + selected_fields
+        base_query = base_query.only(*selected_fields_for_query)
 
         base_query = await get_mutual_funds_filters_query(
             fund_family, morningstar_rating, min_investment
