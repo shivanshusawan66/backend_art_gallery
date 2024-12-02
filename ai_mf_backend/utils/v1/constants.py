@@ -1,6 +1,9 @@
 from ai_mf_backend.utils.v1.generic_helper import Singleton
 
 from ai_mf_backend.models.v1.database.mutual_fund import FundOverview, FundData
+from ai_mf_backend.models.v1.database.reference_table import Reference
+
+from ai_mf_backend.utils.v1.enums import ReferenceTableEnums
 
 
 class MFFilterOptions(Singleton):
@@ -43,54 +46,32 @@ class MFFilterOptions(Singleton):
         return self
 
 
+class MFProjectionTableMappings(Singletonu):
+    def __init__(self):
+        self.mapping = None
+        self.valid_projections = None
+
+    def get_mapping(self):
+        reference_documents = Reference.objects.filter(
+            reference_type=ReferenceTableEnums.projection_table_mapping.value
+        ).only("table_name", "column_name", "display_name")
+
+        self.mapping = reference_documents
+
+        self.valid_projections = [i["display_name"] for i in reference_documents]
+
+        return self
+
+
 filter_option_object = MFFilterOptions().compute_filter_options()
+projection_table_object = MFProjectionTableMappings().get_mapping()
 
-# Mapping of API request columns to database fields
-COLUMN_MAPPING = {
-    # Basic Information
-    "scheme_name": ("scheme_name", None),
-    "fund_id": ("id", None),
-    "net_asset_value": ("net_asset_value", None),
-    # Overview Related
-    "ytd_return": ("overview__ytd_return", "overview"),
-    "morningstar_rating": ("overview__morningstar_rating", "overview"),
-    "fund_family": ("overview__fund_family", "overview"),
-    "net_assets": ("overview__net_assets", "overview"),
-    "yield_value": ("overview__yield_value", "overview"),
-    "inception_date": ("overview__inception_date", "overview"),
-    # Fund Data
-    "min_investment": ("fund_data__min_initial_investment", "fund_data"),
-    # Performance Data
-    "performance_ytd_return": ("performance_data__ytd_return", "performance_data"),
-    "performance_average_return_5y": (
-        "performance_data__average_return_5y",
-        "performance_data",
-    ),
-    "number_of_years_up": ("performance_data__number_of_years_up", "performance_data"),
-    "number_of_years_down": (
-        "performance_data__number_of_years_down",
-        "performance_data",
-    ),
-    "best_3y_total_return": (
-        "performance_data__best_3y_total_return",
-        "performance_data",
-    ),
-    "worst_3y_total_return": (
-        "performance_data__worst_3y_total_return",
-        "performance_data",
-    ),
-    # Risk Statistics
-    "alpha": ("risk_statistics__alpha", "risk_statistics"),
-    "beta": ("risk_statistics__beta", "risk_statistics"),
-    "mean_annual_return": ("risk_statistics__mean_annual_return", "risk_statistics"),
-    "r_squared": ("risk_statistics__r_squared", "risk_statistics"),
-    "standard_deviation": ("risk_statistics__standard_deviation", "risk_statistics"),
-    "sharpe_ratio": ("risk_statistics__sharpe_ratio", "risk_statistics"),
-    "treynor_ratio": ("risk_statistics__treynor_ratio", "risk_statistics"),
-}
 
-# Predefined valid columns to check the request against
-VALID_COLUMNS = set(COLUMN_MAPPING.keys())
+def refresh_constants():
+    global filter_option_object, projection_table_object
+    filter_option_object = MFFilterOptions().compute_filter_options()
+    projection_table_object = MFProjectionTableMappings().get_mapping()
+
 
 # Error message constants
 ERROR_MESSAGES = {

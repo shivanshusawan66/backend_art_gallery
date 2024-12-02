@@ -2,6 +2,8 @@ from ai_mf_backend import models
 
 from ai_mf_backend.utils.v1.enums import ReferenceTableEnums
 
+from ai_mf_backend.utils.v1.constants import refresh_constants
+
 
 class Reference(models.Model):
     table_name = models.CharField(max_length=255)
@@ -19,3 +21,7 @@ class Reference(models.Model):
 
     def __str__(self):
         return f"{self.table_name}.{self.column_name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
