@@ -17,3 +17,13 @@ class SubmitQuestionnaireRequest(BaseModel):
 
 class SubmitQuestionnaireResponse(Response):
     pass
+
+
+class UserResponseSchema(BaseModel):
+    section_id: int
+    question_id: int
+    response_id: int
+
+
+class UserQuestionnaireResponse(Response):
+    pass
