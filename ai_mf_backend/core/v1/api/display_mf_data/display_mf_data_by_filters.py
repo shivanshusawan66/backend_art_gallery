@@ -1,12 +1,11 @@
-from decimal import Decimal
-from typing import List, Optional
 from math import ceil
+from typing import List, Optional
+
 from fastapi import APIRouter, Query, Request, Response
 
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.constants import (
     COLUMN_MAPPING,
-    FIXED_COLUMNS,
     VALID_COLUMNS,
     ERROR_MESSAGES,
 )
@@ -30,7 +29,7 @@ async def filter_mutual_funds(
     request: Request,
     fund_family: Optional[str] = Query(None),
     morningstar_rating: Optional[str] = Query(None),
-    min_investment: Optional[Decimal] = Query(None),
+    min_investment: Optional[float] = Query(None),
     selected_columns: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
@@ -58,7 +57,7 @@ async def filter_mutual_funds(
 
         select_related_models: List[str] = []
 
-        for col in selected_fields + FIXED_COLUMNS:
+        for col in selected_fields + api_config.DEFAULT_DISPLAY_COLUMNS:
             if col in COLUMN_MAPPING:
                 related_model = COLUMN_MAPPING[col][1]
                 if related_model and related_model not in select_related_models:
@@ -68,7 +67,7 @@ async def filter_mutual_funds(
             *select_related_models
         ).prefetch_related("trailing_returns", "annual_returns", "risk_statistics")
 
-        selected_fields_for_query = FIXED_COLUMNS + selected_fields
+        selected_fields_for_query = api_config.DEFAULT_DISPLAY_COLUMNS + selected_fields
         base_query = base_query.only(*selected_fields_for_query)
 
         base_query = await get_mutual_funds_filters_query(
@@ -93,7 +92,10 @@ async def filter_mutual_funds(
 
         processed_mutual_funds = [
             {
-                **{field: getattr(fund, field, None) for field in FIXED_COLUMNS},
+                **{
+                    field: getattr(fund, field, None)
+                    for field in api_config.DEFAULT_DISPLAY_COLUMNS
+                },
                 **{field: getattr(fund, field, None) for field in selected_fields},
             }
             for fund in mutual_funds

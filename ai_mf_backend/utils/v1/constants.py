@@ -1,7 +1,9 @@
+from ai_mf_backend.utils.v1.generic_helper import Singleton
+
 from ai_mf_backend.models.v1.database.mutual_fund import FundOverview, FundData
 
 
-class MFFilterOptions:
+class MFFilterOptions(Singleton):
     def __init__(self):
         self.fund_families = None
         self.morningstar_rating = None
@@ -87,23 +89,8 @@ COLUMN_MAPPING = {
     "treynor_ratio": ("risk_statistics__treynor_ratio", "risk_statistics"),
 }
 
-# Fixed columns that are always included in the query
-FIXED_COLUMNS = [
-    "fund_id",
-    "scheme_name",
-    "morningstar_rating",
-    "fund_family",
-    "net_asset_value",
-    "min_investment",
-]
-
 # Predefined valid columns to check the request against
 VALID_COLUMNS = set(COLUMN_MAPPING.keys())
-
-# Default page size and validation constants
-DEFAULT_PAGE = 1
-DEFAULT_PAGE_SIZE = 10
-MAX_PAGE_SIZE = 100
 
 # Error message constants
 ERROR_MESSAGES = {
@@ -111,6 +98,3 @@ ERROR_MESSAGES = {
     "no_mutual_funds_found": "No mutual funds found matching the specified filter.",
     "unexpected_error": "An unexpected error occurred: {error}",
 }
-
-# Validation constants
-VALID_MORNINGSTAR_RATINGS = ["1", "2", "3", "4", "5"]  # Example ratings

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from django.apps import AppConfig
 
@@ -36,6 +36,20 @@ class APIConfig(BaseSettingsWrapper):
 
     OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
     OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
+
+    DEFAULT_DISPLAY_COLUMNS: Optional[List[str]] = [
+        "fund_id",
+        "scheme_name",
+        "morningstar_rating",
+        "fund_family",
+        "net_asset_value",
+        "min_investment",
+    ]
+
+    # Default page size and validation constants
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
 
 
 api_config = APIConfig()
