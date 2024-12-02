@@ -24,24 +24,24 @@ from ai_mf_backend.core.v1.api.questionnaire.questionnaire import (
 from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
 )
-from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data import (
-    router as display_mf_data_router_v1,
-)
-from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
-    router as soft_delete_router,
-)
 
+from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
+    router as soft_delete_router_v1,
+)
 from ai_mf_backend.core.v1.api.questionnaire.saving_responses import (
     router as saving_response_v1,
 )
 from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import (
-    router as mutual_fund_category_router,
+    router as mutual_fund_category_router_v1,
+)
+from ai_mf_backend.core.v1.api.display_mf_data.display_all_mf_columns import (
+    router as display_all_mf_column_router_v1,
 )
 from ai_mf_backend.core.v1.api.user_data_capture.display_user_form_responses import (
     router as display_user_form_responses_router_v1,
 )
 from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
-    router as questionnaire_user_response_display,
+    router as questionnaire_user_response_display_v1,
 )
 
 connect_router.include_router(authentication_router_v1)
@@ -52,9 +52,10 @@ connect_router.include_router(user_personal_financial_detail_router_v1)
 connect_router.include_router(yf_data_pull_router_v1)
 connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(amfi_parser_router_v1)
-connect_router.include_router(display_mf_data_router_v1)
-connect_router.include_router(soft_delete_router)
+connect_router.include_router(soft_delete_router_v1)
 connect_router.include_router(saving_response_v1)
-connect_router.include_router(mutual_fund_category_router)
-connect_router.include_router(questionnaire_user_response_display)
+
+connect_router.include_router(questionnaire_user_response_display_v1)
 connect_router.include_router(display_user_form_responses_router_v1)
+connect_router.include_router(mutual_fund_category_router_v1)
+connect_router.include_router(display_all_mf_column_router_v1)
