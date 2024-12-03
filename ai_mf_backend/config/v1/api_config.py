@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, List
 
 from pydantic import field_validator
@@ -69,3 +70,9 @@ api_config = APIConfig()
 
 class DjangoAppConfig(AppConfig):
     name = api_config.PROJECT_NAME
+
+    def ready(self):
+        from ai_mf_backend.utils.v1.constants import refresh_constants
+
+        # Run the asynchronous refresh_constants during startup
+        asyncio.run(refresh_constants())
