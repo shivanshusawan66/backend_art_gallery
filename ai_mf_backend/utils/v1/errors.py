@@ -40,3 +40,10 @@ class MalformedJWTRequestException(Exception):
     def __init__(self, message: str = "The JWT request is malformed."):
         self.message = message
         super().__init__(self.message)
+
+class AssignWeightException(Exception):
+    """Raise if some error occured while assigning weights """
+
+    def __init__(self, message: str = "An error occurred while assigning weights."):
+        self.message = message
+        super().__init__(self.message)
