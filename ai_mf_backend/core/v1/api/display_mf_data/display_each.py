@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request , Query 
+from fastapi import APIRouter, Depends, Request, Query
 from asgiref.sync import sync_to_async
 from typing import Optional
 
@@ -29,26 +29,28 @@ from ai_mf_backend.models.v1.api.display_each_mf import (
     AnnualReturnResponseData,
     AnnualReturnObject,
     AnnualReturnCustomResponse,
-    
 )
 from ai_mf_backend.utils.v1.display_fund_data.display_each import process_fields
 from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 
 router = APIRouter()
+
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_overview/{fund_id}")
 async def get_overview(
     request: Request,
     fund_id: int = Depends(validate_fund_id),
-    fields: Optional[str] = Query(default=None, description="Comma-separated list of fields to include")
+    fields: Optional[str] = Query(
+        default=None, description="Comma-separated list of fields to include"
+    ),
 ):
-    
+
     all_fields = mutual_funds_table_config.MUTUAL_FUND_OVERVIEW_COLOUMNS
 
-    
     try:
-        
+
         fields_to_project = process_fields(fields, all_fields)
     except ValueError as e:
         return CustomMutualFundOverviewCustomResponse(
@@ -58,12 +60,11 @@ async def get_overview(
             status_code=400,
         )
     try:
-        
+
         fund_overview = await sync_to_async(
             MutualFund.objects.only(*fields_to_project).get
         )(id=fund_id)
 
-        
         response_data = {
             field: getattr(fund_overview, field, None) for field in fields_to_project
         }
@@ -89,17 +90,21 @@ async def get_overview(
             status_code=400,
         )
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_performance/{fund_id}")
 async def get_performance(
-    request:Request,
+    request: Request,
     fund_id: int = Depends(validate_fund_id),
-    fields: Optional[str] = Query(default=None, description="Comma-separated list of fields to include")):
+    fields: Optional[str] = Query(
+        default=None, description="Comma-separated list of fields to include"
+    ),
+):
 
     all_fields = mutual_funds_table_config.MUTUAL_FUND_PERFORMANCE_COLOUMNS
 
     try:
-        
+
         fields_to_project = process_fields(fields, all_fields)
     except ValueError as e:
         return PerformanceDataCustomResponse(
@@ -110,7 +115,7 @@ async def get_performance(
         )
     try:
         performance = await sync_to_async(
-            PerformanceData.objects.only( fields_to_project).get
+            PerformanceData.objects.only(fields_to_project).get
         )(fund_id=fund_id)
 
         response_data = {
@@ -138,9 +143,12 @@ async def get_performance(
             status_code=400,
         )
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_annual_return/{fund_id}")
-async def get_annual_returns(request:Request,fund_id: int = Depends(validate_fund_id)):
+async def get_annual_returns(
+    request: Request, fund_id: int = Depends(validate_fund_id)
+):
     try:
         annual_returns = await sync_to_async(list)(
             AnnualReturn.objects.filter(fund_id=fund_id)
@@ -174,9 +182,12 @@ async def get_annual_returns(request:Request,fund_id: int = Depends(validate_fun
             status_code=400,
         )
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_risk_statistics/{fund_id}")
-async def get_risk_statistics(request:Request,fund_id: int = Depends(validate_fund_id)):
+async def get_risk_statistics(
+    request: Request, fund_id: int = Depends(validate_fund_id)
+):
     try:
         risk_statistics = await sync_to_async(list)(
             RiskStatistics.objects.filter(fund_id=fund_id)
@@ -219,9 +230,12 @@ async def get_risk_statistics(request:Request,fund_id: int = Depends(validate_fu
             status_code=400,
         )
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_trailing_return/{fund_id}")
-async def get_trailing_return(request:Request,fund_id: int = Depends(validate_fund_id)):
+async def get_trailing_return(
+    request: Request, fund_id: int = Depends(validate_fund_id)
+):
     try:
         trailing_return = await sync_to_async(list)(
             TrailingReturn.objects.filter(fund_id=fund_id)
@@ -258,9 +272,12 @@ async def get_trailing_return(request:Request,fund_id: int = Depends(validate_fu
             status_code=400,
         )
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_historical_data/{fund_id}")
-async def get_historical_data(request:Request,fund_id: int = Depends(validate_fund_id)):
+async def get_historical_data(
+    request: Request, fund_id: int = Depends(validate_fund_id)
+):
     try:
         historical_datas = await sync_to_async(list)(
             HistoricalData.objects.filter(fund_id=fund_id)

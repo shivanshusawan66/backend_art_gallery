@@ -29,7 +29,7 @@ router = APIRouter()
     dependencies=[Depends(login_checker)],
 )
 async def get_user_personal_financial_details(
-    request:Request,
+    request: Request,
     response: Response,
     user_id: Optional[int] = Query(None, description="User ID"),
 ):

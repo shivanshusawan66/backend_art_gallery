@@ -30,9 +30,6 @@ class HistoricalDataCustomResponse(Response):
     pass
 
 
-
-
-
 class AnnualReturnObject(BaseModel):
     year: int
     fund_return: float = None
