@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-from fastapi import APIRouter, Response, Header, Depends, Query
+from fastapi import APIRouter, Request, Response, Header, Depends, Query
 from asgiref.sync import sync_to_async
 from django.forms.models import model_to_dict
 
@@ -29,6 +29,7 @@ router = APIRouter()
     dependencies=[Depends(login_checker)],
 )
 async def get_user_personal_financial_details(
+    request:Request,
     response: Response,
     user_id: Optional[int] = Query(None, description="User ID"),
 ):

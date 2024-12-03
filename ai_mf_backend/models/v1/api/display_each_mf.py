@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import datetime
+from fastapi import Query
 
 from ai_mf_backend.models.v1.api import Response
 
@@ -29,29 +30,12 @@ class HistoricalDataCustomResponse(Response):
     pass
 
 
-class CustomMutualFundOverviewResponseData(BaseModel):
-    fund_id: int
-    name: str
-    q_param: str
-    nav: float
-    symbol: str
 
-
-class PerformanceDataResponseData(BaseModel):
-    fund_id: int
-    ytd_return: float
-    average_return_5y: float
-    number_of_years_up: int
-    number_of_years_down: int
-    best_1y_total_return: float
-    worst_1y_total_return: float
-    best_3y_total_return: float
-    worst_3y_total_return: float
 
 
 class AnnualReturnObject(BaseModel):
     year: int
-    fund_return: float
+    fund_return: float = None
 
 
 class AnnualReturnResponseData(BaseModel):
@@ -61,14 +45,14 @@ class AnnualReturnResponseData(BaseModel):
 
 class RiskStatisticsObject(BaseModel):
 
-    period: str
-    alpha: float
-    beta: float
-    mean_annual_return: float
-    r_squared: float
-    standard_deviation: float
-    sharpe_ratio: float
-    treynor_ratio: float
+    period: str = None
+    alpha: float = None
+    beta: float = None
+    mean_annual_return: float = None
+    r_squared: float = None
+    standard_deviation: float = None
+    sharpe_ratio: float = None
+    treynor_ratio: float = None
 
 
 class RiskStatisticsResponseData(BaseModel):
@@ -77,9 +61,9 @@ class RiskStatisticsResponseData(BaseModel):
 
 
 class TrailingReturnObject(BaseModel):
-    metric: str
-    fund_return: float
-    benchmark_return: float
+    metric: str = None
+    fund_return: float = None
+    benchmark_return: float = None
 
 
 class TrailingReturnResponseData(BaseModel):
@@ -88,13 +72,13 @@ class TrailingReturnResponseData(BaseModel):
 
 
 class HistoricalDataObject(BaseModel):
-    date: datetime
-    open: float
-    high: float
-    low: float
-    close: float
-    adj_close: float
-    volume: int
+    date: datetime = None
+    open: float = None
+    high: float = None
+    low: float = None
+    close: float = None
+    adj_close: float = None
+    volume: int = None
 
 
 class HistoricalDataResponseData(BaseModel):
