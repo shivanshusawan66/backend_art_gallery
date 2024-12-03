@@ -2,8 +2,6 @@ from django.db import models
 
 from ai_mf_backend.utils.v1.enums import ReferenceTableEnums
 
-from ai_mf_backend.utils.v1.constants import refresh_constants
-
 
 class Reference(models.Model):
     table_name = models.CharField(max_length=255)
@@ -13,7 +11,7 @@ class Reference(models.Model):
     display_name = models.CharField(max_length=255)
 
     reference_type = models.CharField(
-        max_length=255, choices=[i.value for i in ReferenceTableEnums]
+        max_length=255, choices=[(i.value, i.value) for i in ReferenceTableEnums]
     )
 
     add_date = models.DateTimeField(auto_now_add=True)
@@ -24,4 +22,3 @@ class Reference(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        refresh_constants()

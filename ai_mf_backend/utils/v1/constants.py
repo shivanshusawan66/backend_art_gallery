@@ -56,7 +56,7 @@ class MFProjectionTableMappings(Singleton):
             reference_type=ReferenceTableEnums.projection_table_mapping.value
         ).only("table_name", "column_name", "display_name")
 
-        self.mapping = reference_documents
+        self.mapping = {i["display_name"]: i for i in reference_documents}
 
         self.valid_projections = [i["display_name"] for i in reference_documents]
 
@@ -71,11 +71,3 @@ def refresh_constants():
     global filter_option_object, projection_table_object
     filter_option_object = MFFilterOptions().compute_filter_options()
     projection_table_object = MFProjectionTableMappings().get_mapping()
-
-
-# Error message constants
-ERROR_MESSAGES = {
-    "invalid_columns": "Invalid columns: {columns}",
-    "no_mutual_funds_found": "No mutual funds found matching the specified filter.",
-    "unexpected_error": "An unexpected error occurred: {error}",
-}
