@@ -30,7 +30,7 @@ from ai_mf_backend.models.v1.api.display_each_mf import (
     AnnualReturnObject,
     AnnualReturnCustomResponse,
 )
-from ai_mf_backend.utils.v1.display_fund_data.display_each import process_fields
+from ai_mf_backend.utils.v1.display_fund_data.display_each import process_fields, process_years
 from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 
@@ -107,7 +107,9 @@ async def get_performance(
 
         fields_to_project = process_fields(fields, all_fields)
     except ValueError as e:
+        
         return PerformanceDataCustomResponse(
+            
             status=False,
             message=str(e),
             data={},
@@ -115,7 +117,7 @@ async def get_performance(
         )
     try:
         performance = await sync_to_async(
-            PerformanceData.objects.only(fields_to_project).get
+            PerformanceData.objects.only(*fields_to_project).get
         )(fund_id=fund_id)
 
         response_data = {
@@ -147,11 +149,26 @@ async def get_performance(
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_annual_return/{fund_id}")
 async def get_annual_returns(
-    request: Request, fund_id: int = Depends(validate_fund_id)
+    request: Request, 
+    fund_id: int = Depends(validate_fund_id),
+    years: Optional[str] =  Query(default=None, description="Comma-seperated list of years")
 ):
+    all_years = mutual_funds_table_config.MUTUAL_FUND_ANNUAL_RETURNS_YEARS
+    try:
+
+        years_to_project = process_years(years, all_years)
+    except ValueError as e:
+        
+        return AnnualReturnCustomResponse(
+            
+            status=False,
+            message=str(e),
+            data={},
+            status_code=400,
+        )
     try:
         annual_returns = await sync_to_async(list)(
-            AnnualReturn.objects.filter(fund_id=fund_id)
+            AnnualReturn.objects.filter(fund_id=fund_id, year__in = years_to_project)
         )
         if not annual_returns:
             return AnnualReturnCustomResponse(
