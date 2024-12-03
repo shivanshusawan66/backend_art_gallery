@@ -1,4 +1,4 @@
-from ai_mf_backend import models
+from django.db import models
 
 from ai_mf_backend.utils.v1.enums import ReferenceTableEnums
 

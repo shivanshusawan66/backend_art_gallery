@@ -6,8 +6,6 @@ from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
-from ai_mf_backend.utils.v1.constants import COLUMN_MAPPING
-
 
 class APIConfig(BaseSettingsWrapper):
     """
@@ -55,15 +53,15 @@ class APIConfig(BaseSettingsWrapper):
     DEFAULT_PAGE_SIZE: Optional[int] = 10
     MAX_PAGE_SIZE: Optional[int] = 100
 
-    @field_validator("DEFAULT_DISPLAY_COLUMNS")
-    def validate_default_display_columns(cls, value, **kwargs):
-        if not isinstance(value, list):
-            value = [i.strip() for i in value.split(",")]
+    # @field_validator("DEFAULT_DISPLAY_COLUMNS")
+    # def validate_default_display_columns(cls, value, **kwargs):
+    #     if not isinstance(value, list):
+    #         value = [i.strip() for i in value.split(",")]
 
-        for i in value:
-            if i not in COLUMN_MAPPING.keys():
-                raise Exception(f"Column: {i} is not a valid display column.")
-        return value
+    #     for i in value:
+    #         if i not in COLUMN_MAPPING.keys():
+    #             raise Exception(f"Column: {i} is not a valid display column.")
+    #     return value
 
 
 api_config = APIConfig()
