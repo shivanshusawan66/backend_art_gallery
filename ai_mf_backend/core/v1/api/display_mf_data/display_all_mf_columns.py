@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request, Response, status
 from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.models.v1.api.display_all_mf_columns import ResponseModel
-from ai_mf_backend.models.v1.database.mutual_fund import Reference
+from ai_mf_backend.models.v1.database.reference_table import Reference
 
 from ai_mf_backend.config.v1.api_config import api_config
 
