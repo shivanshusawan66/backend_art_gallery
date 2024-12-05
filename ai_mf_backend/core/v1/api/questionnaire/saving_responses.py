@@ -28,7 +28,7 @@ router = APIRouter()
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
-    "/submit-questionnaire-response",
+    "/submit_questionnaire_response",
     dependencies=[Depends(login_checker)],
     response_model=SubmitQuestionnaireResponse,
 )
@@ -62,7 +62,6 @@ async def submit_questionnaire_response(
                 status_code=response_status_code,
             )
 
-        
         try:
             section_instance = await Section.objects.aget(pk=section_id)
         except Section.DoesNotExist:
