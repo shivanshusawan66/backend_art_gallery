@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Request, Query
+import logging
+from fastapi import APIRouter, Depends, Request, Query, Response
 from asgiref.sync import sync_to_async
 from typing import Optional
 
@@ -30,10 +31,14 @@ from ai_mf_backend.models.v1.api.display_each_mf import (
     AnnualReturnObject,
     AnnualReturnCustomResponse,
 )
-from ai_mf_backend.utils.v1.display_fund_data.display_each import process_fields, process_years
+from ai_mf_backend.utils.v1.display_fund_data.display_each import (
+    process_fields,
+    process_years,
+)
 from ai_mf_backend.utils.v1.validators.input import validate_fund_id
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -41,6 +46,7 @@ router = APIRouter()
 @router.get("/fund_overview/{fund_id}")
 async def get_overview(
     request: Request,
+    response: Response,
     fund_id: int = Depends(validate_fund_id),
     fields: Optional[str] = Query(
         default=None, description="Comma-separated list of fields to include"
@@ -53,11 +59,12 @@ async def get_overview(
 
         fields_to_project = process_fields(fields, all_fields)
     except ValueError as e:
+        response.status_code = 400
         return CustomMutualFundOverviewCustomResponse(
             status=False,
             message=str(e),
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
     try:
 
@@ -76,18 +83,20 @@ async def get_overview(
             status_code=200,
         )
     except MutualFund.DoesNotExist:
+        response.status_code = 404
         return CustomMutualFundOverviewCustomResponse(
             status=False,
             message=f"No fund found for fund ID {fund_id}",
             data={},
-            status_code=404,
+            status_code=response.status_code,
         )
     except Exception as e:
+        response.status_code = 400
         return CustomMutualFundOverviewCustomResponse(
             status=False,
             message=f"Error occured while retriving fund overview data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
 
 
@@ -95,6 +104,7 @@ async def get_overview(
 @router.get("/fund_performance/{fund_id}")
 async def get_performance(
     request: Request,
+    response: Response,
     fund_id: int = Depends(validate_fund_id),
     fields: Optional[str] = Query(
         default=None, description="Comma-separated list of fields to include"
@@ -107,13 +117,12 @@ async def get_performance(
 
         fields_to_project = process_fields(fields, all_fields)
     except ValueError as e:
-        
+        response.status_code = 400
         return PerformanceDataCustomResponse(
-            
             status=False,
             message=str(e),
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
     try:
         performance = await sync_to_async(
@@ -131,51 +140,56 @@ async def get_performance(
             status_code=200,
         )
     except PerformanceData.DoesNotExist:
+        response.status_code = 404
         return PerformanceDataCustomResponse(
             status=False,
             message=f"No fund found for fund ID {fund_id}",
             data={},
-            status_code=404,
+            status_code=response.status_code,
         )
     except Exception as e:
+        response.status_code = 400
         return PerformanceDataCustomResponse(
             status=False,
             message=f"Error occured while retriving performance data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_annual_return/{fund_id}")
 async def get_annual_returns(
-    request: Request, 
+    request: Request,
+    response: Response,
     fund_id: int = Depends(validate_fund_id),
-    years: Optional[str] =  Query(default=None, description="Comma-seperated list of years")
+    years: Optional[str] = Query(
+        default=None, description="Comma-seperated list of years"
+    ),
 ):
     all_years = mutual_funds_table_config.MUTUAL_FUND_ANNUAL_RETURNS_YEARS
     try:
 
         years_to_project = process_years(years, all_years)
     except ValueError as e:
-        
+        response.status_code = 400
         return AnnualReturnCustomResponse(
-            
             status=False,
             message=str(e),
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
     try:
         annual_returns = await sync_to_async(list)(
-            AnnualReturn.objects.filter(fund_id=fund_id, year__in = years_to_project)
+            AnnualReturn.objects.filter(fund_id=fund_id, year__in=years_to_project)
         )
         if not annual_returns:
+            response.status_code = 404
             return AnnualReturnCustomResponse(
                 status=False,
                 message=f"No fund found for fund ID {fund_id}",
                 data={},
-                status_code=404,
+                status_code=response.status_code,
             )
         response_data = AnnualReturnResponseData(
             fund_id=fund_id,
@@ -192,29 +206,31 @@ async def get_annual_returns(
             status_code=200,
         )
     except Exception as e:
+        response.status_code = 400
         return AnnualReturnCustomResponse(
             status=False,
             message=f"Error occured while retriving annual return data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_risk_statistics/{fund_id}")
 async def get_risk_statistics(
-    request: Request, fund_id: int = Depends(validate_fund_id)
+    request: Request, response: Response, fund_id: int = Depends(validate_fund_id)
 ):
     try:
         risk_statistics = await sync_to_async(list)(
             RiskStatistics.objects.filter(fund_id=fund_id)
         )
         if not risk_statistics:
+            response.status_code = 404
             return RiskStatisticsCustomResponse(
                 status=False,
                 message=f"No fund found for fund ID {fund_id}",
                 data={},
-                status_code=404,
+                status_code=response.status_code,
             )
         response_data = RiskStatisticsResponseData(
             fund_id=fund_id,
@@ -240,29 +256,31 @@ async def get_risk_statistics(
             status_code=200,
         )
     except Exception as e:
+        response.status_code = 400
         return RiskStatisticsCustomResponse(
             status=False,
             message=f"Error occured while retriving risk statistics data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_trailing_return/{fund_id}")
 async def get_trailing_return(
-    request: Request, fund_id: int = Depends(validate_fund_id)
+    request: Request, response: Response, fund_id: int = Depends(validate_fund_id)
 ):
     try:
         trailing_return = await sync_to_async(list)(
             TrailingReturn.objects.filter(fund_id=fund_id)
         )
         if not trailing_return:
+            response.status_code = 404
             return TrailingReturnCustomResponse(
                 status=False,
                 message=f"No fund found for fund ID {fund_id}",
                 data={},
-                status_code=404,
+                status_code=response.status_code,
             )
         response_data = TrailingReturnResponseData(
             fund_id=fund_id,
@@ -282,24 +300,26 @@ async def get_trailing_return(
             status_code=200,
         )
     except Exception as e:
+        response.status_code = 400
         return TrailingReturnCustomResponse(
             status=False,
             message=f"Error occured while retriving trailing return data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/fund_historical_data/{fund_id}")
 async def get_historical_data(
-    request: Request, fund_id: int = Depends(validate_fund_id)
+    request: Request, response: Response, fund_id: int = Depends(validate_fund_id)
 ):
     try:
         historical_datas = await sync_to_async(list)(
             HistoricalData.objects.filter(fund_id=fund_id)
         )
         if not historical_datas:
+            response.status_code = (404,)
             return HistoricalDataCustomResponse(
                 status=False,
                 message=f"No fund found for fund ID {fund_id}",
@@ -329,9 +349,10 @@ async def get_historical_data(
             status_code=200,
         )
     except Exception as e:
+        response.status_code = 400
         return HistoricalDataCustomResponse(
             status=False,
             message=f"Error occured while retriving historical data for mutual fund with id {fund_id}, {str(e)}",
             data={},
-            status_code=400,
+            status_code=response.status_code,
         )

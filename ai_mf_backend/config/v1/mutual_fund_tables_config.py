@@ -29,6 +29,7 @@ class ColumnNames(BaseSettingsWrapper):
         "best_3y_total_return",
         "worst_3y_total_return",
     ]
-    MUTUAL_FUND_ANNUAL_RETURNS_YEARS :list[int] = [i for i in range (2013, 2025)]
+    MUTUAL_FUND_ANNUAL_RETURNS_YEARS: list[int] = [i for i in range(2013, 2025)]
+
 
 mutual_funds_table_config = ColumnNames()

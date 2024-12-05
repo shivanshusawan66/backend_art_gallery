@@ -16,7 +16,6 @@ def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
     if fields:
         requested_fields = [field.strip() for field in fields.split(",")]
 
-
         invalid_fields = [
             field for field in requested_fields if field not in all_fields
         ]
@@ -51,10 +50,11 @@ def process_years(years: Optional[str], all_years: List[int]) -> List[int]:
 
         requested_years = [int(year.strip()) for year in years.split(",")]
 
-
         invalid_years = [year for year in requested_years if year not in all_years]
         if invalid_years:
-            raise ValueError(f"Invalid year(s) requested: {', '.join(map(str, invalid_years))}")
+            raise ValueError(
+                f"Invalid year(s) requested: {', '.join(map(str, invalid_years))}"
+            )
 
         years_to_project = requested_years
     else:
