@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
-@router.get("/mutual-funds/filter", response_model=MutualFundFilterResponse)
+@router.get("/mutual_funds/filter", response_model=MutualFundFilterResponse)
 async def filter_mutual_funds(
     response: Response,
     request: Request,
