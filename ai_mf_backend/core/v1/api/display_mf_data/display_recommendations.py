@@ -22,9 +22,6 @@ router = APIRouter()
 async def filter_mutual_funds(
     response: Response,
     request: Request,
-    fund_family: Optional[str] = Query(None),
-    morningstar_rating: Optional[str] = Query(None),
-    min_investment: Optional[float] = Query(None),
     selected_columns: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(
@@ -72,9 +69,10 @@ async def filter_mutual_funds(
         selected_fields_for_query = api_config.DEFAULT_DISPLAY_COLUMNS + selected_fields
         base_query = base_query.only(*selected_fields_for_query)
 
-        base_query = await get_mutual_funds_filters_query(
-            fund_family, morningstar_rating, min_investment
-        )
+        base_query = await get_mutual_funds_filters_query()
+
+        if k is not None and k > 0:
+            base_query = base_query[:k]
 
         mutual_funds, total_count = await process_mutual_funds(
             base_query, page, page_size
