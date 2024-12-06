@@ -48,6 +48,9 @@ from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data_filter_option imp
 from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
     router as questionnaire_user_response_display_v1,
 )
+from ai_mf_backend.core.v1.api.display_mf_data.display_recommendations import (
+    router as mutual_fund_recommendations_router_v1,
+)
 
 connect_router.include_router(authentication_router_v1)
 connect_router.include_router(forget_password_router_v1)
@@ -65,3 +68,4 @@ connect_router.include_router(display_user_form_responses_router_v1)
 connect_router.include_router(mutual_fund_category_router_v1)
 connect_router.include_router(display_all_mf_column_router_v1)
 connect_router.include_router(display_mf_data_filter_option_router_v1)
+connect_router.include_router(mutual_fund_recommendations_router_v1)
