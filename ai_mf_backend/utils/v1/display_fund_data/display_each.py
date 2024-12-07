@@ -1,4 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Union
+
+from datetime import datetime
 
 
 def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
@@ -32,33 +34,34 @@ def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
     return fields_to_project
 
 
-def process_years(years: Optional[str], all_years: List[int]) -> List[int]:
+def process_years(years: Optional[str] = None) -> Union[List[int], None]:
     """
     Process the 'years' argument to return a list of valid years.
 
     Args:
     - years (Optional[str]): Comma-separated list of years to include.
-    - all_years (List[int]): List of valid years.
 
     Returns:
     - List[int]: List of valid years to project.
+    - None: In case no dates were provided, we will return all data
 
     Raises:
     - ValueError: If any requested year is invalid.
     """
-    if years:
+    if not years:
+        return None
 
+    try:
         requested_years = [int(year.strip()) for year in years.split(",")]
+    except Exception as e:
+        raise ValueError(f"Invalid year range provided {e}")
+    
+    current_year = datetime.utcnow().year
+    for year in requested_years:
+        if year <= current_year:
+            continue
+        raise ValueError(
+            f"Invalid year(s) requested: year should always be smaller than the current year."
+        )
 
-        invalid_years = [year for year in requested_years if year not in all_years]
-        if invalid_years:
-            raise ValueError(
-                f"Invalid year(s) requested: {', '.join(map(str, invalid_years))}"
-            )
-
-        years_to_project = requested_years
-    else:
-
-        years_to_project = all_years
-
-    return years_to_project
+    return requested_years

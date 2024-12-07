@@ -37,7 +37,7 @@ async def filter_mutual_funds(
         )
 
         if not len(selected_fields):
-            selected_fields = api_config.DEFAULT_DISPLAY_COLUMNS
+            selected_fields = api_config.DEFAULT_ALL_MF_DISPLAY_COLUMNS
 
         projections_diff = set(selected_fields) - set(
             projection_table_object.valid_projections
@@ -66,7 +66,7 @@ async def filter_mutual_funds(
             *select_related_models
         ).prefetch_related("trailing_returns", "annual_returns", "risk_statistics")
 
-        selected_fields_for_query = api_config.DEFAULT_DISPLAY_COLUMNS + selected_fields
+        selected_fields_for_query = selected_fields
         base_query = base_query.only(*selected_fields_for_query)
 
         base_query = await get_mutual_funds_filters_query()
@@ -94,7 +94,7 @@ async def filter_mutual_funds(
             {
                 **{
                     field: getattr(fund, field, None)
-                    for field in api_config.DEFAULT_DISPLAY_COLUMNS
+                    for field in api_config.DEFAULT_ALL_MF_DISPLAY_COLUMNS
                 },
                 **{field: getattr(fund, field, None) for field in selected_fields},
             }

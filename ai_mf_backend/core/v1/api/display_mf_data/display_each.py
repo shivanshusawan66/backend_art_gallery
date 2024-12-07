@@ -5,7 +5,6 @@ from typing import Optional
 
 
 from ai_mf_backend.config.v1.api_config import api_config
-from ai_mf_backend.config.v1.mutual_fund_tables_config import mutual_funds_table_config
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.models.v1.database.mutual_fund import (
     MutualFund,
@@ -53,7 +52,7 @@ async def get_overview(
     ),
 ):
 
-    all_fields = mutual_funds_table_config.MUTUAL_FUND_OVERVIEW_COLOUMNS
+    all_fields = api_config.MUTUAL_FUND_OVERVIEW_COLOUMNS
 
     try:
 
@@ -111,7 +110,7 @@ async def get_performance(
     ),
 ):
 
-    all_fields = mutual_funds_table_config.MUTUAL_FUND_PERFORMANCE_COLOUMNS
+    all_fields = api_config.MUTUAL_FUND_PERFORMANCE_COLOUMNS
 
     try:
 
@@ -167,10 +166,8 @@ async def get_annual_returns(
         default=None, description="Comma-seperated list of years"
     ),
 ):
-    all_years = mutual_funds_table_config.MUTUAL_FUND_ANNUAL_RETURNS_YEARS
     try:
-
-        years_to_project = process_years(years, all_years)
+        years_to_project = process_years(years)
     except ValueError as e:
         response.status_code = 400
         return AnnualReturnCustomResponse(
@@ -180,9 +177,14 @@ async def get_annual_returns(
             status_code=response.status_code,
         )
     try:
-        annual_returns = await sync_to_async(list)(
-            AnnualReturn.objects.filter(fund_id=fund_id, year__in=years_to_project)
-        )
+        if years_to_project:
+            annual_returns = await sync_to_async(list)(
+                AnnualReturn.objects.filter(fund_id=fund_id, year__in=years_to_project)
+            )
+        else:
+            annual_returns = await sync_to_async(list)(
+                AnnualReturn.objects.filter(fund_id=fund_id)
+            )
         if not annual_returns:
             response.status_code = 404
             return AnnualReturnCustomResponse(
