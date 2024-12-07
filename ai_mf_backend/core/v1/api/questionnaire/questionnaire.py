@@ -74,7 +74,7 @@ async def get_all_sections(request: Request, response: Response):
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
-    "/section-wise-questions/",
+    "/section_wise_questions/",
     response_model=SectionQuestionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
