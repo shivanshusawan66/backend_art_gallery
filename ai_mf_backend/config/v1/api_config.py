@@ -1,4 +1,7 @@
-from typing import Optional
+import asyncio
+from typing import Optional, List
+
+from pydantic import field_validator
 
 from django.apps import AppConfig
 
@@ -37,9 +40,39 @@ class APIConfig(BaseSettingsWrapper):
     OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
     OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
 
+    DEFAULT_DISPLAY_COLUMNS: Optional[List[str]] = [
+        "fund_id",
+        "scheme_name",
+        "morningstar_rating",
+        "fund_family",
+        "net_asset_value",
+        "min_investment",
+    ]
+
+    # Default page size and validation constants
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
+
+    # @field_validator("DEFAULT_DISPLAY_COLUMNS")
+    # def validate_default_display_columns(cls, value, **kwargs):
+    #     if not isinstance(value, list):
+    #         value = [i.strip() for i in value.split(",")]
+
+    #     for i in value:
+    #         if i not in COLUMN_MAPPING.keys():
+    #             raise Exception(f"Column: {i} is not a valid display column.")
+    #     return value
+
 
 api_config = APIConfig()
 
 
 class DjangoAppConfig(AppConfig):
     name = api_config.PROJECT_NAME
+
+    def ready(self):
+        from ai_mf_backend.utils.v1.constants import refresh_constants
+
+        # Run the asynchronous refresh_constants during startup
+        asyncio.run(refresh_constants())
