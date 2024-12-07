@@ -89,6 +89,10 @@ class UserContactInfo(SoftDeleteModel):
 
     is_verified = models.BooleanField(default=False)
 
+    questionnaire_filled = models.BooleanField(default=False)
+
+    user_details_filled = models.BooleanField(default=False)
+
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
