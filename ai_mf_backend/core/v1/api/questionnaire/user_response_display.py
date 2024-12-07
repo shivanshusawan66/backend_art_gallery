@@ -28,17 +28,27 @@ router = APIRouter()
     response_model=UserQuestionnaireResponse,
     dependencies=[Depends(login_checker)],
 )
-async def get_user_personal_financial_details(
+async def get_user_questionnaire_responses(
     request: Request,
     response: Response,
     user_id: Optional[int] = Query(None, description="User ID"),
+    section_id: Optional[int] = Query(None, description="Section ID"),
 ):
     try:
         if not user_id:
             response.status_code = 404
             return UserQuestionnaireResponse(
                 status=False,
-                message="User_id is not provided,please provide it",
+                message="User_id is not provided, please provide it",
+                data={},
+                status_code=404,
+            )
+
+        if not section_id:
+            response.status_code = 404
+            return UserQuestionnaireResponse(
+                status=False,
+                message="Section ID is not provided, please provide it",
                 data={},
                 status_code=404,
             )
@@ -55,7 +65,7 @@ async def get_user_personal_financial_details(
             )
 
         user_responses = await sync_to_async(list)(
-            UserResponse.objects.filter(user_id=user_id)
+            UserResponse.objects.filter(user_id=user_id, section_id=section_id)
         )
         if not user_responses:
             response.status_code = 404
