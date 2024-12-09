@@ -17,8 +17,11 @@ from ai_mf_backend.config.v1.api_config import api_config
 
 router = APIRouter()
 
+
 @limiter.limit(api_config.REQUEST_PER_MIN)
-@router.get("/mutual_funds_recommendations/filter", response_model=MutualFundFilterResponse)
+@router.get(
+    "/mutual_funds_recommendations/filter", response_model=MutualFundFilterResponse
+)
 async def filter_mutual_funds(
     response: Response,
     request: Request,
@@ -27,7 +30,7 @@ async def filter_mutual_funds(
     page_size: int = Query(
         api_config.DEFAULT_PAGE_SIZE, ge=1, le=api_config.MAX_PAGE_SIZE
     ),
-    k: Optional[int] = Query(None, ge=1),  
+    k: Optional[int] = Query(None, ge=1),
 ):
     try:
         selected_fields = (
@@ -101,7 +104,6 @@ async def filter_mutual_funds(
             for fund in mutual_funds
         ]
 
-        
         if k is not None:
             processed_mutual_funds = processed_mutual_funds[:k]
 
@@ -112,7 +114,11 @@ async def filter_mutual_funds(
             data=processed_mutual_funds,
             total_count=min(total_count, k) if k else total_count,
             current_page=page,
-            total_pages=ceil(min(total_count, k) / page_size) if k else ceil(total_count / page_size),
+            total_pages=(
+                ceil(min(total_count, k) / page_size)
+                if k
+                else ceil(total_count / page_size)
+            ),
             status_code=200,
         )
 

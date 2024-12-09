@@ -1,8 +1,11 @@
 import os
+import sys
 import django
 import logging
 from datetime import datetime
 from django.db import transaction
+
+sys.path.append(rf"{os.getcwd()}")
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
