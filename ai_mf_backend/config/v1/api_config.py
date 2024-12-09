@@ -53,7 +53,7 @@ class APIConfig(BaseSettingsWrapper):
     DEFAULT_PAGE: Optional[int] = 1
     DEFAULT_PAGE_SIZE: Optional[int] = 10
     MAX_PAGE_SIZE: Optional[int] = 100
-    
+
     MUTUAL_FUND_OVERVIEW_COLOUMNS: list[str] = [
         "id",
         "scheme_name",
