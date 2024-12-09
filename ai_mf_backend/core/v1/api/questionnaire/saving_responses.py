@@ -134,7 +134,6 @@ async def submit_questionnaire_response(
                 UserResponse.objects.filter(
                     user_id=user_id,
                     question_id=question_id,
-                    response_id=response_id,
                     section_id=section_id,
                 ).first
             )()

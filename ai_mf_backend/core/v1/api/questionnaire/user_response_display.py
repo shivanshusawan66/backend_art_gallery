@@ -65,7 +65,9 @@ async def get_user_questionnaire_responses(
             )
 
         user_responses = await sync_to_async(list)(
-            UserResponse.objects.filter(user_id=user_id, section_id=section_id)
+            UserResponse.objects.filter(
+                user_id=user_id, section_id=section_id, is_deleted=True
+            )
         )
         if not user_responses:
             response.status_code = 404

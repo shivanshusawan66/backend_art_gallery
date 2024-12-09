@@ -55,7 +55,7 @@ def process_years(years: Optional[str] = None) -> Union[List[int], None]:
         requested_years = [int(year.strip()) for year in years.split(",")]
     except Exception as e:
         raise ValueError(f"Invalid year range provided {e}")
-    
+
     current_year = datetime.utcnow().year
     for year in requested_years:
         if year <= current_year:

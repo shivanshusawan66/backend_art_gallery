@@ -44,7 +44,9 @@ async def get_user_personal_financial_details(
                 status_code=404,
             )
 
-        user_check = await UserContactInfo.objects.filter(user_id=user_id).aexists()
+        user_check = await UserContactInfo.objects.filter(
+            user_id=user_id, is_deleted=False
+        ).aexists()
 
         if not user_check:
             response.status_code = 404
@@ -57,10 +59,10 @@ async def get_user_personal_financial_details(
 
         # Fetch user personal and financial details
         user_personal = await sync_to_async(
-            UserPersonalDetails.objects.filter(user=user_id).first
+            UserPersonalDetails.objects.filter(user=user_id, is_deleted=False).first
         )()
         user_financial = await sync_to_async(
-            UserFinancialDetails.objects.filter(user=user_id).first
+            UserFinancialDetails.objects.filter(user=user_id, is_deleted=False).first
         )()
 
         if not user_personal and not user_financial:
