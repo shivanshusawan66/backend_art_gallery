@@ -119,7 +119,7 @@ async def update_user_personal_financial_details(
         )
 
     user = await sync_to_async(
-        UserContactInfo.objects.filter(user_id=request.user_id, is_deleted=False).first
+        UserContactInfo.objects.filter(user_id=request.user_id, deleted=False).first
     )()
 
     if not user:
@@ -132,13 +132,11 @@ async def update_user_personal_financial_details(
         )
 
     user_personal = await sync_to_async(
-        UserPersonalDetails.objects.filter(
-            user_id=request.user_id, is_deleted=False
-        ).first
+        UserPersonalDetails.objects.filter(user_id=request.user_id, deleted=False).first
     )()
     user_financial = await sync_to_async(
         UserFinancialDetails.objects.filter(
-            user_id=request.user_id, is_deleted=False
+            user_id=request.user_id, deleted=False
         ).first
     )()
 
