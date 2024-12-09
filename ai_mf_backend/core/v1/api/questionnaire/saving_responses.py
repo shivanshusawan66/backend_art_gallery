@@ -52,6 +52,18 @@ async def submit_questionnaire_response(
 
         try:
             user_instance = await UserContactInfo.objects.aget(user_id=user_id)
+            if user_instance.questionnaire_filled:
+                response_status_code = status.HTTP_200_OK
+                response.status_code = response_status_code
+                response_message = "Response updated in Database successfully"
+
+            else:
+                response_status_code = status.HTTP_201_CREATED
+                response.status_code = response_status_code
+                response_message = "Response saved to Database successfully"
+                user_instance.questionnaire_filled = True
+                await sync_to_async(user_instance.save)()
+
         except UserContactInfo.DoesNotExist:
             response_status_code = status.HTTP_404_NOT_FOUND
             response.status_code = response_status_code
@@ -134,13 +146,8 @@ async def submit_questionnaire_response(
                     response_id=response_instance,
                     section_id=section_instance,
                 )
-                response_status_code = status.HTTP_201_CREATED
-
-                response_message = "Response saved to Database successfully"
             else:
-                response_status_code = status.HTTP_200_OK
                 user_response_instance.response_id = response_instance
-                response_message = "Response updated in Database successfully"
 
             try:
 

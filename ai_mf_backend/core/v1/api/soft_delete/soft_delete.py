@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/soft-delete-and-clone")
+@router.post("/soft_delete_and_clone")
 async def soft_delete_and_clone(
     request: soft_delete_and_clone_request, response: Response
 ):
@@ -178,7 +178,7 @@ async def soft_delete_and_clone(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/soft-update-and-clone")
+@router.post("/soft_update_and_clone")
 async def soft_update_and_clone(
     request: soft_update_and_clone_request, response: Response
 ):

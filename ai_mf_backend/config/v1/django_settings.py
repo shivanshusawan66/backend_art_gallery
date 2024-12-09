@@ -13,10 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
-import django
-from django.contrib import admin
-from django.urls import path
-
 from ai_mf_backend.config.v1.database_config import postgres_config
 from ai_mf_backend.config.v1.authentication_config import authentication_config
 

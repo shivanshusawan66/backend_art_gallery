@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-from fastapi import APIRouter, Response, Header, Depends, Query, Request
+from fastapi import APIRouter, Response, Depends, Query, Request
 from asgiref.sync import sync_to_async
 from django.forms.models import model_to_dict
 

@@ -30,7 +30,7 @@ def get_all_mutual_funds():
 
 
 # Endpoint to populate data
-@router.post("/parse-amfi-data/")
+@router.post("/parse_amfi_data/")
 async def populate_data():
     api_url = "https://www.amfiindia.com/spages/NAVOpen.txt?t=22112019"
 
@@ -45,7 +45,7 @@ async def populate_data():
 
 
 # Endpoint to get all mutual funds
-@router.get("/amfi-mf-list/")
+@router.get("/amfi_mf_list/")
 async def get_mutual_funds():
     try:
         funds = await get_all_mutual_funds()
