@@ -20,7 +20,7 @@ async def get_personal_options():
 
     # Formatting the fetched data to match the structure you want
     gender_options = [
-        { "key": str(gender.id), "label": gender.gender, "value": gender.gender.lower() }
+        {"key": str(gender.id), "label": gender.gender, "value": gender.gender.lower()}
         for gender in genders
     ]
     marital_status_options = [
