@@ -84,6 +84,12 @@ field_mapping = [
         "reference_type": ReferenceTableEnums.projection_table_mapping.value,
     },
     {
+        "table_name": "overview",
+        "column_name": "category",
+        "display_name": "category",
+        "reference_type": ReferenceTableEnums.projection_table_mapping.value,
+    },
+    {
         "table_name": "fund_data",
         "column_name": "min_initial_investment",
         "display_name": "min_investment",

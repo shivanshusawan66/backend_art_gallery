@@ -5,6 +5,7 @@ from asgiref.sync import sync_to_async
 
 from django.db.models import Q
 
+from ai_mf_backend.utils.v1.constants import MFFilterOptions
 from ai_mf_backend.utils.v1.pagination import paginate_queryset
 
 from ai_mf_backend.models.v1.database.mutual_fund import MutualFund
@@ -20,6 +21,7 @@ def get_mutual_funds_filters_query(
     fund_family: Optional[str] = None,
     morningstar_rating: Optional[str] = None,
     min_investment: Optional[Decimal] = None,
+    category: Optional[str] = None,
 ) -> Any:
     query = MutualFund.objects.select_related(
         "overview", "performance_data", "fund_data"
@@ -31,16 +33,31 @@ def get_mutual_funds_filters_query(
         filters &= Q(overview__fund_family__iexact=fund_family)
 
     if morningstar_rating and morningstar_rating.lower() != "string":
-        star_count = (
-            morningstar_rating.count("*")
-            if "*" in morningstar_rating
-            else int(morningstar_rating.strip())
-        )
-        if 1 <= star_count <= 5:
-            filters &= Q(overview__morningstar_rating="*" * star_count)
+        try:
+
+            star_count = (
+                morningstar_rating.count("*")
+                if "*" in morningstar_rating
+                else int(morningstar_rating.strip())
+            )
+            if 1 <= star_count <= 5:
+                filters &= Q(overview__morningstar_rating="*" * star_count)
+        except ValueError:
+
+            pass
 
     if min_investment is not None and min_investment > Decimal("0"):
         filters &= Q(fund_data__min_initial_investment=min_investment)
+
+    if category:
+        category_value = MFFilterOptions.CATEGORY_MAPPING.get(category)
+        if category_value:
+            if category_value == "Mid and Large Cap":
+                filters &= Q(overview__category="Mid Cap") | Q(
+                    overview__category="Large Cap"
+                )
+            else:
+                filters &= Q(overview__category__iexact=category_value)
 
     return query.filter(filters) if filters else query
 
@@ -94,6 +111,7 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                 net_asset_value=fund.net_asset_value,
                 ytd_return=overview.ytd_return if overview else None,
                 morningstar_rating=overview.morningstar_rating if overview else None,
+                category=overview.category if overview else None,
                 fund_family=overview.fund_family if overview else None,
                 net_assets=overview.net_assets if overview else None,
                 yield_value=overview.yield_value if overview else None,
