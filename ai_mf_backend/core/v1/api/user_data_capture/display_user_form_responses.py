@@ -3,7 +3,6 @@ from typing import Optional
 
 from fastapi import APIRouter, Response, Depends, Query, Request
 from asgiref.sync import sync_to_async
-from django.forms.models import model_to_dict
 
 from ai_mf_backend.core.v1.api import limiter
 
@@ -12,6 +11,7 @@ from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
     UserPersonalDetails,
 )
+
 from ai_mf_backend.models.v1.database.financial_details import UserFinancialDetails
 from ai_mf_backend.models.v1.api.user_data import UserPersonalFinancialFormData
 from ai_mf_backend.models.v1.api.user_data import (
@@ -34,12 +34,11 @@ async def get_user_personal_financial_details(
     user_id: Optional[int] = Query(None, description="User ID"),
 ):
     try:
-        # Fetch user contact info
         if not user_id:
             response.status_code = 404
             return UserPersonalFinancialDetailsResponsesDisplayResponse(
                 status=False,
-                message="User_id is not provided,please provide it",
+                message="User_id is not provided, please provide it",
                 data={},
                 status_code=404,
             )
@@ -57,12 +56,20 @@ async def get_user_personal_financial_details(
                 status_code=404,
             )
 
-        # Fetch user personal and financial details
         user_personal = await sync_to_async(
-            UserPersonalDetails.objects.filter(user=user_id, deleted=False).first
+            UserPersonalDetails.objects.filter(user=user_id, deleted=False)
+            .select_related("gender", "marital_status")
+            .first
         )()
         user_financial = await sync_to_async(
-            UserFinancialDetails.objects.filter(user=user_id, deleted=False).first
+            UserFinancialDetails.objects.filter(user=user_id, deleted=False)
+            .select_related(
+                "occupation",
+                "income_category",
+                "saving_category",
+                "investment_amount_per_year",
+            )
+            .first
         )()
 
         if not user_personal and not user_financial:
@@ -74,27 +81,49 @@ async def get_user_personal_financial_details(
                 status_code=404,
             )
 
-        # If the models are not None, convert them to dictionaries
-        user_personal_data = model_to_dict(user_personal) if user_personal else {}
-        user_financial_data = model_to_dict(user_financial) if user_financial else {}
-
-        # Prepare the data to return
+        # If the models are not None, prepare the response data
         data = UserPersonalFinancialFormData(
-            name=user_personal_data.get("name"),
-            date_of_birth=user_personal_data.get("date_of_birth"),
-            gender=user_personal_data.get("gender"),
-            marital_status=user_personal_data.get("marital_status"),
-            occupation=user_financial_data.get("occupation"),
-            annual_income=user_financial_data.get("income_category"),
-            monthly_saving_capacity=user_financial_data.get("saving_category"),
-            investment_amount_per_year=user_financial_data.get(
-                "investment_amount_per_year"
+            name=user_personal.name if user_personal else None,
+            date_of_birth=user_personal.date_of_birth if user_personal else None,
+            gender=(
+                user_personal.gender.gender
+                if user_personal and user_personal.gender
+                else None
             ),
-            regular_source_of_income=user_financial_data.get(
-                "regular_source_of_income"
+            marital_status=(
+                user_personal.marital_status.marital_status
+                if user_personal and user_personal.marital_status
+                else None
             ),
-            lock_in_period_accepted=user_financial_data.get("lock_in_period_accepted"),
-            investment_style=user_financial_data.get("investment_style"),
+            occupation=(
+                user_financial.occupation.occupation
+                if user_financial and user_financial.occupation
+                else None
+            ),
+            annual_income=(
+                user_financial.income_category.income_category
+                if user_financial and user_financial.income_category
+                else None
+            ),
+            monthly_saving_capacity=(
+                user_financial.saving_category.saving_category
+                if user_financial and user_financial.saving_category
+                else None
+            ),
+            investment_amount_per_year=(
+                user_financial.investment_amount_per_year.investment_amount_per_year
+                if user_financial and user_financial.investment_amount_per_year
+                else None
+            ),
+            regular_source_of_income=(
+                user_financial.regular_source_of_income if user_financial else None
+            ),
+            lock_in_period_accepted=(
+                user_financial.lock_in_period_accepted if user_financial else None
+            ),
+            investment_style=(
+                user_financial.investment_style if user_financial else None
+            ),
         )
 
         return UserPersonalFinancialDetailsResponsesDisplayResponse(
