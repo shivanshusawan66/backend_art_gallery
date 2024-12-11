@@ -26,6 +26,7 @@ async def filter_mutual_funds(
     fund_family: Optional[str] = Query(None),
     morningstar_rating: Optional[str] = Query(None),
     min_investment: Optional[float] = Query(None),
+    category: Optional[str] = Query(None),
     selected_columns: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(
@@ -73,7 +74,7 @@ async def filter_mutual_funds(
         base_query = base_query.only(*selected_fields_for_query)
 
         base_query = await get_mutual_funds_filters_query(
-            fund_family, morningstar_rating, min_investment
+            fund_family, morningstar_rating, min_investment, category
         )
 
         mutual_funds, total_count = await process_mutual_funds(
