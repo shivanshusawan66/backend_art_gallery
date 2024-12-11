@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 
 class FundFamiliesResponseModel(BaseModel):
     fund_family: List[str]
     morningstar_ratings: List[int]
     min_initial_investment: List[float]
+    categories: List[Dict[str, str]]
 
 
 class APIResponse(BaseModel):

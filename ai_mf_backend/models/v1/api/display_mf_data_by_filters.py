@@ -25,6 +25,7 @@ class MutualFundModel(BaseModel):
     # Overview fields
     morningstar_rating: Optional[str] = None
     fund_family: Optional[str] = None
+    category: Optional[str] = None
 
     # Optional fields with dynamic selection
     ytd_return: Optional[Decimal] = None

@@ -47,6 +47,7 @@ class APIConfig(BaseSettingsWrapper):
         "fund_family",
         "net_asset_value",
         "min_investment",
+        "category",
     ]
 
     # Default page size and validation constants
