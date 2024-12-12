@@ -50,8 +50,10 @@ class SectionsResponse(Response):
 class SectionQuestionsResponse(Response):
     data: Optional[SectionQuestionsData] = dict()
 
+
 class SectionCompletionStatusRequest(BaseModel):
     user_id: int = Field(..., description="Unique identifier for the user")
+
 
 class SectionCompletionStatus(BaseModel):
     section_id: int
@@ -59,6 +61,7 @@ class SectionCompletionStatus(BaseModel):
     answered_questions: int
     total_questions: int
     completion_rate: float
+
 
 class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
