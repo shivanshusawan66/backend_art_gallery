@@ -6,7 +6,6 @@ class FundFamiliesResponseModel(BaseModel):
     fund_family: List[str]
     morningstar_ratings: List[int]
     min_initial_investment: List[float]
-    categories: List[Dict[str, str]]
 
 
 class APIResponse(BaseModel):

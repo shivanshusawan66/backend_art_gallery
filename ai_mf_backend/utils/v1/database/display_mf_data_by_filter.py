@@ -18,6 +18,7 @@ from ai_mf_backend.models.v1.api.display_mf_data_by_filters import (
 
 logger = logging.getLogger(__name__)
 
+
 @sync_to_async
 def get_mutual_funds_filters_query(
     fund_family: Optional[str] = None,
@@ -83,9 +84,11 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
 
     for fund in paginated_funds:
         try:
-            overview = fund.overview if hasattr(fund, 'overview') else None
-            performance_data = fund.performance_data if hasattr(fund, 'performance_data') else None
-            fund_data = fund.fund_data if hasattr(fund, 'fund_data') else None
+            overview = fund.overview if hasattr(fund, "overview") else None
+            performance_data = (
+                fund.performance_data if hasattr(fund, "performance_data") else None
+            )
+            fund_data = fund.fund_data if hasattr(fund, "fund_data") else None
 
             risk_statistic = await get_risk_statistic(fund)
 
@@ -114,7 +117,9 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                     scheme_name=fund.scheme_name,
                     net_asset_value=fund.net_asset_value,
                     ytd_return=overview.ytd_return if overview else None,
-                    morningstar_rating=overview.morningstar_rating if overview else None,
+                    morningstar_rating=(
+                        overview.morningstar_rating if overview else None
+                    ),
                     category=overview.category if overview else None,
                     fund_family=overview.fund_family if overview else None,
                     net_assets=overview.net_assets if overview else None,
@@ -152,7 +157,9 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                         if risk_statistic
                         else Decimal(0.00)
                     ),
-                    r_squared=risk_statistic.r_squared if risk_statistic else Decimal(0.00),
+                    r_squared=(
+                        risk_statistic.r_squared if risk_statistic else Decimal(0.00)
+                    ),
                     standard_deviation=(
                         risk_statistic.standard_deviation
                         if risk_statistic
@@ -162,7 +169,9 @@ async def process_mutual_funds(base_query, page: int, page_size: int) -> Any:
                         risk_statistic.sharpe_ratio if risk_statistic else Decimal(0.00)
                     ),
                     treynor_ratio=(
-                        risk_statistic.treynor_ratio if risk_statistic else Decimal(0.00)
+                        risk_statistic.treynor_ratio
+                        if risk_statistic
+                        else Decimal(0.00)
                     ),
                     trailing_returns=trailing_returns,
                     annual_returns=annual_returns,
