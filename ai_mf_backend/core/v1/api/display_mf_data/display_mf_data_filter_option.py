@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request, Response
 
 from ai_mf_backend.core.v1.api import limiter
 
-from ai_mf_backend.utils.v1.constants import MFFilterOptions, filter_option_object
+from ai_mf_backend.utils.v1.constants import filter_option_object
 
 from ai_mf_backend.models.v1.api.display_mf_data_filter_option import (
     APIResponse,
@@ -51,10 +51,6 @@ async def mutual_funds_filter_options(request: Request, response: Response):
                 fund_family=fund_families,
                 morningstar_ratings=morningstar_ratings,
                 min_initial_investment=min_initial_investments,
-                categories=[
-                    {"id": key, "name": value}
-                    for key, value in MFFilterOptions.CATEGORY_MAPPING.items()
-                ],
             ),
             status_code=200,
         )
