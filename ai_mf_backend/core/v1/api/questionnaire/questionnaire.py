@@ -224,58 +224,66 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
 async def get_section_completion_status(
     request: SectionCompletionStatusRequest,
 ) -> SectionCompletionStatusResponse:
-    user_id = request.user_id
-    if user_id <= 0:
-        return SectionCompletionStatusResponse(
-            status=False,
-            status_code=400,
-            message="User_id must be a positive integer",
-            data=[],
-        )
-
-    sections_with_question_counts = await sync_to_async(
-        lambda: list(
-            Section.objects.annotate(total_questions=Count("question")).filter(
-                total_questions__gt=0
+    try:
+        user_id = request.user_id
+        if user_id <= 0:
+            return SectionCompletionStatusResponse(
+                status=False,
+                status_code=400,
+                message="User_id must be a positive integer",
+                data=[],
             )
-        )
-    )()
 
-    answered_questions_by_section = await sync_to_async(
-        lambda: list(
-            UserResponse.objects.filter(user_id=user_id, deleted=False)
-            .values("section_id")
-            .annotate(answered_questions=Count("question_id", distinct=True))
-        )
-    )()
-
-    answered_questions_dict = {
-        item["section_id"]: item["answered_questions"]
-        for item in answered_questions_by_section
-    }
-
-    section_completion_status = [
-        SectionCompletionStatus(
-            section_id=section.id,
-            section_name=section.section,
-            answered_questions=answered_questions_dict.get(section.id, 0),
-            total_questions=section.total_questions,
-            completion_rate=(
-                round(
-                    answered_questions_dict.get(section.id, 0)
-                    / section.total_questions
-                    * 100,
-                    2,
+        sections_with_question_counts = await sync_to_async(
+            lambda: list(
+                Section.objects.annotate(total_questions=Count("question")).filter(
+                    total_questions__gt=0
                 )
-                if section.total_questions > 0
-                else 0.0
-            ),
-        )
-        for section in sections_with_question_counts
-    ]
+            )
+        )()
 
-    return SectionCompletionStatusResponse(
-        status=True,
-        message="Successfully fetched section completion data",
-        data=section_completion_status,
-    )
+        answered_questions_by_section = await sync_to_async(
+            lambda: list(
+                UserResponse.objects.filter(user_id=user_id, deleted=False)
+                .values("section_id")
+                .annotate(answered_questions=Count("question_id", distinct=True))
+            )
+        )()
+
+        answered_questions_dict = {
+            item["section_id"]: item["answered_questions"]
+            for item in answered_questions_by_section
+        }
+
+        section_completion_status = [
+            SectionCompletionStatus(
+                section_id=section.id,
+                section_name=section.section,
+                answered_questions=answered_questions_dict.get(section.id, 0),
+                total_questions=section.total_questions,
+                completion_rate=(
+                    round(
+                        answered_questions_dict.get(section.id, 0)
+                        / section.total_questions
+                        * 100,
+                        2,
+                    )
+                    if section.total_questions > 0
+                    else 0.0
+                ),
+            )
+            for section in sections_with_question_counts
+        ]
+
+        return SectionCompletionStatusResponse(
+            status=True,
+            message="Successfully fetched section completion data",
+            data=section_completion_status,
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching sections: {str(e)}")
+        
+        return SectionCompletionStatusResponse(
+            status=False, message="An unexpected error occurred.", status_code=500
+        )
