@@ -14,7 +14,7 @@ fund_categories = [
     {
         "id": 1,
         "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/large-cap.svg",
-        "name": "Large Cap",
+        "name": "Small Cap",
         "desc": "Invest in Top 100 Stocks",
     },
     {
@@ -26,13 +26,13 @@ fund_categories = [
     {
         "id": 3,
         "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/small-cap.svg",
-        "name": "Small Cap",
+        "name": "Large Cap",
         "desc": "Invest in Top 100 Stocks",
     },
     {
         "id": 4,
         "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/large-and-midcap.svg",
-        "name": "Large and Mid Cap",
+        "name": "Mid and Large Cap",
         "desc": "Passively Invest in Top 100 companies",
     },
 ]
