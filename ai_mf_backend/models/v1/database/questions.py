@@ -7,7 +7,8 @@ class Section(SoftDeleteModel):
     section = models.CharField(max_length=100)  
     add_date = models.DateTimeField(auto_now_add=True)  
     update_date = models.DateTimeField(auto_now=True)  
-    section_weight = models.FloatField() 
+    initial_section_weight = models.FloatField() 
+    final_section_weight = models.FloatField()
 
     class Meta:
         db_table = "section"
@@ -25,7 +26,8 @@ class Question(SoftDeleteModel):
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-    question_weight = models.FloatField() 
+    initial_question_weight = models.FloatField() 
+    final_question_weight = models.FloatField() 
 
     class Meta:
         db_table = "question"
