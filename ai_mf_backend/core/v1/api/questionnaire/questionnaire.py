@@ -25,6 +25,9 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
 )
+from ai_mf_backend.models.v1.database.user import (
+    UserContactInfo,
+)
 from ai_mf_backend.models.v1.database.questions import (
     Question,
     Section,
@@ -230,7 +233,18 @@ async def get_section_completion_status(
             status=False,
             status_code=400,
             message="User_id must be a positive integer",
-            data=[],
+            data=dict(),
+        )
+    user_contact_info = await sync_to_async(
+        lambda: UserContactInfo.objects.filter(user_id=user_id).first()
+    )()
+    
+    if not user_contact_info:
+        return SectionCompletionStatusResponse(
+            status=False,
+            status_code=404,
+            message="User not found",
+            data=dict(),
         )
 
     sections_with_question_counts = await sync_to_async(
@@ -273,9 +287,14 @@ async def get_section_completion_status(
         )
         for section in sections_with_question_counts
     ]
+    response_data = {
+        "sections": section_completion_status,
+        "questionnaire_filled": user_contact_info.questionnaire_filled,
+        "user_details_filled": user_contact_info.user_details_filled,
+    }
 
     return SectionCompletionStatusResponse(
         status=True,
         message="Successfully fetched section completion data",
-        data=section_completion_status,
+        data=response_data,
     )
