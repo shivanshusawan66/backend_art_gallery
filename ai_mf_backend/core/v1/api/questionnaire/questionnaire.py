@@ -4,6 +4,7 @@ from typing import List
 from asgiref.sync import sync_to_async
 
 from django.db import DatabaseError
+from django.db.models import Count
 from fastapi import APIRouter, Response, Depends, Request
 
 from ai_mf_backend.core.v1.api import limiter
@@ -20,12 +21,17 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionsResponse,
     VisibilityCondition,
     VisibilityDecisions,
+    SectionCompletionStatusRequest,
+    SectionCompletionStatus,
+    SectionCompletionStatusResponse
+    
 )
 from ai_mf_backend.models.v1.database.questions import (
     Question,
     Section,
     Allowed_Response,
     ConditionalQuestion,
+    UserResponse,
 )
 
 from ai_mf_backend.config.v1.api_config import api_config
@@ -209,3 +215,64 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
         return SectionQuestionsResponse(
             status=False, message="An unexpected error occurred.", status_code=500
         )
+
+@router.post(
+    "/section_completion_status",
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_section_completion_status(
+    request: SectionCompletionStatusRequest
+) -> SectionCompletionStatusResponse:
+    user_id = request.user_id
+    if user_id <= 0:
+        return SectionCompletionStatusResponse(
+        status=False,
+        status_code=400,
+        message="User_id must be a positive integer",
+        data=[],
+    )
+ 
+    sections_with_question_counts = await sync_to_async(
+        lambda: list(
+            Section.objects.annotate(
+                total_questions=Count("question")
+            ).filter(total_questions__gt=0)
+        )
+    )()
+
+    answered_questions_by_section = await sync_to_async(
+        lambda: list(
+            UserResponse.objects.filter(
+                user_id=user_id,
+                deleted=False
+            )
+            .values("section_id")
+            .annotate(answered_questions=Count("question_id", distinct=True))
+        )
+    )()
+
+
+    answered_questions_dict = {
+        item["section_id"]: item["answered_questions"]
+        for item in answered_questions_by_section
+    }
+
+    section_completion_status = [
+        SectionCompletionStatus(
+            section_id=section.id,
+            section_name=section.section,
+            answered_questions=answered_questions_dict.get(section.id, 0),
+            total_questions=section.total_questions,
+            completion_rate=round(
+                answered_questions_dict.get(section.id, 0) / section.total_questions * 100, 2
+            ) if section.total_questions > 0 else 0.0,
+        )
+        for section in sections_with_question_counts
+    ]
+
+    return SectionCompletionStatusResponse(
+        status=True,
+        message="Successfully fetched section completion data",
+        data=section_completion_status,
+    )
