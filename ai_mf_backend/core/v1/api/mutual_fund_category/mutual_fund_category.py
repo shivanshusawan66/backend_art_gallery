@@ -10,11 +10,11 @@ from ai_mf_backend.models.v1.api.mutual_fund_category import (
 
 router = APIRouter()
 
-fund_categories = [
+fund_categories = fund_categories = [
     {
         "id": 1,
-        "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/small-cap.svg",
-        "name": "Small Cap",
+        "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/large-cap.svg",
+        "name": "Large Cap",
         "desc": "Invest in Top 100 Stocks",
     },
     {
@@ -25,8 +25,8 @@ fund_categories = [
     },
     {
         "id": 3,
-        "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/large-cap.svg",
-        "name": "Large Cap",
+        "image": "https://static.smartspends.com/static/images/etmoneyweb/category-icons/small-cap.svg",
+        "name": "Small Cap",
         "desc": "Invest in Top 100 Stocks",
     },
     {

@@ -279,11 +279,11 @@ async def get_section_completion_status(
             status=True,
             message="Successfully fetched section completion data",
             data=section_completion_status,
-            status_code=200
+            status_code=200,
         )
     except Exception as e:
         logger.error(f"Unexpected error while fetching sections: {str(e)}")
-        
+
         return SectionCompletionStatusResponse(
             status=False, message="An unexpected error occurred.", status_code=500
         )
