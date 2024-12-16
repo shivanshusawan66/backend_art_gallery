@@ -5,12 +5,23 @@ from asgiref.sync import sync_to_async
 
 from django.db import DatabaseError
 from django.db.models import Count
-from fastapi import APIRouter, Response, Depends, Request
+from django.db.models import Prefetch
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from fastapi import APIRouter, Response, Depends, Request, Header
 
 from ai_mf_backend.core.v1.api import limiter
-
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
-
+from ai_mf_backend.utils.v1.authentication.validators import (
+    custom_validate_international_phonenumber,
+)
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    jwt_token_checker,
+    login_checker,
+)
+from ai_mf_backend.utils.v1.errors import (
+    MalformedJWTRequestException,
+)
 from ai_mf_backend.models.v1.api.questionnaire import (
     Option,
     QuestionData,
@@ -31,6 +42,7 @@ from ai_mf_backend.models.v1.database.questions import (
     Allowed_Response,
     ConditionalQuestion,
     UserResponse,
+    UserContactInfo
 )
 
 from ai_mf_backend.config.v1.api_config import api_config
@@ -76,7 +88,6 @@ async def get_all_sections(request: Request, response: Response):
             status_code=500,
         )
 
-
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/section_wise_questions/",
@@ -84,9 +95,120 @@ async def get_all_sections(request: Request, response: Response):
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
-async def get_section_wise_questions(request: SectionRequest, response: Response):
+async def get_section_wise_questions(
+    request: SectionRequest,
+    response: Response,
+    Authorization: str = Header(),  
+):
+    if not Authorization:
+        response.status_code = 422
+        return SectionQuestionsResponse(
+            status=False,
+            message="Authorization header is missing.",
+            status_code=422,
+        )
+    
     try:
+        payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+    except MalformedJWTRequestException as e:
+        response.status_code = 498
+        return SectionQuestionsResponse(
+            status=False,
+            message="Invalid JWT token is provided.",
+            status_code=498,
+        )
 
+    email = payload.get("email")
+    mobile_no = payload.get("mobile_number")
+
+    if not any([email, mobile_no]):
+        response.status_code = 422
+        return SectionQuestionsResponse(
+            status=False,
+            message="Invalid JWT token: no email or mobile number found.",
+            status_code=422,
+        )
+
+    if all([email, mobile_no]):
+        response.status_code = 400
+        return SectionQuestionsResponse(
+            status=False,
+            message="Invalid JWT token: both email and mobile number are present.",
+            status_code=400,
+        )
+
+    if email:
+        try:
+            _ = validate_email(value=email)
+        except ValidationError as error_response:
+            response.status_code = 422
+            return SectionQuestionsResponse(
+                status=False,
+                message=f"Invalid email provided: {error_response}",
+                status_code=422,
+            )
+
+    elif mobile_no:
+        try:
+            _ = custom_validate_international_phonenumber(value=mobile_no)
+        except ValidationError as error_response:
+            response.status_code = 422
+            return SectionQuestionsResponse(
+                status=False,
+                message=f"Invalid phone number provided: {error_response}",
+                status_code=422,
+            )
+    user = None
+    question_ids = [1001, 1002]
+    if email:
+        user = await sync_to_async(
+            lambda: UserContactInfo.objects.filter(email=email)
+            .prefetch_related(
+                Prefetch(
+                    "userresponse_set",
+                    queryset=UserResponse.objects.filter(question_id__in=question_ids).select_related(
+                        "question_id", "response_id", "section_id"
+                    ),
+                )
+            )
+            .first()
+        )()
+    elif mobile_no:
+        user = await sync_to_async(
+            lambda: UserContactInfo.objects.filter(mobile_number=mobile_no)
+            .prefetch_related(
+                Prefetch(
+                    "userresponse_set",
+                    queryset=UserResponse.objects.filter(question_id__in=question_ids).select_related(
+                        "question_id", "response_id", "section_id"
+                    ),
+                )
+            )
+            .first()
+        )()
+
+    print(user)
+    user_prev_responses = user.userresponse_set.all()
+    print(f">>>>>>>>{user_prev_responses}")
+    for response in user_prev_responses:
+        print(
+            f"User ID: {response.user_id.user_id if response.user_id else 'N/A'}, "  
+            f"Question ID: {response.question_id.pk if response.question_id else 'N/A'}, " 
+            f"Response ID: {response.response_id.pk if response.response_id else 'N/A'}, " 
+            f"Section ID: {response.section_id.pk if response.section_id else 'N/A'}, "  
+            f"Added on: {response.add_date}, "
+            f"Updated on: {response.update_date}"
+        )
+    if not user:
+        response.status_code = 404
+        return SectionQuestionsResponse(
+            status=False,
+            message="User not found.",
+            status_code=404,
+        )
+
+
+    try:
         specified_section_id = request.section_id
         if specified_section_id is None:
             logger.warning("Section ID is required.")
@@ -126,6 +248,7 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
         question_data_list: List[QuestionData] = []
 
         for question in questions:
+            print(question.pk)
             options = await sync_to_async(
                 lambda: list(
                     Allowed_Response.objects.filter(question=question).values(
@@ -214,7 +337,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
         return SectionQuestionsResponse(
             status=False, message="An unexpected error occurred.", status_code=500
         )
-
 
 @router.post(
     "/section_completion_status",
