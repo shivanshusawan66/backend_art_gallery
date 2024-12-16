@@ -1,5 +1,5 @@
 from math import ceil
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, Query, Request, Response
 
@@ -7,6 +7,7 @@ from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.constants import projection_table_object
 from ai_mf_backend.utils.v1.database.display_mf_data_by_filter import (
     get_mutual_funds_filters_query,
+    process_input_list,
     process_mutual_funds,
 )
 from ai_mf_backend.models.v1.database.mutual_fund import MutualFund
@@ -25,7 +26,7 @@ async def filter_mutual_funds(
     request: Request,
     fund_family: Optional[str] = Query(None),
     morningstar_rating: Optional[str] = Query(None),
-    min_investment: Optional[float] = Query(None),
+    min_investment: Optional[Union[str, float]] = Query(None),
     category: Optional[str] = Query(None),
     selected_columns: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
@@ -34,10 +35,22 @@ async def filter_mutual_funds(
     ),
 ):
     try:
-        selected_fields = (
-            [col.strip() for col in selected_columns.split(",")]
-            if selected_columns
-            else []
+        selected_fields = process_input_list(selected_columns)
+
+        fund_family_list = process_input_list(
+            fund_family, filter_condition=lambda x: x.lower() != "string"
+        )
+
+        morningstar_rating_list = process_input_list(
+            morningstar_rating, filter_condition=lambda x: x.lower() != "string"
+        )
+
+        min_investment_list = process_input_list(
+            min_investment, convert_func=float, filter_condition=lambda x: x > 0
+        )
+
+        category_list = process_input_list(
+            category, filter_condition=lambda x: x.lower() != "string"
         )
 
         if not len(selected_fields):
@@ -74,7 +87,10 @@ async def filter_mutual_funds(
         base_query = base_query.only(*selected_fields_for_query)
 
         base_query = await get_mutual_funds_filters_query(
-            fund_family, morningstar_rating, min_investment, category
+            fund_family_list,
+            morningstar_rating_list,
+            min_investment_list,
+            category_list,
         )
 
         mutual_funds, total_count = await process_mutual_funds(
