@@ -4,19 +4,15 @@ from ai_mf_backend.models.v1.database.questions import (
     Question,
     Allowed_Response,
     Section,
-    UserResponse
+    UserResponse,
+    QuestionWeightsPerUser,
+    SectionWeightsPerUser
 )
 from ai_mf_backend.utils.v1.errors import AssignWeightException
 
 logger = logging.getLogger(__name__)
 
 def assign_initial_section_and_question_weights():
-    """
-    Assign equal weights to sections and their respective questions.
-    
-    Raises:
-        AssignWeightException: If no sections or questions are found
-    """
     try:
         with transaction.atomic():
             # Fetch all sections
@@ -72,12 +68,17 @@ def assign_final_question_weights(user_id : int):
             user_responses=UserResponse.objects.filter(user_id=user_id)
             for response in user_responses:
 
-                response=Allowed_Response.objects.filter(pk=response.response_id).first()
-                response_score=response.response_weight * response.position
+                allowed_response=Allowed_Response.objects.filter(pk=response.response_id).first()
+                response_score=allowed_response.response_weight * allowed_response.position
 
                 question=Question.objects.filter(question=response.question_id).first()
-                question.final_question_weight=response_score*question.initial_question_weight
-                question.save()
+                question_weight_for_user=QuestionWeightsPerUser(
+                    user_id=user_id,
+                    question=response.question_id,
+                    section=response.section_id,
+                    weight=response_score*question.initial_question_weight
+                )
+                question_weight_for_user.save()
     except Exception as e:
         logger.error(f"Error assigning final question weights for user {user_id}: {e}")
         raise AssignWeightException(f"Error assigning final question weights for user {user_id}: {e}")
@@ -86,16 +87,21 @@ def assign_final_question_weights(user_id : int):
 def assign_final_section_weights(user_id : int):
     try:
         with transaction.atomic():
-            questions = Question.objects.all()
+            questions = QuestionWeightsPerUser.objects.filter(user_id=user_id)
             sections = Section.objects.all()
             for section in sections:
                 final_section_weight=0
                 for question in questions:
                     if question.section==section.pk:
-                        final_section_weight+=question.final_question_weight
+                        final_section_weight+=question.weight
                     else:
                         continue
-                section.final_section_weight=final_section_weight*section.initial_section_weight
+                section_weight_for_user=SectionWeightsPerUser(
+                    user_id=user_id,
+                    section=section.pk,
+                    weight=final_section_weight*section.initial_section_weight
+                )
+                section_weight_for_user.save()
     except Exception as e:
         logger.error(f"Error assigning final section weights for user {user_id}: {e}")
         raise AssignWeightException(f"Error assigning final section weights for user {user_id}: {e}")

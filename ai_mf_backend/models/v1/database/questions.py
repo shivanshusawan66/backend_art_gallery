@@ -8,7 +8,6 @@ class Section(SoftDeleteModel):
     add_date = models.DateTimeField(auto_now_add=True)  
     update_date = models.DateTimeField(auto_now=True)  
     initial_section_weight = models.FloatField() 
-    final_section_weight = models.FloatField()
 
     class Meta:
         db_table = "section"
@@ -27,7 +26,6 @@ class Question(SoftDeleteModel):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     initial_question_weight = models.FloatField() 
-    final_question_weight = models.FloatField() 
 
     class Meta:
         db_table = "question"
@@ -115,3 +113,25 @@ class UserResponse(SoftDeleteModel):
 
     def __str__(self):
         return f"Response by {self.user_id} for {self.question_id.question}"
+    
+class QuestionWeightsPerUser(SoftDeleteModel):
+    user_id = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    question = models.ForeignKey(
+        Question, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    section = models.ForeignKey(
+        Section, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    weight = models.FloatField()
+
+
+class SectionWeightsPerUser(SoftDeleteModel):
+    user_id = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    section = models.ForeignKey(
+        Section, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    weight = models.FloatField()
