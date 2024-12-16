@@ -96,6 +96,14 @@ async def filter_mutual_funds(
         mutual_funds, total_count = await process_mutual_funds(
             base_query, page, page_size
         )
+        total_pages = ceil(total_count / page_size)
+
+        if page > total_pages:
+            page = 1
+            mutual_funds, total_count = await process_mutual_funds(
+                base_query, page, page_size
+            )
+            total_pages = ceil(total_count / page_size)
 
         if total_count == 0:
             response.status_code = 404
@@ -127,7 +135,7 @@ async def filter_mutual_funds(
             data=processed_mutual_funds,
             total_count=total_count,
             current_page=page,
-            total_pages=ceil(total_count / page_size),
+            total_pages=total_pages,
             status_code=200,
         )
 
