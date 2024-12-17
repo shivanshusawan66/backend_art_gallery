@@ -138,7 +138,7 @@ async def request_validation_exception_handler(
         "errors": detailed_errors,
         "request_body": body.decode(),
         "query_params": query_params,
-        "status_code":status.HTTP_422_UNPROCESSABLE_ENTITY,
+        "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
     }
 
     logger.error(f"Validation Error: {error_response}")
