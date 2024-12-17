@@ -23,7 +23,7 @@ class QuestionData(BaseModel):
     question_id: int
     question: str
     options: List[Option]
-    visibility_decisions: VisibilityDecisions
+    
 
 
 class SectionBase(BaseModel):

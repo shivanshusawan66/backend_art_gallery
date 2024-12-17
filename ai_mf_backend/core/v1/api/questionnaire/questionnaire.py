@@ -159,6 +159,7 @@ async def get_section_wise_questions(
                 status_code=422,
             )
     user = None
+    conditionals = None
     question_ids = [1001, 1002]
     if email:
         user = await sync_to_async(
@@ -173,6 +174,13 @@ async def get_section_wise_questions(
             )
             .first()
         )()
+        conditionals = await sync_to_async(
+            lambda: list(  ConditionalQuestion.objects.filter(
+            question_id__in=question_ids, visibility = 'hide'
+        ).select_related("question", "response", "dependent_question")
+            )
+        
+        )()
     elif mobile_no:
         user = await sync_to_async(
             lambda: UserContactInfo.objects.filter(mobile_number=mobile_no)
@@ -182,23 +190,45 @@ async def get_section_wise_questions(
                     queryset=UserResponse.objects.filter(question_id__in=question_ids).select_related(
                         "question_id", "response_id", "section_id"
                     ),
-                )
+                ),
+                
+                
             )
             .first()
         )()
+        conditionals = await sync_to_async(
+            lambda: list(  ConditionalQuestion.objects.filter(
+            question_id__in=question_ids, visibility = 'hide'
+        ).select_related("question", "response", "dependent_question")
+            )
+        
+        )()
 
-    print(user)
+   
     user_prev_responses = user.userresponse_set.all()
-    print(f">>>>>>>>{user_prev_responses}")
+
+    
+  
+    user_prev_responses_for_base_ques_dict = {}
+
     for response in user_prev_responses:
-        print(
-            f"User ID: {response.user_id.user_id if response.user_id else 'N/A'}, "  
-            f"Question ID: {response.question_id.pk if response.question_id else 'N/A'}, " 
-            f"Response ID: {response.response_id.pk if response.response_id else 'N/A'}, " 
-            f"Section ID: {response.section_id.pk if response.section_id else 'N/A'}, "  
-            f"Added on: {response.add_date}, "
-            f"Updated on: {response.update_date}"
-        )
+        question_id = response.question_id.pk if response.question_id else None
+        response_id = response.response_id.pk if response.response_id else None
+        if question_id :
+            user_prev_responses_for_base_ques_dict[question_id] = response_id
+
+
+
+    dependency_dict = {}
+    for cq in conditionals:
+        dependent_question_id = cq.dependent_question.pk if cq.dependent_question else None
+        base_question_id = cq.question.pk if cq.question else None
+        base_response_id = cq.response.pk if cq.response else None
+        if dependent_question_id and base_question_id and base_response_id:
+            if dependent_question_id not in dependency_dict:
+                dependency_dict[dependent_question_id] = {}  
+            dependency_dict[dependent_question_id][base_question_id] = base_response_id
+            
     if not user:
         response.status_code = 404
         return SectionQuestionsResponse(
@@ -248,7 +278,26 @@ async def get_section_wise_questions(
         question_data_list: List[QuestionData] = []
 
         for question in questions:
-            print(question.pk)
+            
+            skip = False  
+            if question.pk in dependency_dict.keys():
+            
+                visibility = dependency_dict[question.pk]
+              
+                for _a, condition in visibility.items():  
+                    
+                    if _a in user_prev_responses_for_base_ques_dict:
+                        user_response = user_prev_responses_for_base_ques_dict[_a]
+                        if user_response != condition: 
+                            skip = True
+                            break
+                    else:
+                        skip = True
+                        break
+
+            if skip:
+                continue
+                
             options = await sync_to_async(
                 lambda: list(
                     Allowed_Response.objects.filter(question=question).values(
@@ -257,48 +306,6 @@ async def get_section_wise_questions(
                 )
             )()
 
-            conditional_infos = await sync_to_async(
-                lambda: list(
-                    ConditionalQuestion.objects.filter(question=question).values()
-                )
-            )()
-
-            visibility_decisions = VisibilityDecisions(if_=[])
-
-            for conditional_info in conditional_infos:
-                dependent_question = conditional_info["dependent_question_id"]
-
-                condition_response = await sync_to_async(
-                    Allowed_Response.objects.filter(
-                        pk=conditional_info["response_id"]
-                    ).first
-                )()
-
-                condition_value = {
-                    "response_id": (
-                        condition_response.pk if condition_response else None
-                    ),
-                    "response_value": (
-                        condition_response.response if condition_response else None
-                    ),
-                }
-
-                condition = {
-                    "value": [condition_value],
-                    "show": (
-                        [dependent_question]
-                        if conditional_info["visibility"] == "show"
-                        else []
-                    ),
-                    "hide": (
-                        [dependent_question]
-                        if conditional_info["visibility"] == "hide"
-                        else []
-                    ),
-                }
-
-                visibility_decisions.if_.append(VisibilityCondition(**condition))
-
             question_data = QuestionData(
                 question_id=question.pk,
                 question=question.question,
@@ -306,7 +313,7 @@ async def get_section_wise_questions(
                     Option(option_id=option["id"], response=option["response"])
                     for option in options
                 ],
-                visibility_decisions=visibility_decisions,
+             
             )
 
             question_data_list.append(question_data)
