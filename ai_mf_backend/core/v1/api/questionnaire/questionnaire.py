@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 
 from django.db import DatabaseError
 from django.db.models import Count
-from fastapi import APIRouter, Response, Depends, Request
+from fastapi import APIRouter, Response, Depends, Request, Query
 
 from ai_mf_backend.core.v1.api import limiter
 
@@ -21,7 +21,6 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionsResponse,
     VisibilityCondition,
     VisibilityDecisions,
-    SectionCompletionStatusRequest,
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
 )
@@ -216,16 +215,15 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
         )
 
 
-@router.post(
-    "/section_completion_status",
+@router.get(
+    "/section_completion_status/",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
 async def get_section_completion_status(
-    request: SectionCompletionStatusRequest,
+    user_id: int = Query(..., description="User ID")
 ) -> SectionCompletionStatusResponse:
     try:
-        user_id = request.user_id
         if user_id <= 0:
             return SectionCompletionStatusResponse(
                 status=False,
