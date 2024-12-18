@@ -50,10 +50,6 @@ class SectionQuestionsResponse(Response):
     data: Optional[SectionQuestionsData] = dict()
 
 
-class SectionCompletionStatusRequest(BaseModel):
-    user_id: int = Field(..., description="Unique identifier for the user")
-
-
 class SectionCompletionStatus(BaseModel):
     section_id: int
     section_name: str
