@@ -23,7 +23,6 @@ class QuestionData(BaseModel):
     question_id: int
     question: str
     options: List[Option]
-    
 
 
 class SectionBase(BaseModel):
