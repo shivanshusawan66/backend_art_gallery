@@ -19,6 +19,28 @@ from ai_mf_backend.models.v1.api.display_mf_data_by_filters import (
 logger = logging.getLogger(__name__)
 
 
+def process_input_list(input_param, convert_func=str.strip, filter_condition=None):
+
+    if not input_param:
+        return []
+
+    if not isinstance(input_param, str):
+        return (
+            [convert_func(input_param)]
+            if filter_condition is None or filter_condition(input_param)
+            else []
+        )
+
+    processed_list = [
+        converted_item
+        for item in input_param.split(",")
+        if (converted_item := convert_func(item))
+        and (filter_condition is None or filter_condition(converted_item))
+    ]
+
+    return processed_list
+
+
 @sync_to_async
 def get_mutual_funds_filters_query(
     fund_family: Optional[str] = None,
@@ -32,35 +54,48 @@ def get_mutual_funds_filters_query(
 
     filters = Q()
 
-    if fund_family and fund_family.lower() != "string":
-        filters &= Q(overview__fund_family__iexact=fund_family)
+    if fund_family and any(ff.lower() != "string" for ff in fund_family):
+        family_filters = Q()
+        for family in fund_family:
+            if family.lower() != "string":
+                family_filters |= Q(overview__fund_family__iexact=family)
+        filters &= family_filters
 
-    if morningstar_rating and morningstar_rating.lower() != "string":
-        try:
+    # Morningstar Rating Filter
+    if morningstar_rating and any(mr.lower() != "string" for mr in morningstar_rating):
+        rating_filters = Q()
+        for rating in morningstar_rating:
+            try:
+                star_count = rating.count("*") if "*" in rating else int(rating.strip())
+                if 1 <= star_count <= 5:
+                    rating_filters |= Q(overview__morningstar_rating="*" * star_count)
+            except ValueError:
+                pass
+        if rating_filters:
+            filters &= rating_filters
 
-            star_count = (
-                morningstar_rating.count("*")
-                if "*" in morningstar_rating
-                else int(morningstar_rating.strip())
-            )
-            if 1 <= star_count <= 5:
-                filters &= Q(overview__morningstar_rating="*" * star_count)
-        except ValueError:
+    # Minimum Investment Filter
+    if min_investment and any(mi is not None and mi > 0 for mi in min_investment):
+        investment_filters = Q()
+        for investment in min_investment:
+            if investment is not None and investment > 0:
+                investment_filters |= Q(fund_data__min_initial_investment=investment)
+        filters &= investment_filters
 
-            pass
-
-    if min_investment is not None and min_investment > Decimal("0"):
-        filters &= Q(fund_data__min_initial_investment=min_investment)
-
+    # Category Filter
     if category:
-        category_value = MFFilterOptions.CATEGORY_MAPPING.get(category)
-        if category_value:
-            if category_value == "Mid and Large Cap":
-                filters &= Q(overview__category="Mid Cap") | Q(
-                    overview__category="Large Cap"
-                )
-            else:
-                filters &= Q(overview__category__iexact=category_value)
+        category_filters = Q()
+        for cat in category:
+            category_value = MFFilterOptions.CATEGORY_MAPPING.get(cat)
+            if category_value:
+                if category_value == "Mid and Large Cap":
+                    category_filters |= Q(overview__category="Mid Cap") | Q(
+                        overview__category="Large Cap"
+                    )
+                else:
+                    category_filters |= Q(overview__category__iexact=category_value)
+        if category_filters:
+            filters &= category_filters
 
     return query.filter(filters) if filters else query
 
