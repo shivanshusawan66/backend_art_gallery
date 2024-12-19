@@ -208,7 +208,7 @@ async def user_authentication_password(
             response.status_code = 200  # Set status code in the response
             return UserAuthenticationPasswordResponse(
                 status=True,
-                message=f"Successfully logged in to the Dashboard",
+                message=f"Successfully logged in",
                 data={
                     "token": jwt_token,
                     "data": {

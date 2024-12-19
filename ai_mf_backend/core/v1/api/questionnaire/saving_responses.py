@@ -21,14 +21,14 @@ from ai_mf_backend.models.v1.database.questions import (
 )
 from ai_mf_backend.config.v1.api_config import api_config
 
-router = APIRouter()
 logger = logging.getLogger(__name__)
+
+router = APIRouter()
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
-    "/submit-questionnaire-response",
-    status_code=status.HTTP_201_CREATED,
+    "/submit_questionnaire_response",
     dependencies=[Depends(login_checker)],
     response_model=SubmitQuestionnaireResponse,
 )
@@ -36,116 +36,144 @@ async def submit_questionnaire_response(
     request: SubmitQuestionnaireRequest, response: Response
 ):
     try:
-
         user_id = request.user_id
         section_id = request.section_id
         responses = request.responses
 
-        # Fetch user
-        user = await sync_to_async(UserContactInfo.objects.filter(pk=user_id).first)()
-        if not user:
-            response.status_code = status.HTTP_404_NOT_FOUND
+        if user_id is None:
+            response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            response.status_code = response_status_code
+            return SubmitQuestionnaireResponse(
+                status=False,
+                message="User ID is required",
+                data={},
+                status_code=response_status_code,
+            )
+
+        try:
+            user_instance = await UserContactInfo.objects.aget(user_id=user_id)
+            if user_instance.questionnaire_filled:
+                response_status_code = status.HTTP_200_OK
+                response.status_code = response_status_code
+                response_message = "Response updated in Database successfully"
+
+            else:
+                response_status_code = status.HTTP_201_CREATED
+                response.status_code = response_status_code
+                response_message = "Response saved to Database successfully"
+                user_instance.questionnaire_filled = True
+                await sync_to_async(user_instance.save)()
+
+        except UserContactInfo.DoesNotExist:
+            response_status_code = status.HTTP_404_NOT_FOUND
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message=f"This user with user id {user_id} does not exist.",
                 data={"user_id": user_id},
-                status_code=404,
+                status_code=response_status_code,
             )
 
-        # Validate section
-        section = await sync_to_async(Section.objects.filter(pk=section_id).first)()
-        if not section:
-            response.status_code = status.HTTP_404_NOT_FOUND
+        try:
+            section_instance = await Section.objects.aget(pk=section_id)
+        except Section.DoesNotExist:
+            response_status_code = status.HTTP_404_NOT_FOUND
+            response.status_code = response_status_code
             return SubmitQuestionnaireResponse(
                 status=False,
                 message=f"Section with ID {section_id} not found",
                 data={"user_id": user_id},
-                status_code=404,
+                status_code=response_status_code,
             )
 
-        # Process and save all responses from previous section
+        if not len(responses):
+            response_status_code = status.HTTP_400_BAD_REQUEST
+            response.status_code = response_status_code
+            return SubmitQuestionnaireResponse(
+                status=False,
+                message="The responses array cannot be empty. Provide at least one question-response pair.",
+                data={"user_id": request.user_id},
+                status_code=response_status_code,
+            )
+
+        validated_user_responses = list()
+
         for user_response in responses:
             question_id = user_response.question_id
             response_id = user_response.response_id
 
-            # Validate question and allowed response
-            question = await sync_to_async(
-                Question.objects.filter(pk=question_id, section_id=section_id).first
-            )()
-            if not question:
-                response.status_code = status.HTTP_404_NOT_FOUND
+            try:
+                question_instance = await Question.objects.filter(
+                    pk=question_id, section_id=section_id
+                ).aget()
+            except Question.DoesNotExist:
+                response_status_code = status.HTTP_404_NOT_FOUND
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Question with ID {question_id} not found",
                     data={"user_id": user_id},
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=response_status_code,
                 )
 
-            allowed_response = await sync_to_async(
-                Allowed_Response.objects.filter(
-                    question_id=question_id, pk=response_id
-                ).first
-            )()
-            if not allowed_response:
-                status_code = status.HTTP_400_BAD_REQUEST
-                response.status_code = status_code
+            try:
+                response_instance = await Allowed_Response.objects.filter(
+                    pk=response_id, question_id=question_id
+                ).aget()
+            except Allowed_Response.DoesNotExist:
+                response_status_code = status.HTTP_400_BAD_REQUEST
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Response for Question with ID {question_id} is not valid",
                     data={"user_id": user_id},
-                    status_code=status_code,
+                    status_code=response_status_code,
                 )
 
-            # Get existing response or create new one
             user_response_instance = await sync_to_async(
                 UserResponse.objects.filter(
                     user_id=user_id,
                     question_id=question_id,
-                    response_id=response_id,
                     section_id=section_id,
                 ).first
             )()
 
             if not user_response_instance:
                 user_response_instance = UserResponse(
-                    user_id=user,
-                    question_id=question,
-                    response_id=allowed_response,
-                    section_id=section,
+                    user_id=user_instance,
+                    question_id=question_instance,
+                    response_id=response_instance,
+                    section_id=section_instance,
                 )
-                new_document = True
-                response_status_code = status.HTTP_201_CREATED
             else:
-                user_response_instance.response_id = allowed_response
-                new_document = False
-                response_status_code = status.HTTP_200_OK
+                user_response_instance.response_id = response_instance
 
             try:
-                # Validate the response
+
                 await sync_to_async(user_response_instance.full_clean)()
-                await sync_to_async(user_response_instance.save)()
             except ValidationError as e:
-                response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                response.status_code = response_status_code
                 return SubmitQuestionnaireResponse(
                     status=False,
                     message=f"Invalid response validation for question {question_id}",
                     data={"errors": e.message_dict},
-                    status_code=422,
+                    status_code=response_status_code,
                 )
 
-        response.status_code = status.HTTP_200_OK
+            validated_user_responses.append(user_response_instance)
+
+        for user_response_instance in validated_user_responses:
+            await sync_to_async(user_response_instance.save)()
+
+        response.status_code = response_status_code
+
         return SubmitQuestionnaireResponse(
             status=True,
-            message=(
-                "Response saved to Database successfully"
-                if new_document
-                else "Response updated in database successfully"
-            ),
+            message=response_message,
             data={
                 "user_id": user_id,
-                "question_id": question_id,
-                "response": response_id,
-                "section": section_id,
+                "section_id": section_id,
             },
             status_code=response_status_code,
         )
@@ -154,10 +182,11 @@ async def submit_questionnaire_response(
         logger.error(
             f"Error processing questionnaire response: {str(e)}", exc_info=True
         )
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response.status_code = response_status_code
         return SubmitQuestionnaireResponse(
             status=False,
             message=f"Processing failed: {str(e)}",
             data={},
-            status_code=500,
+            status_code=response_status_code,
         )

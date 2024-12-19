@@ -29,6 +29,7 @@ from ai_mf_backend.models.v1.database.user_authentication import (
 from ai_mf_backend.utils.v1.errors import (
     InternalServerException,
     MalformedJWTRequestException,
+    generate_detailed_errors,
 )
 from fastapi.exception_handlers import (
     request_validation_exception_handler as _request_validation_exception_handler,
@@ -126,29 +127,24 @@ async def malformed_jwt_exception_handler(
 async def request_validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
-    """
-    This is a wrapper to the default RequestValidationException handler of FastAPI.
-    This function will be called when client input is not valid.
-    """
-    logger.debug("Our custom request_validation_exception_handler was called")
     body = await request.body()
-    query_params = request.query_params._dict  # pylint: disable=protected-access
+    query_params = request.query_params._dict
 
-    detail = [
-        {
-            "type": "missing",
-            "loc": ["body", field["loc"][-1]],  # Get the field name from the location
-            "msg": f"{field['loc'][-1].replace('_', ' ').capitalize()} is required",  # Custom error message
-            "input": {},  # No input, as the field is missing
-        }
-        for field in exc.errors()
-        if isinstance(field, dict) and field.get("msg") == "Field required"
-    ]
-    detail = {"errors": detail, "body": body.decode(), "query_params": query_params}
-    logger.info(detail)
+    detailed_errors = generate_detailed_errors(exc.errors())
+
+    error_response = {
+        "status": "error",
+        "message": "Validation failed",
+        "errors": detailed_errors,
+        "request_body": body.decode(),
+        "query_params": query_params,
+        "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
+    }
+
+    logger.error(f"Validation Error: {error_response}")
+
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": detail},
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
     )
 
 

@@ -1,5 +1,4 @@
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Response, Depends, Header
+from fastapi import APIRouter, HTTPException, Response, Depends, Header, status
 
 from asgiref.sync import sync_to_async
 
@@ -120,7 +119,7 @@ async def update_user_personal_financial_details(
         )
 
     user = await sync_to_async(
-        UserContactInfo.objects.filter(user_id=request.user_id).first
+        UserContactInfo.objects.filter(user_id=request.user_id, deleted=False).first
     )()
 
     if not user:
@@ -133,19 +132,27 @@ async def update_user_personal_financial_details(
         )
 
     user_personal = await sync_to_async(
-        UserPersonalDetails.objects.filter(user_id=request.user_id).first
+        UserPersonalDetails.objects.filter(user_id=request.user_id, deleted=False).first
     )()
     user_financial = await sync_to_async(
-        UserFinancialDetails.objects.filter(user_id=request.user_id).first
+        UserFinancialDetails.objects.filter(
+            user_id=request.user_id, deleted=False
+        ).first
     )()
 
-    response_message = "User personal and financial details updated successfully."
-    status_code = 200
+    if user.user_details_filled:
+        response_message = "User personal and financial details updated successfully."
+        status_code = status.HTTP_200_OK
+    else:
+        response_message = "User personal and financial details created successfully."
+        status_code = status.HTTP_201_CREATED
+        user.user_details_filled = True
+        await sync_to_async(user.save)()
 
     if not user_personal:
         user_personal = UserPersonalDetails(user=user)
-        response_message = "User personal and financial details created successfully."
-        status_code = 201
+    if not user_financial:
+        user_financial = UserFinancialDetails(user=user)
 
     if request.name:
         user_personal.name = request.name
@@ -155,11 +162,6 @@ async def update_user_personal_financial_details(
         user_personal.gender = gender
     if request.marital_status_id:
         user_personal.marital_status = marital_status
-
-    if not user_financial:
-        user_financial = UserFinancialDetails(user=user)
-        response_message = "User personal and financial details created successfully."
-        status_code = 201
 
     if request.occupation_id:
         user_financial.occupation = occupation

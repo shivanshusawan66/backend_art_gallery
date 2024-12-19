@@ -2,12 +2,13 @@ from django.db import models
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 
+from ai_mf_backend.utils.v1.constants import refresh_constants
+
 
 class Section(SoftDeleteModel):
-    section = models.CharField(max_length=100)  
-    add_date = models.DateTimeField(auto_now_add=True)  
-    update_date = models.DateTimeField(auto_now=True)  
-    initial_section_weight = models.FloatField() 
+    section = models.CharField(max_length=100, unique=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "section"
@@ -16,6 +17,10 @@ class Section(SoftDeleteModel):
 
     def __str__(self):
         return self.section
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
 
 
 class Question(SoftDeleteModel):
@@ -34,6 +39,10 @@ class Question(SoftDeleteModel):
 
     def __str__(self):
         return self.question
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
 
 
 class Allowed_Response(SoftDeleteModel):
@@ -56,6 +65,10 @@ class Allowed_Response(SoftDeleteModel):
 
     def __str__(self):
         return self.response
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
 
 
 class ConditionalQuestion(SoftDeleteModel):
@@ -89,6 +102,10 @@ class ConditionalQuestion(SoftDeleteModel):
     def __str__(self):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
+
 
 class UserResponse(SoftDeleteModel):
     user_id = models.ForeignKey(
@@ -113,6 +130,10 @@ class UserResponse(SoftDeleteModel):
 
     def __str__(self):
         return f"Response by {self.user_id} for {self.question_id.question}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        refresh_constants()
     
 class QuestionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(

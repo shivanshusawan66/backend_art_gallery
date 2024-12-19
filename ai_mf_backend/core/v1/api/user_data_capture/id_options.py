@@ -35,16 +35,16 @@ async def get_personal_options():
     # Constructing the response with a structure similar to the "courses" example
     return {
         "genders": {
-            "name": "genders",
-            "label": "Genders",
+            "name": "gender",
+            "label": "Gender",
             "options": gender_options,
             "type": "dropdown",
             "default": [gender_options[0]["key"]] if gender_options else [],
             "required": False,
         },
         "marital_statuses": {
-            "name": "marital_statuses",
-            "label": "Marital Statuses",
+            "name": "marital_status",
+            "label": "Marital Status",
             "options": marital_status_options,
             "type": "dropdown",
             "default": (
@@ -104,16 +104,16 @@ async def get_financial_options():
     # Constructing the response with a structure similar to the "courses" example
     return {
         "occupations": {
-            "name": "occupations",
-            "label": "Occupations",
+            "name": "occupation",
+            "label": "Occupation",
             "options": occupation_options,
             "type": "dropdown",
             "default": [occupation_options[0]["key"]] if occupation_options else [],
             "required": False,
         },
         "annual_incomes": {
-            "name": "annual_incomes",
-            "label": "Annual Incomes",
+            "name": "annual_income",
+            "label": "Annual Income",
             "options": annual_income_options,
             "type": "dropdown",
             "default": (
@@ -122,8 +122,8 @@ async def get_financial_options():
             "required": False,
         },
         "monthly_saving_capacities": {
-            "name": "monthly_saving_capacities",
-            "label": "Monthly Saving Capacities",
+            "name": "monthly_saving_capacity",
+            "label": "Monthly Saving Capacity",
             "options": monthly_saving_capacity_options,
             "type": "dropdown",
             "default": (
@@ -134,8 +134,8 @@ async def get_financial_options():
             "required": False,
         },
         "investment_amounts_per_year": {
-            "name": "investment_amounts_per_year",
-            "label": "Investment Amounts Per Year",
+            "name": "investment_amount_per_year",
+            "label": "Investment Amount Per Year",
             "options": investment_amount_per_year_options,
             "type": "dropdown",
             "default": (

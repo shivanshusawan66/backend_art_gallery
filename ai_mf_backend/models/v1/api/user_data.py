@@ -23,3 +23,21 @@ class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
 # Response model for updating UserFinancialDetails
 class UserPersonalFinancialDetailsUpdateResponse(Response):
     pass
+
+
+class UserPersonalFinancialFormData(BaseModel):
+    name: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[str] = None
+    marital_status: Optional[str] = None
+    occupation: Optional[str] = None
+    annual_income: Optional[str] = None
+    monthly_saving_capacity: Optional[str] = None
+    investment_amount_per_year: Optional[str] = None
+    regular_source_of_income: Optional[bool] = None
+    lock_in_period_accepted: Optional[bool] = None
+    investment_style: Optional[str] = None
+
+
+class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
+    pass

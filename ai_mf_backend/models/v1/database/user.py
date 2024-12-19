@@ -89,6 +89,10 @@ class UserContactInfo(SoftDeleteModel):
 
     is_verified = models.BooleanField(default=False)
 
+    questionnaire_filled = models.BooleanField(default=False)
+
+    user_details_filled = models.BooleanField(default=False)
+
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -142,7 +146,7 @@ class UserPersonalDetails(SoftDeleteModel):
         db_table = "user_personal_details"
 
     def __str__(self):
-        return str(self.user)
+        return f"Personal Details for {self.user}"
 
     def save(self, *args, **kwargs):
         # Only track changes and validate if this is an update (not creation)

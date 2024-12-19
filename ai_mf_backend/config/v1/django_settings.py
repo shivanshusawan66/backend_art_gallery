@@ -13,10 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
-import django
-from django.contrib import admin
-from django.urls import path
-
 from ai_mf_backend.config.v1.database_config import postgres_config
 from ai_mf_backend.config.v1.authentication_config import authentication_config
 
@@ -48,7 +44,7 @@ INSTALLED_APPS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://3e9c-203-190-154-106.ngrok-free.app",  # Add your ngrok URL here
+    "*",  # This is for development only not safe for  production
 ]
 
 MIDDLEWARE = [

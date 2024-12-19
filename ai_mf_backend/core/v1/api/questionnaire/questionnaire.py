@@ -4,6 +4,7 @@ from typing import List
 from asgiref.sync import sync_to_async
 
 from django.db import DatabaseError
+from django.db.models import Count
 from fastapi import APIRouter, Response, Depends, Request
 
 from ai_mf_backend.core.v1.api import limiter
@@ -20,12 +21,16 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionsResponse,
     VisibilityCondition,
     VisibilityDecisions,
+    SectionCompletionStatusRequest,
+    SectionCompletionStatus,
+    SectionCompletionStatusResponse,
 )
 from ai_mf_backend.models.v1.database.questions import (
     Question,
     Section,
     Allowed_Response,
     ConditionalQuestion,
+    UserResponse,
 )
 
 from ai_mf_backend.config.v1.api_config import api_config
@@ -44,10 +49,8 @@ logger = logging.getLogger(__name__)
 async def get_all_sections(request: Request, response: Response):
     try:
 
-        # Fetch sections using async to avoid sync issues
         sections = await sync_to_async(list)(Section.objects.all())
 
-        # Prepare the list of SectionBase objects
         sections_data = [
             SectionBase(section_id=section.pk, section_name=section.section)
             for section in sections
@@ -58,41 +61,40 @@ async def get_all_sections(request: Request, response: Response):
         return SectionsResponse(
             status=True,
             message="Sections fetched successfully.",
-            data=sections_data,  # Directly use the list of SectionBase.
+            data=sections_data,
             status_code=200,
         )
     except Exception as e:
 
         logger.error(f"Error fetching sections: {e}")
 
-        # Return error response
         response.status_code = 500
         return SectionsResponse(
             status=False,
             message="Failed to fetch sections.",
-            data=None,  # Set data as None for errors
+            data=None,
             status_code=500,
         )
 
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
-    "/section-wise-questions/",
+    "/section_wise_questions/",
     response_model=SectionQuestionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
 async def get_section_wise_questions(request: SectionRequest, response: Response):
     try:
-        # Check if section_id is provided
+
         specified_section_id = request.section_id
         if specified_section_id is None:
-            logger.warning("Section ID is missing or empty.")
-            response.status_code = 422
+            logger.warning("Section ID is required.")
+            response.status_code = 400
             return SectionQuestionsResponse(
                 status=False,
-                message="section_id cannot be empty.",
-                status_code=422,
+                message="Section ID is required.",
+                status_code=400,
             )
 
         if not isinstance(specified_section_id, int):
@@ -103,8 +105,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                 message="section_id must be an integer.",
                 status_code=422,
             )
-
-        # Fetch the current section using the specified ID
 
         current_section = await sync_to_async(
             Section.objects.filter(pk=specified_section_id).first
@@ -118,8 +118,6 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                 message="Section not found.",
                 status_code=404,
             )
-
-        # Fetch questions associated with the section
 
         questions = await sync_to_async(list)(
             Question.objects.filter(section=current_section)
@@ -153,11 +151,15 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
                     ).first
                 )()
 
-                condition_value = (
-                    condition_response.response if condition_response else None
-                )
+                condition_value = {
+                    "response_id": (
+                        condition_response.pk if condition_response else None
+                    ),
+                    "response_value": (
+                        condition_response.response if condition_response else None
+                    ),
+                }
 
-                # Build visibility condition
                 condition = {
                     "value": [condition_value],
                     "show": (
@@ -210,5 +212,78 @@ async def get_section_wise_questions(request: SectionRequest, response: Response
         logger.error(f"Unexpected error while fetching questions: {str(e)}")
         response.status_code = 500
         return SectionQuestionsResponse(
+            status=False, message="An unexpected error occurred.", status_code=500
+        )
+
+
+@router.post(
+    "/section_completion_status",
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_section_completion_status(
+    request: SectionCompletionStatusRequest,
+) -> SectionCompletionStatusResponse:
+    try:
+        user_id = request.user_id
+        if user_id <= 0:
+            return SectionCompletionStatusResponse(
+                status=False,
+                status_code=400,
+                message="User_id must be a positive integer",
+                data=[],
+            )
+
+        sections_with_question_counts = await sync_to_async(
+            lambda: list(
+                Section.objects.annotate(total_questions=Count("question")).filter(
+                    total_questions__gt=0
+                )
+            )
+        )()
+
+        answered_questions_by_section = await sync_to_async(
+            lambda: list(
+                UserResponse.objects.filter(user_id=user_id, deleted=False)
+                .values("section_id")
+                .annotate(answered_questions=Count("question_id", distinct=True))
+            )
+        )()
+
+        answered_questions_dict = {
+            item["section_id"]: item["answered_questions"]
+            for item in answered_questions_by_section
+        }
+
+        section_completion_status = [
+            SectionCompletionStatus(
+                section_id=section.id,
+                section_name=section.section,
+                answered_questions=answered_questions_dict.get(section.id, 0),
+                total_questions=section.total_questions,
+                completion_rate=(
+                    round(
+                        answered_questions_dict.get(section.id, 0)
+                        / section.total_questions
+                        * 100,
+                        2,
+                    )
+                    if section.total_questions > 0
+                    else 0.0
+                ),
+            )
+            for section in sections_with_question_counts
+        ]
+
+        return SectionCompletionStatusResponse(
+            status=True,
+            message="Successfully fetched section completion data",
+            data=section_completion_status,
+            status_code=200,
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching sections: {str(e)}")
+
+        return SectionCompletionStatusResponse(
             status=False, message="An unexpected error occurred.", status_code=500
         )
