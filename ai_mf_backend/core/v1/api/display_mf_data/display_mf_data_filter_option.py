@@ -49,8 +49,8 @@ async def mutual_funds_filter_options(request: Request, response: Response):
             message="Filters options fetched successfully",
             data=FundFamiliesResponseModel(
                 fund_family=fund_families,
-                morningstar_ratings=morningstar_ratings,
-                min_initial_investment=min_initial_investments,
+                morningstar_rating=morningstar_ratings,
+                min_investment=min_initial_investments,
             ),
             status_code=200,
         )

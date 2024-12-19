@@ -230,11 +230,12 @@ async def otp_verification(
             response.status_code = 201  # Set response status code
             return OTPVerificationResponse(
                 status=True,
-                message="The user is verified successfully",
+                message="Signed up successfully",
                 data={
                     "credentials": user_doc.email or user_doc.mobile_number,
                     "token": new_token,
                     "user_id": user_doc.user_id,
+                    "questionnaire_filled" : user_doc.questionnaire_filled,
                 },
                 status_code=201,
             )
@@ -247,6 +248,7 @@ async def otp_verification(
                     "credentials": user_doc.email or user_doc.mobile_number,
                     "token": new_token,
                     "user_id": user_doc.user_id,
+                    "questionnaire_filled" : user_doc.questionnaire_filled,
                 },
                 status_code=200,
             )

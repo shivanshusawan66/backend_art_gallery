@@ -11,9 +11,9 @@ from ai_mf_backend.utils.v1.enums import ReferenceTableEnums
 
 class MFFilterOptions(Singleton):
     CATEGORY_MAPPING = {
-        "1": "Small Cap",
+        "1": "Large Cap",
         "2": "Mid Cap",
-        "3": "Large Cap",
+        "3": "Small Cap",
         "4": "Mid and Large Cap",  # Mid and Large Cap combined
     }
 
