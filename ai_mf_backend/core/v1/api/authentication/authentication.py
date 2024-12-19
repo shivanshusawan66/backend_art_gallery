@@ -214,6 +214,7 @@ async def user_authentication_password(
                     "data": {
                         "credentials": email if email else mobile_no,
                         "user_id": user_doc.user_id,
+                        "questionnaire_filled" : user_doc.questionnaire_filled,
                     },
                 },
                 status_code=200,
