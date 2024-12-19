@@ -60,3 +60,4 @@ class SectionCompletionStatus(BaseModel):
 
 class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
+    pass
