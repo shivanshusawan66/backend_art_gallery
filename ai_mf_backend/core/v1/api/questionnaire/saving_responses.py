@@ -6,6 +6,7 @@ from fastapi import APIRouter, status, Response, Depends
 
 from django.core.exceptions import ValidationError
 
+from ai_mf_backend.core.v1.tasks.questionnaire_scoring import assign_user_weights_chain
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 from ai_mf_backend.models.v1.database.user import UserContactInfo
@@ -165,6 +166,8 @@ async def submit_questionnaire_response(
 
         for user_response_instance in validated_user_responses:
             await sync_to_async(user_response_instance.save)()
+        
+        assign_user_weights_chain(user_id)
 
         response.status_code = response_status_code
 

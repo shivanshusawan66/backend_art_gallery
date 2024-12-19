@@ -1,5 +1,8 @@
 import logging
+from celery import chain
+from asgiref.sync import sync_to_async
 from django.db import transaction
+from ai_mf_backend.core import celery_app
 from ai_mf_backend.models.v1.database.questions import (
     Question,
     Allowed_Response,
@@ -12,12 +15,12 @@ from ai_mf_backend.utils.v1.errors import AssignWeightException
 
 logger = logging.getLogger(__name__)
 
-def assign_initial_section_and_question_weights():
+async def assign_initial_section_and_question_weights():
     try:
         with transaction.atomic():
             # Fetch all sections
-            sections = Section.objects.all()
-            total_sections = sections.count()
+            sections =  await sync_to_async(list)(Section.objects.all)()
+            total_sections = await sync_to_async(sections.count)()
 
             if not total_sections:
                 logger.warning("No sections to assign weight")
@@ -28,8 +31,8 @@ def assign_initial_section_and_question_weights():
             # Process each section
             for section in sections:
                 section.initial_section_weight = weight_per_section
-                questions = Question.objects.filter(section=section)
-                total_questions = questions.count()
+                questions = await sync_to_async(Question.objects.filter)(section=section)
+                total_questions = await sync_to_async(questions.count)()
 
                 if not total_questions:
                     logger.warning(f"No questions found in Section ID {section.section}")
@@ -39,33 +42,33 @@ def assign_initial_section_and_question_weights():
 
                 for question in questions:
                     question.initial_question_weight = weight_per_question
-                    responses=Allowed_Response.objects.filter(question=question)
-                    total_responses = responses.count()
+                    responses = await sync_to_async(Allowed_Response.objects.filter)(question=question)
+                    total_responses = await sync_to_async(responses.count)()
 
                     if not total_responses:
                         logger.warning(f"No responses found for Question ID {question.question}")
                         raise AssignWeightException(f"No responses found for Question {question.question}")
                     position=1
-                    total_responses=responses.count()
                     response_weight=total_responses/5
                     for response in responses:
                         response.position=position
                         response.response_weight=response_weight
                         position+=1
-                        response.save()
-                    question.save()
-                section.save()
+                        await sync_to_async(response.save)()
+                    await sync_to_async(question.save)()
+                await sync_to_async(section.save)()
     except Exception as e:
         logger.error(f"Error assigning weight to sections and questions: {e}")
         raise AssignWeightException(f"Error assigning weight to sections and questions: {e}")
     
 
-def assign_final_question_weights(user_id : int):
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
+async def assign_final_question_weights(user_id : int):
 
     try:
         with transaction.atomic():
             # Fetch all sections
-            user_responses=UserResponse.objects.filter(user_id=user_id)
+            user_responses = await sync_to_async(UserResponse.objects.filter)(user_id=user_id)
             for response in user_responses:
 
                 allowed_response=Allowed_Response.objects.filter(pk=response.response_id).first()
@@ -83,7 +86,7 @@ def assign_final_question_weights(user_id : int):
         logger.error(f"Error assigning final question weights for user {user_id}: {e}")
         raise AssignWeightException(f"Error assigning final question weights for user {user_id}: {e}")
 
-
+@celery_app.task(acks_late=False, ignore_result=True, bind=True)
 def assign_final_section_weights(user_id : int):
     try:
         with transaction.atomic():
@@ -106,4 +109,14 @@ def assign_final_section_weights(user_id : int):
         logger.error(f"Error assigning final section weights for user {user_id}: {e}")
         raise AssignWeightException(f"Error assigning final section weights for user {user_id}: {e}")
     
-    
+
+def assign_user_weights_chain(user_id: int):
+    try:
+        task_chain=chain(
+            assign_final_question_weights.s(user_id),
+            assign_final_section_weights.s(user_id)
+        )
+        task_chain.apply_async()
+    except Exception as e:
+        logger.error(f"Error assigning weights for user {user_id}: {e}")
+        raise AssignWeightException(f"Error assigning weights for user {user_id}: {e}")
