@@ -79,15 +79,15 @@ class UserFinancialDetails(SoftDeleteModel):
         "InvestmentAmountPerYear", on_delete=models.SET_NULL, null=True, blank=True
     )
     regular_source_of_income = models.BooleanField(
-        choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
+        choices=[(True, "Yes"), (False, "No")], default=None, null=True, blank=True
     )
     lock_in_period_accepted = models.BooleanField(
-        choices=[(True, "Yes"), (False, "No")], default=False, null=True, blank=True
+        choices=[(True, "Yes"), (False, "No")], default=None, null=True, blank=True
     )
     investment_style = models.CharField(
         max_length=10,
         choices=[("SIP", "SIP"), ("Lump-Sum", "Lump-Sum")],
-        default="SIP",
+        default=None,
         null=True,
         blank=True,
     )
