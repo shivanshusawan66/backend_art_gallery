@@ -70,9 +70,6 @@ from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
 from ai_mf_backend.core.v1.api.yf_data_pull.yf_data_pull import (
     router as yf_data_pull_router_v1,
 )
-from ai_mf_backend.core.v1.api.celery_task_trigger.question_scoring_trigger import (
-    router as question_scoring_trigger,
-)
 
 # Router Inclusions
 connect_router.include_router(authentication_router_v1)
@@ -100,4 +97,3 @@ connect_router.include_router(mutual_fund_category_router_v1)
 connect_router.include_router(soft_delete_router_v1)
 
 connect_router.include_router(yf_data_pull_router_v1)
-connect_router.include_router(question_scoring_trigger)
