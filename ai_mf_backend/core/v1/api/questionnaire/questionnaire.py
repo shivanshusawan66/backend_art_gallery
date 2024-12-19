@@ -163,9 +163,9 @@ async def get_section_wise_questions(
             )
     user = None
     conditionals = await sync_to_async(
-    lambda: list(
-        ConditionalQuestion.objects.filter(visibility="hide").select_related(
-            "question", "response", "dependent_question"
+        lambda: list(
+            ConditionalQuestion.objects.filter(visibility="hide").select_related(
+                "question", "response", "dependent_question"
             )
         )
     )()
@@ -246,7 +246,9 @@ async def get_section_wise_questions(
                 )
         logger.info("Base Questions:", base_questions)
         logger.info("Dependency Dict:", dependency_dict)
-        logger.info("User Responses for base Questions", user_prev_responses_for_base_ques_dict)
+        logger.info(
+            "User Responses for base Questions", user_prev_responses_for_base_ques_dict
+        )
 
         if not isinstance(specified_section_id, int):
             logger.warning(f"Invalid section_id type: {type(specified_section_id)}")
@@ -284,10 +286,14 @@ async def get_section_wise_questions(
                 visibility = dependency_dict[question.pk]
 
                 for base_question_id, required_response_id in visibility.items():
-                    user_response = user_prev_responses_for_base_ques_dict.get(base_question_id)
-            
-            
-                    if user_response is not None and user_response == required_response_id:
+                    user_response = user_prev_responses_for_base_ques_dict.get(
+                        base_question_id
+                    )
+
+                    if (
+                        user_response is not None
+                        and user_response == required_response_id
+                    ):
                         skip = True
                         break
 
@@ -359,46 +365,99 @@ async def get_section_completion_status(
                 data=[],
             )
 
-        sections_with_question_counts = await sync_to_async(
+        # Get conditional questions and build dependency dict
+        conditionals = await sync_to_async(
             lambda: list(
-                Section.objects.annotate(total_questions=Count("question")).filter(
-                    total_questions__gt=0
+                ConditionalQuestion.objects.filter(visibility="hide").select_related(
+                    "question", "response", "dependent_question"
                 )
             )
         )()
 
-        answered_questions_by_section = await sync_to_async(
+        # Extract base question IDs
+        base_questions = list(set(cq.question.pk for cq in conditionals if cq.question))
+
+        # Get user responses only for base questions
+        user_responses = await sync_to_async(
             lambda: list(
-                UserResponse.objects.filter(user_id=user_id, deleted=False)
-                .values("section_id")
-                .annotate(answered_questions=Count("question_id", distinct=True))
+                UserResponse.objects.filter(
+                    user_id=user_id,
+                    deleted=False,
+                    question_id__in=base_questions,  # Only get responses for base questions
+                ).select_related("question_id", "response_id", "section_id")
             )
         )()
 
-        answered_questions_dict = {
-            item["section_id"]: item["answered_questions"]
-            for item in answered_questions_by_section
-        }
+        # Build dict of user responses for conditional logic
+        user_responses_dict = {}
+        for response in user_responses:
+            question_id = response.question_id.pk if response.question_id else None
+            response_id = response.response_id.pk if response.response_id else None
+            if question_id:
+                user_responses_dict[question_id] = response_id
 
-        section_completion_status = [
-            SectionCompletionStatus(
-                section_id=section.id,
-                section_name=section.section,
-                answered_questions=answered_questions_dict.get(section.id, 0),
-                total_questions=section.total_questions,
-                completion_rate=(
-                    round(
-                        answered_questions_dict.get(section.id, 0)
-                        / section.total_questions
-                        * 100,
-                        2,
-                    )
-                    if section.total_questions > 0
-                    else 0.0
-                ),
+        # Get all sections with their questions
+        sections_with_questions = await sync_to_async(
+            lambda: list(Section.objects.prefetch_related("question_set").all())
+        )()
+        dependency_dict = {}
+        for cq in conditionals:
+            dependent_question_id = (
+                cq.dependent_question.pk if cq.dependent_question else None
             )
-            for section in sections_with_question_counts
-        ]
+            base_question_id = cq.question.pk if cq.question else None
+            base_response_id = cq.response.pk if cq.response else None
+
+            if dependent_question_id and base_question_id and base_response_id:
+                if dependent_question_id not in dependency_dict:
+                    dependency_dict[dependent_question_id] = {}
+                dependency_dict[dependent_question_id][
+                    base_question_id
+                ] = base_response_id
+
+        section_completion_status = []
+
+        for section in sections_with_questions:
+            visible_questions = 0
+            answered_visible_questions = 0
+
+            # Count visible questions and answered visible questions
+            for question in section.question_set.all():
+                should_skip = False
+
+                # Check if question should be hidden based on conditional logic
+                if question.pk in dependency_dict:
+                    visibility = dependency_dict[question.pk]
+                    for base_question_id, required_response_id in visibility.items():
+                        user_response = user_responses_dict.get(base_question_id)
+                        if (
+                            user_response is not None
+                            and user_response == required_response_id
+                        ):
+                            should_skip = True
+                            break
+
+                if not should_skip:
+                    visible_questions += 1
+                    if question.pk in user_responses_dict:
+                        answered_visible_questions += 1
+
+            if visible_questions > 0:
+                completion_rate = round(
+                    (answered_visible_questions / visible_questions) * 100, 2
+                )
+            else:
+                completion_rate = 0.0
+
+            section_completion_status.append(
+                SectionCompletionStatus(
+                    section_id=section.id,
+                    section_name=section.section,
+                    answered_questions=answered_visible_questions,
+                    total_questions=visible_questions,
+                    completion_rate=completion_rate,
+                )
+            )
 
         return SectionCompletionStatusResponse(
             status=True,
@@ -408,7 +467,9 @@ async def get_section_completion_status(
         )
     except Exception as e:
         logger.error(f"Unexpected error while fetching sections: {str(e)}")
-
         return SectionCompletionStatusResponse(
-            status=False, message="An unexpected error occurred.", status_code=500
+            status=False,
+            message="An unexpected error occurred.",
+            status_code=500,
+            data=[],
         )
