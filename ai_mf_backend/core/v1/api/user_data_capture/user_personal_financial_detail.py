@@ -171,9 +171,9 @@ async def update_user_personal_financial_details(
         user_financial.saving_category = monthly_saving_capacity
     if request.investment_amount_per_year_id:
         user_financial.investment_amount_per_year = investment_amount_per_year
-    if request.regular_source_of_income:
+    if isinstance(request.regular_source_of_income, bool): 
         user_financial.regular_source_of_income = request.regular_source_of_income
-    if request.lock_in_period_accepted:
+    if isinstance(request.lock_in_period_accepted, bool):
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
         user_financial.investment_style = request.investment_style
