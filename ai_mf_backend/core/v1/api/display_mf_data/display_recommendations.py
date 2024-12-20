@@ -47,6 +47,7 @@ async def filter_mutual_funds(
         )
 
         if len(projections_diff):
+            response.status_code = 404
             return MutualFundFilterResponse(
                 status=False,
                 message=f"The following projections are not recognized -> {projections_diff}",
