@@ -1,6 +1,6 @@
 import logging
 
-from ai_mf_backend.core import celery_app
+from ai_mf_backend.core.celery_init import celery_app
 from ai_mf_backend.core.v1.tasks.questionnaire_scoring import (
     calculate_option_scores,
     calculate_question_score,

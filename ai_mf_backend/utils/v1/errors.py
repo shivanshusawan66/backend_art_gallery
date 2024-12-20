@@ -41,6 +41,7 @@ class MalformedJWTRequestException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 def generate_detailed_errors(errors):
     detailed_errors = []
     for error in errors:
@@ -70,8 +71,9 @@ def generate_detailed_errors(errors):
 
     return detailed_errors
 
+
 class AssignWeightException(Exception):
-    """Raise if some error occured while assigning weights """
+    """Raise if some error occured while assigning weights"""
 
     def __init__(self, message: str = "An error occurred while assigning weights."):
         self.message = message

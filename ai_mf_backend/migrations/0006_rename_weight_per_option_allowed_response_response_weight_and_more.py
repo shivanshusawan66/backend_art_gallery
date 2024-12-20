@@ -7,76 +7,132 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ai_mf_backend', '0005_merge_20241219_1850'),
+        ("ai_mf_backend", "0005_merge_20241219_1850"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='allowed_response',
-            old_name='weight_per_option',
-            new_name='response_weight',
+            model_name="allowed_response",
+            old_name="weight_per_option",
+            new_name="response_weight",
         ),
         migrations.RemoveField(
-            model_name='allowed_response',
-            name='option_score',
+            model_name="allowed_response",
+            name="option_score",
         ),
         migrations.RemoveField(
-            model_name='question',
-            name='base_weight',
+            model_name="question",
+            name="base_weight",
         ),
         migrations.RemoveField(
-            model_name='question',
-            name='initial_weight',
+            model_name="question",
+            name="initial_weight",
         ),
         migrations.RemoveField(
-            model_name='question',
-            name='question_score',
+            model_name="question",
+            name="question_score",
         ),
         migrations.RemoveField(
-            model_name='section',
-            name='section_score',
+            model_name="section",
+            name="section_score",
         ),
         migrations.AddField(
-            model_name='question',
-            name='initial_question_weight',
+            model_name="question",
+            name="initial_question_weight",
             field=models.FloatField(default=0.0),
         ),
         migrations.AddField(
-            model_name='section',
-            name='initial_section_weight',
+            model_name="section",
+            name="initial_section_weight",
             field=models.FloatField(default=0.0),
         ),
         migrations.AlterField(
-            model_name='allowed_response',
-            name='position',
+            model_name="allowed_response",
+            name="position",
             field=models.PositiveIntegerField(default=0),
             preserve_default=False,
         ),
         migrations.CreateModel(
-            name='QuestionWeightsPerUser',
+            name="QuestionWeightsPerUser",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('weight', models.FloatField(default=0.0)),
-                ('question', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.question')),
-                ('section', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.section')),
-                ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("weight", models.FloatField(default=0.0)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.question",
+                    ),
+                ),
+                (
+                    "section",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.section",
+                    ),
+                ),
+                (
+                    "user_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='SectionWeightsPerUser',
+            name="SectionWeightsPerUser",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.BooleanField(default=False)),
-                ('weight', models.FloatField(default=0.0)),
-                ('section', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.section')),
-                ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_mf_backend.usercontactinfo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted", models.BooleanField(default=False)),
+                ("weight", models.FloatField(default=0.0)),
+                (
+                    "section",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.section",
+                    ),
+                ),
+                (
+                    "user_id",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="ai_mf_backend.usercontactinfo",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

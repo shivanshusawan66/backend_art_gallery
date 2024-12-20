@@ -166,7 +166,7 @@ async def submit_questionnaire_response(
 
         for user_response_instance in validated_user_responses:
             await sync_to_async(user_response_instance.save)()
-        
+
         assign_user_weights_chain(user_id)
 
         response.status_code = response_status_code

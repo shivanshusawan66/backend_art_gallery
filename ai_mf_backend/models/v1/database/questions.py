@@ -31,7 +31,7 @@ class Question(SoftDeleteModel):
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-    initial_question_weight = models.FloatField(default=0.0) 
+    initial_question_weight = models.FloatField(default=0.0)
 
     class Meta:
         db_table = "question"
@@ -135,7 +135,8 @@ class UserResponse(SoftDeleteModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         refresh_constants()
-    
+
+
 class QuestionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
