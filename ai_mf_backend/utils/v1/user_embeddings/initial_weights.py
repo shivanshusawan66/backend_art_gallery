@@ -31,12 +31,16 @@ async def assign_initial_section_and_question_weights():
             await sync_to_async(section.save)()
 
             # Fetch all questions for this section
-            questions = await sync_to_async(list)(Question.objects.filter(section=section))
+            questions = await sync_to_async(list)(
+                Question.objects.filter(section=section)
+            )
             total_questions = len(questions)
 
             if not total_questions:
                 logger.warning(f"No questions found in Section ID {section.id}")
-                raise AssignWeightException(f"No questions found in Section {section.id}")
+                raise AssignWeightException(
+                    f"No questions found in Section {section.id}"
+                )
 
             weight_per_question = 1 / total_questions
 
@@ -47,12 +51,16 @@ async def assign_initial_section_and_question_weights():
                 await sync_to_async(question.save)()
 
                 # Fetch all responses for this question
-                responses = await sync_to_async(list)(Allowed_Response.objects.filter(question=question))
+                responses = await sync_to_async(list)(
+                    Allowed_Response.objects.filter(question=question)
+                )
                 total_responses = len(responses)
 
                 if not total_responses:
                     logger.warning(f"No responses found for Question ID {question.id}")
-                    raise AssignWeightException(f"No responses found for Question {question.id}")
+                    raise AssignWeightException(
+                        f"No responses found for Question {question.id}"
+                    )
 
                 position = 1
                 response_weight = 1 / total_responses  # Divide evenly across responses
@@ -67,4 +75,6 @@ async def assign_initial_section_and_question_weights():
 
     except Exception as e:
         logger.error(f"Error assigning weight to sections and questions: {e}")
-        raise AssignWeightException(f"Error assigning weight to sections and questions: {e}")
+        raise AssignWeightException(
+            f"Error assigning weight to sections and questions: {e}"
+        )

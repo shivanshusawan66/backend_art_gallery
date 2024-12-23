@@ -22,35 +22,41 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(acks_late=False, bind=True)
-async def assign_final_question_weights(self, user_id: int):
-    logger.info("the assign final question weight started step-0")
+def assign_final_question_weights(self, user_id: int):
     try:
         with transaction.atomic():
             # Fetch all sections
-            logger.info("the assign final question weight started step-1")
-            user_responses = await sync_to_async(UserResponse.objects.filter)(
-                user_id_id=user_id
-            )
+            user_responses = UserResponse.objects.filter(user_id_id=user_id)
             for response in user_responses:
-
-                allowed_response = await sync_to_async(
-                    Allowed_Response.objects.filter(pk=response.response_id).first
-                )()
+                response_id = int(response.response_id.id)
+                allowed_response = Allowed_Response.objects.filter(
+                    pk=response_id
+                ).first()
                 response_score = (
                     allowed_response.response_weight * allowed_response.position
                 )
-
-                question = await sync_to_async(
-                    Question.objects.filter(question=response.question_id).first
-                )()
-                question_weight_for_user = QuestionWeightsPerUser(
+                question = Question.objects.filter(
+                    question=response.question_id
+                ).first()
+                question_weight_for_user = QuestionWeightsPerUser.objects.filter(
                     user_id_id=user_id,
                     question=response.question_id,
                     section=response.section_id,
-                    weight=response_score * question.initial_question_weight,
-                )
+                ).first()
+                if question_weight_for_user:
+                    question_weight_for_user.weight = (
+                        response_score * question.initial_question_weight
+                    )
+                    question_weight_for_user.save()
+                else:
+                    question_weight_for_user = QuestionWeightsPerUser(
+                        user_id_id=user_id,
+                        question=response.question_id,
+                        section=response.section_id,
+                        weight=response_score * question.initial_question_weight,
+                    )
                 logger.info(f"question weight saved {user_id}")
-                await sync_to_async(question_weight_for_user.save)()
+                question_weight_for_user.save()
     except Exception as e:
         logger.error(f"Error assigning final question weights for user {user_id}: {e}")
         raise AssignWeightException(
@@ -59,27 +65,34 @@ async def assign_final_question_weights(self, user_id: int):
 
 
 @celery_app.task(acks_late=False, bind=True)
-async def assign_final_section_weights(self, user_id: int):
+def assign_final_section_weights(self, user_id: int):
     try:
         with transaction.atomic():
-            questions = await sync_to_async(list)(
-                QuestionWeightsPerUser.objects.filter(user_id_id=user_id)
-            )
-            sections = await sync_to_async(list)(Section.objects.all())
+            questions = QuestionWeightsPerUser.objects.filter(user_id_id=user_id)
+            sections = Section.objects.all()
             for section in sections:
                 final_section_weight = 0
                 for question in questions:
-                    if question.section == section.id:
+                    if question.section == section:
                         final_section_weight += question.weight
                     else:
                         continue
-                section_weight_for_user = SectionWeightsPerUser(
-                    user_id_id=user_id,
-                    section=section.pk,
-                    weight=final_section_weight * section.initial_section_weight,
-                )
-                logger.info(f"question weight saved {user_id}")
-                await sync_to_async(section_weight_for_user.save)()
+                section_weight_for_user = SectionWeightsPerUser.objects.filter(
+                    user_id_id=user_id, section=section
+                ).first()
+                if section_weight_for_user:
+                    section_weight_for_user.weight = (
+                        final_section_weight * section.initial_section_weight
+                    )
+                    section_weight_for_user.save()
+                else:
+                    section_weight_for_user = SectionWeightsPerUser(
+                        user_id_id=user_id,
+                        section=section,
+                        weight=final_section_weight * section.initial_section_weight,
+                    )
+                logger.info(f"section weight saved {user_id}")
+                section_weight_for_user.save()
     except Exception as e:
         logger.error(f"Error assigning final section weights for user {user_id}: {e}")
         raise AssignWeightException(
@@ -90,11 +103,10 @@ async def assign_final_section_weights(self, user_id: int):
 async def assign_user_weights_chain(user_id: int):
     try:
         task_chain = chain(
-            assign_final_question_weights.si(user_id), assign_final_section_weights.si(user_id)
+            assign_final_question_weights.si(user_id),
+            assign_final_section_weights.si(user_id),
         )
-        logger.info(f"chain called {user_id}")
         task_chain.apply_async()
-        logger.info(f"chain called done {user_id}")
     except Exception as e:
         logger.error(f"Error assigning weights for user {user_id}: {e}")
         raise AssignWeightException(f"Error assigning weights for user {user_id}: {e}")
