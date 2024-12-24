@@ -376,6 +376,7 @@ async def get_section_completion_status(
 
         # Extract base question IDs
         base_questions = list(set(cq.question.pk for cq in conditionals if cq.question))
+        logger.info("These are our base questions", base_questions)
 
         # Get user responses only for base questions
         user_responses = await sync_to_async(
@@ -383,7 +384,7 @@ async def get_section_completion_status(
                 UserResponse.objects.filter(
                     user_id=user_id,
                     deleted=False,
-                    question_id__in=base_questions,  # Only get responses for base questions
+                    
                 ).select_related("question_id", "response_id", "section_id")
             )
         )()
@@ -395,6 +396,7 @@ async def get_section_completion_status(
             response_id = response.response_id.pk if response.response_id else None
             if question_id:
                 user_responses_dict[question_id] = response_id
+        print("Thsess are our user's responses", user_responses_dict)
 
         # Get all sections with their questions
         sections_with_questions = await sync_to_async(
@@ -414,38 +416,58 @@ async def get_section_completion_status(
                 dependency_dict[dependent_question_id][
                     base_question_id
                 ] = base_response_id
+        print("this is our dependecny dict", dependency_dict)
 
         section_completion_status = []
 
         for section in sections_with_questions:
+            print("Processing started for section with section_id  :",section.pk)
             visible_questions = 0
             answered_visible_questions = 0
+            # print("these are our questions", section.question_set.all())
 
             # Count visible questions and answered visible questions
             for question in section.question_set.all():
+                print("Processing started for question with question_id  :",question.pk)
+
                 should_skip = False
 
                 # Check if question should be hidden based on conditional logic
                 if question.pk in dependency_dict:
+                    
+                    print(f"Question with id {question.pk} found in {dependency_dict}")
+
                     visibility = dependency_dict[question.pk]
+                    print("checkinig visibility conditions against" , visibility)
                     for base_question_id, required_response_id in visibility.items():
                         user_response = user_responses_dict.get(base_question_id)
+                        print(f"{user_response} for {base_question_id} ")
                         if (
                             user_response is not None
                             and user_response == required_response_id
                         ):
                             should_skip = True
+                            print(question.pk, "will be skiped")
                             break
 
                 if not should_skip:
+                    print(question.pk, "will not be skiped")
                     visible_questions += 1
-                    if question.pk in user_responses_dict:
+                    print("checking weather user has answered", question.pk , user_responses_dict)
+                    if question.pk in user_responses_dict.keys():
+                        print(f"yes {question.pk} has been answered")
+                        print("incrementing answered questiopns value from ", answered_visible_questions)
                         answered_visible_questions += 1
+                        print("to", answered_visible_questions)
+                    else:
+                        print(f"No the user hasn't answered {question.pk}")
+            print(f"section {section.pk} has been proceesed")
+            print(f"visibile_qusestion for sectiomn {section.pk} {visible_questions}")
+            print(f"answered_visible_questions for section {section.pk} {answered_visible_questions}")
 
             if visible_questions > 0:
-                completion_rate = round(
-                    (answered_visible_questions / visible_questions) * 100, 2
-                )
+                completion_rate = int((answered_visible_questions / visible_questions) * 100)
+                
             else:
                 completion_rate = 0.0
 
