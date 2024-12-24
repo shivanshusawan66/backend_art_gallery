@@ -7,6 +7,7 @@ from ai_mf_backend.utils.v1.constants import refresh_constants
 
 class Section(SoftDeleteModel):
     section = models.CharField(max_length=100, unique=True)
+    initial_section_weight = models.FloatField(default=0.0)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -30,6 +31,7 @@ class Question(SoftDeleteModel):
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
+    initial_question_weight = models.FloatField(default=0.0)
 
     class Meta:
         db_table = "question"
@@ -52,6 +54,8 @@ class Allowed_Response(SoftDeleteModel):
         Section, on_delete=models.SET_NULL, null=True, blank=True
     )
     response = models.CharField(max_length=500)
+    position = models.PositiveIntegerField()
+    response_weight = models.FloatField(default=0.0)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -131,3 +135,26 @@ class UserResponse(SoftDeleteModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         refresh_constants()
+
+
+class QuestionWeightsPerUser(SoftDeleteModel):
+    user_id = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    question = models.ForeignKey(
+        Question, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    section = models.ForeignKey(
+        Section, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    weight = models.FloatField(default=0.0)
+
+
+class SectionWeightsPerUser(SoftDeleteModel):
+    user_id = models.ForeignKey(
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    section = models.ForeignKey(
+        Section, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    weight = models.FloatField(default=0.0)

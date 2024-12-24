@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional, List
 
 # from pydantic import field_validator
-
 from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
@@ -94,6 +93,10 @@ class DjangoAppConfig(AppConfig):
 
     def ready(self):
         from ai_mf_backend.utils.v1.constants import refresh_constants
+        from ai_mf_backend.utils.v1.user_embeddings.initial_weights import (
+            assign_initial_section_and_question_weights,
+        )
 
         # Run the asynchronous refresh_constants during startup
         asyncio.run(refresh_constants())
+        asyncio.run(assign_initial_section_and_question_weights())
