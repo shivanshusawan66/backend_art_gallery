@@ -34,6 +34,8 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     VisibilityDecisions,
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
+    TotalCompletionStatusResponse,
+    
 )
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
@@ -494,4 +496,49 @@ async def get_section_completion_status(
             message="An unexpected error occurred.",
             status_code=500,
             data=[],
+        )
+@router.get(
+    "/total_completion_status/",
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_total_completion_status(
+    user_id: int = Query(..., description="User ID")
+) -> TotalCompletionStatusResponse:
+    try:
+        
+        section_status_response = await get_section_completion_status(user_id)
+
+        if not section_status_response.status or not section_status_response.data:
+            status_code = 400 if not section_status_response.status else 500
+            return TotalCompletionStatusResponse(
+                status=False,
+                message="Failed to fetch section completion data.",
+                total_completion_rate=0.0,
+                status_code=status_code,
+            )
+
+        
+        total_answered = sum(section.answered_questions for section in section_status_response.data)
+        total_questions = sum(section.total_questions for section in section_status_response.data)
+
+        if total_questions == 0:
+            overall_completion_rate = 0.0
+        else:
+            overall_completion_rate = (total_answered / total_questions) * 100
+
+        return TotalCompletionStatusResponse(
+            status=True,
+            message="Successfully fetched total completion status.",
+            total_completion_rate=int(overall_completion_rate),
+            status_code=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching total completion status: {str(e)}")
+        return TotalCompletionStatusResponse(
+            status=False,
+            message="An unexpected error occurred.",
+            total_completion_rate=0.0,
+            status_code=500,
         )
