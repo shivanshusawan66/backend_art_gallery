@@ -368,7 +368,7 @@ async def resend_otp(
             response.status_code = 429  # Set response status code
             return ResendOTPResponse(
                 status=False,
-                message=f"Please wait for {15 - time_diff.seconds} seconds before sending another request.",
+                message="Too many hits! Please wait for a moment.",
                 data={"credentials": email if email else mobile_no},
                 status_code=429,
             )
