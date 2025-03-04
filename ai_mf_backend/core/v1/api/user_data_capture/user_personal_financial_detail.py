@@ -30,6 +30,7 @@ from ai_mf_backend.utils.v1.validators.dates import (
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
 
 router = APIRouter()
 
@@ -179,8 +180,14 @@ async def update_user_personal_financial_details(
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
         user_financial.investment_style = request.investment_style
-
+    
     try:
+        # Validate profile modification time if instances exist (updating)
+        if user_personal.pk is not None:
+            await sync_to_async(validate_profile_modification_time)(user_personal)
+        if user_financial.pk is not None:
+            await sync_to_async(validate_profile_modification_time)(user_financial)
+        
         await sync_to_async(
             user_personal.full_clean
         )()  # Run validation for user personal details

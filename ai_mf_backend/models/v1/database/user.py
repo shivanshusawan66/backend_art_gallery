@@ -146,36 +146,7 @@ class UserPersonalDetails(SoftDeleteModel):
     def __str__(self):
         return f"Personal Details for {self.user}"
 
-    def save(self, *args, **kwargs):
-        # Only track changes and validate if this is an update (not creation)
-        if self.pk:  # Object exists in the database
-            old_instance = UserPersonalDetails.objects.get(pk=self.pk)
-
-            # Track changes in fields
-            changed_fields = track_changes(
-                old_instance,
-                self,
-                [
-                    "name",
-                    "date_of_birth",
-                    "gender",
-                    "marital_status",
-                ],
-            )
-            if changed_fields:
-                logger.info(
-                    f"User {self.user} changed profile fields: {changed_fields}"
-                )
-
-            # Validate profile modification restrictions
-            try:
-                validate_profile_modification_time(self)
-            except ValidationError as e:
-                raise ValidationError(str(e))
-
-
-        # Save the instance to the database
-        super().save(*args, **kwargs)
+    
 
 
 class OTPlogs(SoftDeleteModel):
