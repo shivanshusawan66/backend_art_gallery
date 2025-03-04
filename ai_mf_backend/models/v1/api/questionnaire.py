@@ -62,8 +62,5 @@ class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
     pass
 
-class TotalCompletionStatusResponse(BaseModel):
-    status: bool
-    message: str
-    total_completion_rate: int 
-    status_code: int
+class TotalCompletionStatusResponse(Response):
+    data: Dict[str, int]
