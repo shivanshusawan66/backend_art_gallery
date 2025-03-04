@@ -1,3 +1,4 @@
+from django.utils import timezone
 from fastapi import APIRouter, HTTPException, Response, Depends, Header, status
 
 from asgiref.sync import sync_to_async
@@ -22,6 +23,7 @@ from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsUpdateResponse,
 )
 
+from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
@@ -196,6 +198,14 @@ async def update_user_personal_financial_details(
                 "errors": str(e),
             },
         )
+
+    await sync_to_async(UserLogs.objects.create)(
+        user=user,
+        action="profile_update",
+        last_access=timezone.now(),
+        ip_details=None,
+        device_type=None,
+    )
 
     return UserPersonalFinancialDetailsUpdateResponse(
         status=True,

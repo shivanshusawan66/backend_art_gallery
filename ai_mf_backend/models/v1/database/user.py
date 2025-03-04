@@ -138,9 +138,7 @@ class UserPersonalDetails(SoftDeleteModel):
     update_date = models.DateTimeField(
         auto_now=True, validators=[validate_not_future_date]
     )
-    modification_count = models.PositiveIntegerField(
-        default=0
-    )  # Track number of modifications
+
 
     class Meta:
         db_table = "user_personal_details"
@@ -175,11 +173,6 @@ class UserPersonalDetails(SoftDeleteModel):
             except ValidationError as e:
                 raise ValidationError(str(e))
 
-            # Increment modification count if any fields are changed
-            self.modification_count += 1
-        else:
-            # Reset modification count for new users
-            self.modification_count = 0
 
         # Save the instance to the database
         super().save(*args, **kwargs)

@@ -13,32 +13,47 @@ logger = logging.getLogger(__name__)
 def validate_profile_modification_time(instance):
     """
     Validator to restrict profile modification within a defined period and number of changes.
-    Users can only modify their profile a limited number of times in a 7-day window.
+    Validates if the user has exceeded the allowed changes in a sliding window.
     """
-    max_changes_per_window = (
-        api_config.MAX_CHANGES_PER_WINDOW
-    )  # Maximum allowed changes in 7 days
-    restriction_period = timedelta(days=api_config.CHANGES_WINDOW)  # 7-day window
+    from ai_mf_backend.models.v1.database.user_authentication import UserLogs
+    
+    max_changes = api_config.MAX_CHANGES_PER_WINDOW
+    window_days = api_config.CHANGES_WINDOW
+    restriction_period = timedelta(days=window_days)
 
-    # Ensure the instance has an `update_date` and `modification_count`
-    if not instance.pk or not instance.modification_count:
+    # Safety check
+    if not instance.pk:
         return
 
-    # Calculate the time since the last update
-    time_since_last_update = timezone.now() - instance.update_date
+    # Calculate the start time of the sliding window (now - window_days)
+    start_time = timezone.now() - restriction_period
 
-    # Check if the time since the last update is within the 7-day window
-    if time_since_last_update < restriction_period:
-        if instance.modification_count >= max_changes_per_window:
-            days_left = (restriction_period - time_since_last_update).days
+    # Count profile updates within the window
+    change_count = UserLogs.objects.filter(
+        user=instance.user,
+        action="profile_update",
+        last_access__gte=start_time
+    ).count()
+
+    if change_count >= max_changes:
+        # Find the oldest entry in the current window
+        oldest_log = UserLogs.objects.filter(
+            user=instance.user,
+            action="profile_update",
+            last_access__gte=start_time
+        ).order_by("last_access").first() 
+
+        if oldest_log:
+            # Calculate when the next change is allowed
+            next_allowed_time = oldest_log.last_access + restriction_period
+            time_remaining = next_allowed_time - timezone.now()
+            days_remaining = max(1, time_remaining.days + 1)  # Ceiling to whole days
             raise ValidationError(
-                f"You can only change your profile {max_changes_per_window} times in a 7-day window. "
-                f"You have used up your {max_changes_per_window} changes, please try again after {days_left} days."
+                f"You can only change your profile {max_changes} times in a {window_days}-day window. "
+                f"Try again in {days_remaining} days."
             )
-    else:
-        instance.modification_count = (
-            0  # Reset modification count after the 7-day window
-        )
+        else:
+            raise ValidationError("Maximum changes reached.")
 
 
 def track_changes(old_instance, new_instance, fields_to_track):
