@@ -11,7 +11,7 @@ from ai_mf_backend.models.v1.database.questions import (
     Section,
     Allowed_Response,  
 )
-from ai_mf_backend.models.v1.api.questionnaire import SectionQuestionsResponse
+from ai_mf_backend.models.v1.api.questionnaire import (CurrentHoldingResponse,CurrentHoldingData)
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus
 from asgiref.sync import sync_to_async
 
@@ -153,8 +153,7 @@ async def get_financial_options():
             "required": False,
         },
     }
-
-@router.get("/options_user_current_holding_details", response_model=SectionQuestionsResponse)
+@router.get("/options_user_current_holding_details", response_model=CurrentHoldingResponse)
 async def get_current_holding_options():
     specified_section_id = 10
     question_ids = [1001, 1002]
@@ -165,10 +164,14 @@ async def get_current_holding_options():
     )()
 
     if not current_section:
-        return SectionQuestionsResponse(
+        return CurrentHoldingResponse(
             status=False,
             message="Section not found.",
             status_code=404,
+            type="current_holding",
+            data=CurrentHoldingData(
+                questions=[],
+            ),
         )
 
     # Fetch questions
@@ -198,24 +201,24 @@ async def get_current_holding_options():
                 {
                     "option_id": option["id"],
                     "label": option["response"],
-                    "response": option["response"],  
+                    "response": option["response"],
                     "value": option["response"].lower(),
                 }
                 for option in options
             ],
-            "required": False,      
-            "type": "dropdown"      
+            "required": False,
+            "type": "dropdown",
         }
         question_data_list.append(question_data)
 
-    # Construct the final response with all required fields
-    return SectionQuestionsResponse(
+    # Construct the final response using the new Pydantic model.
+    return CurrentHoldingResponse(
         status=True,
         message="Successfully fetched section questions.",
         status_code=200,
-        data={
-            "section_id": current_section.pk,        
-            "section_name": current_section.section,   
-            "questions": question_data_list,
-        },
+        type="dropdown",
+        data=CurrentHoldingData(
+            
+            questions=question_data_list,
+        ),
     )
