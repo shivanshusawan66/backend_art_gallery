@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ai_mf_backend.models.v1.api.user_data import UserPersonalFinancialDetailsResponsesDisplayResponse
+from ai_mf_backend.models.v1.api.user_data import UserProfileOptionResponse
 from ai_mf_backend.models.v1.database.financial_details import (
     Occupation,
     AnnualIncome,
@@ -14,7 +14,7 @@ router = APIRouter()
 
 # Function to fetch options for personal details
 @router.get("/options_user_personal_details/",
-            response_model=UserPersonalFinancialDetailsResponsesDisplayResponse
+            response_model=UserProfileOptionResponse
 )
 async def get_personal_options():
     try:
@@ -56,7 +56,7 @@ async def get_personal_options():
                 },
             }
     
-        return UserPersonalFinancialDetailsResponsesDisplayResponse(
+        return UserProfileOptionResponse(
                 status=True,
                 message="Options fetched successfully",
                 data=data,
@@ -64,7 +64,7 @@ async def get_personal_options():
             )
 
     except Exception as e:
-        return UserPersonalFinancialDetailsResponsesDisplayResponse(
+        return UserProfileOptionResponse(
             status=False,
             message=f"Failed to fetch options: {str(e)}",
             data={},
@@ -74,7 +74,7 @@ async def get_personal_options():
 
 
 @router.get("/options_user_financial_details/",
-            response_model=UserPersonalFinancialDetailsResponsesDisplayResponse
+            response_model=UserProfileOptionResponse
 )
 async def get_financial_options():
     try:
@@ -167,7 +167,7 @@ async def get_financial_options():
             },
         }
 
-        return UserPersonalFinancialDetailsResponsesDisplayResponse(
+        return UserProfileOptionResponse(
             status=True,
             message="Financial options fetched successfully",
             data=data,
@@ -175,7 +175,7 @@ async def get_financial_options():
         )
     
     except Exception as e:
-        return UserPersonalFinancialDetailsResponsesDisplayResponse(
+        return UserProfileOptionResponse(
             status=False,
             message=f"Failed to fetch financial options: {str(e)}",
             data={},

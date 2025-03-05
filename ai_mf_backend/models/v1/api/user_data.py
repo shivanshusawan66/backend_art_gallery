@@ -41,3 +41,6 @@ class UserPersonalFinancialFormData(BaseModel):
 
 class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
     pass
+
+class UserProfileOptionResponse(Response):
+    pass
