@@ -1,55 +1,55 @@
 import logging
 from datetime import timedelta
+from asgiref.sync import sync_to_async
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from ai_mf_backend.config.v1.api_config import api_config
 
 logger = logging.getLogger(__name__)
 
 
 # Updated validation function to consider both time and modification count
-def validate_profile_modification_time(instance):
+async def validate_profile_modification_time(instance):
     """
     Validator to restrict profile modification within a defined period and number of changes.
-    Users can only modify their profile a limited number of times in a 7-day window.
+    Validates if the user has exceeded the allowed changes in a time zone window
     """
-    max_changes_per_window = (
-        api_config.MAX_CHANGES_PER_WINDOW
-    )  # Maximum allowed changes in 7 days
-    restriction_period = timedelta(days=api_config.CHANGES_WINDOW)  # 7-day window
+    
+    
+    max_changes = api_config.MAX_CHANGES_PER_WINDOW
+    window_days = api_config.CHANGES_WINDOW
+    restriction_period = timedelta(days=window_days)
 
-    # Ensure the instance has an `update_date` and `modification_count`
-    if not instance.pk or not instance.modification_count:
-        return
+    # Calculate the start time of the sliding window (now - window_days)
+    start_time = timezone.now() - restriction_period
 
-    # Calculate the time since the last update
-    time_since_last_update = timezone.now() - instance.update_date
+    # Count profile updates within the window
+    change_count = await sync_to_async(
+    UserLogs.objects.filter(
+        user_id=instance.user_id,
+        action="profile_update",
+        last_access__gte=start_time
+    ).count
+    )()
 
-    # Check if the time since the last update is within the 7-day window
-    if time_since_last_update < restriction_period:
-        if instance.modification_count >= max_changes_per_window:
-            days_left = (restriction_period - time_since_last_update).days
-            raise ValidationError(
-                f"You can only change your profile {max_changes_per_window} times in a 7-day window. "
-                f"You have used up your {max_changes_per_window} changes, please try again after {days_left} days."
-            )
-    else:
-        instance.modification_count = (
-            0  # Reset modification count after the 7-day window
+    if change_count >= max_changes:
+        oldest_log = await sync_to_async(
+        UserLogs.objects.filter(
+            user_id=instance.user_id,
+            action="profile_update",
+            last_access__gte=start_time
+        ).order_by("last_access").first
+        )()
+
+        next_allowed_time = oldest_log.last_access + restriction_period
+        next_time_formatted = next_allowed_time.strftime("%Y-%m-%d at %H:%M:%S")
+        raise ValidationError(
+            f"You have reached the maximum number of profile updates allowed within a "
+            f"{window_days}-day period. Your next update will be permitted on {next_time_formatted}. "
+            "Please try again after that time."
         )
-
-
-def track_changes(old_instance, new_instance, fields_to_track):
-    """
-    Compare specified fields in the old and new instance to track changes.
-    Returns a dictionary of changed fields with old and new values.
-    """
-    changed_fields = {}
-    for field in fields_to_track:
-        old_value = getattr(old_instance, field)
-        new_value = getattr(new_instance, field)
-        if old_value != new_value:
-            changed_fields[field] = {"old": old_value, "new": new_value}
-    return changed_fields
+    else:
+        return True
