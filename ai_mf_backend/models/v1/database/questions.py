@@ -54,7 +54,7 @@ class Allowed_Response(SoftDeleteModel):
         Section, on_delete=models.SET_NULL, null=True, blank=True
     )
     response = models.CharField(max_length=500)
-    position = models.PositiveIntegerField()
+    position = models.PositiveIntegerField(default=0.0)
     response_weight = models.FloatField(default=0.0)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
