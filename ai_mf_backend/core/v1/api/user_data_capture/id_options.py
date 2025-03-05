@@ -187,9 +187,7 @@ async def get_current_holding_options():
     for question in questions:
         options = await sync_to_async(
             lambda: list(
-                Allowed_Response.objects.filter(question=question).values(
-                    "id", "response"
-                )
+                Allowed_Response.objects.filter(question=question).values("id", "response")
             )
         )()
 
@@ -199,29 +197,25 @@ async def get_current_holding_options():
             "options": [
                 {
                     "option_id": option["id"],
-                    "response": option["response"],
                     "label": option["response"],
+                    "response": option["response"],  
                     "value": option["response"].lower(),
-                    "field": {
-                        "name": f"field_{option['id']}",
-                        "type": "text",
-                        "placeholder": f"Enter {option['response'].lower()} value",
-                        "required": False,
-                    },
                 }
                 for option in options
             ],
+            "required": False,      
+            "type": "dropdown"      
         }
         question_data_list.append(question_data)
 
-    # Construct response using dictionaries
+    # Construct the final response with all required fields
     return SectionQuestionsResponse(
         status=True,
         message="Successfully fetched section questions.",
         status_code=200,
         data={
-            "section_id": current_section.pk,
-            "section_name": current_section.section,
+            "section_id": current_section.pk,        
+            "section_name": current_section.section,   
             "questions": question_data_list,
         },
     )
