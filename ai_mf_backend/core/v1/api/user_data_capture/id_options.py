@@ -5,6 +5,13 @@ from ai_mf_backend.models.v1.database.financial_details import (
     MonthlySavingCapacity,
     InvestmentAmountPerYear,
 )
+#basically to import questions from questions table for current holding status
+from ai_mf_backend.models.v1.database.questions import (
+    Question,
+    Section,
+    Allowed_Response,  
+)
+from ai_mf_backend.models.v1.api.questionnaire import SectionQuestionsResponse
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus
 from asgiref.sync import sync_to_async
 
@@ -146,3 +153,75 @@ async def get_financial_options():
             "required": False,
         },
     }
+
+@router.get("/options_user_current_holding_details", response_model=SectionQuestionsResponse)
+async def get_current_holding_options():
+    specified_section_id = 10
+    question_ids = [1001, 1002]
+
+    # Fetch section
+    current_section = await sync_to_async(
+        Section.objects.filter(pk=specified_section_id).first
+    )()
+
+    if not current_section:
+        return SectionQuestionsResponse(
+            status=False,
+            message="Section not found.",
+            status_code=404,
+        )
+
+    # Fetch questions
+    questions = await sync_to_async(list)(
+        Question.objects.filter(pk__in=question_ids, section=current_section)
+    )
+
+    # Define question labels
+    question_labels = {
+        1001: "Current Holding in Shares",
+        1002: "Current Holding in Mutual Funds",
+    }
+
+    # Format questions and options
+    question_data_list = []
+    for question in questions:
+        options = await sync_to_async(
+            lambda: list(
+                Allowed_Response.objects.filter(question=question).values(
+                    "id", "response"
+                )
+            )
+        )()
+
+        question_data = {
+            "question_id": question.pk,
+            "question": question_labels.get(question.pk, question.question),
+            "options": [
+                {
+                    "option_id": option["id"],
+                    "response": option["response"],
+                    "label": option["response"],
+                    "value": option["response"].lower(),
+                    "field": {
+                        "name": f"field_{option['id']}",
+                        "type": "text",
+                        "placeholder": f"Enter {option['response'].lower()} value",
+                        "required": False,
+                    },
+                }
+                for option in options
+            ],
+        }
+        question_data_list.append(question_data)
+
+    # Construct response using dictionaries
+    return SectionQuestionsResponse(
+        status=True,
+        message="Successfully fetched section questions.",
+        status_code=200,
+        data={
+            "section_id": current_section.pk,
+            "section_name": current_section.section,
+            "questions": question_data_list,
+        },
+    )
