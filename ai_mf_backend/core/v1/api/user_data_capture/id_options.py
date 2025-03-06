@@ -11,7 +11,7 @@ from ai_mf_backend.models.v1.database.questions import (
     Section,
     Allowed_Response,  
 )
-from ai_mf_backend.models.v1.api.questionnaire import (CurrentHoldingResponse,CurrentHoldingData)
+from ai_mf_backend.models.v1.api.questionnaire import (UserProfileHoldingResponse,UserProfileHoldingData)
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus
 from asgiref.sync import sync_to_async
 
@@ -153,7 +153,7 @@ async def get_financial_options():
             "required": False,
         },
     }
-@router.get("/options_user_current_holding_details", response_model=CurrentHoldingResponse)
+@router.get("/options_user_current_holding_details", response_model=UserProfileHoldingResponse)
 async def get_current_holding_options():
     specified_section_id = 10
     question_ids = [1001, 1002]
@@ -164,12 +164,12 @@ async def get_current_holding_options():
     )()
 
     if not current_section:
-        return CurrentHoldingResponse(
+        return UserProfileHoldingResponse(
             status=False,
             message="Section not found.",
             status_code=404,
-            type="current_holding",
-            data=CurrentHoldingData(
+            type="dropdown",
+            data=UserProfileHoldingData(
                 questions=[],
             ),
         )
@@ -212,12 +212,12 @@ async def get_current_holding_options():
         question_data_list.append(question_data)
 
     # Construct the final response using the new Pydantic model.
-    return CurrentHoldingResponse(
+    return UserProfileHoldingResponse(
         status=True,
         message="Successfully fetched section questions.",
         status_code=200,
         type="dropdown",
-        data=CurrentHoldingData(
+        data=UserProfileHoldingData(
             
             questions=question_data_list,
         ),
