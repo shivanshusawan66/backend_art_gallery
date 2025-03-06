@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,Response,status
 from ai_mf_backend.models.v1.database.financial_details import (
     Occupation,
     AnnualIncome,
@@ -11,8 +11,8 @@ from ai_mf_backend.models.v1.database.questions import (
     Section,
     Allowed_Response,  
 )
-from ai_mf_backend.models.v1.api.questionnaire import (UserProfileHoldingResponse,UserProfileHoldingData)
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus
+from ai_mf_backend.models.v1.api.user_data import UserProfileQuestionResponse
 from asgiref.sync import sync_to_async
 
 router = APIRouter()
@@ -153,72 +153,60 @@ async def get_financial_options():
             "required": False,
         },
     }
-@router.get("/options_user_current_holding_details", response_model=UserProfileHoldingResponse)
-async def get_current_holding_options():
-    specified_section_id = 10
-    question_ids = [1001, 1002]
 
-    # Fetch section
-    current_section = await sync_to_async(
-        Section.objects.filter(pk=specified_section_id).first
-    )()
-
-    if not current_section:
-        return UserProfileHoldingResponse(
-            status=False,
-            message="Section not found.",
-            status_code=404,
-            type="dropdown",
-            data=UserProfileHoldingData(
-                questions=[],
-            ),
-        )
-
-    # Fetch questions
-    questions = await sync_to_async(list)(
-        Question.objects.filter(pk__in=question_ids, section=current_section)
-    )
-
-    # Define question labels
-    question_labels = {
+@router.get("/options_user_questions_details", response_model=UserProfileQuestionResponse)
+async def get_current_holding_options(response: Response):
+    try:
+        specified_section_id = 10
+        question_ids = [1001, 1002]
+        question_labels = {
         1001: "Current Holding in Shares",
         1002: "Current Holding in Mutual Funds",
-    }
+        }
 
-    # Format questions and options
-    question_data_list = []
-    for question in questions:
-        options = await sync_to_async(
-            lambda: list(
-                Allowed_Response.objects.filter(question=question).values("id", "response")
-            )
+        current_section = await sync_to_async(
+            Section.objects.filter(pk=specified_section_id).first
         )()
 
-        question_data = {
-            "question_id": question.pk,
-            "question": question_labels.get(question.pk, question.question),
-            "options": [
-                {
-                    "option_id": option["id"],
-                    "label": option["response"],
-                    "response": option["response"],
-                    "value": option["response"].lower(),
-                }
-                for option in options
-            ],
-            "required": False,
-            "type": "dropdown",
-        }
-        question_data_list.append(question_data)
+        questions = await sync_to_async(list)(
+            Question.objects.filter(pk__in=question_ids, section=current_section)
+        )
 
-    # Construct the final response using the new Pydantic model.
-    return UserProfileHoldingResponse(
-        status=True,
-        message="Successfully fetched section questions.",
-        status_code=200,
-        type="dropdown",
-        data=UserProfileHoldingData(
-            
-            questions=question_data_list,
-        ),
-    )
+        question_data_list = []
+        for question in questions:
+            options = await sync_to_async(
+                lambda: list(
+                    Allowed_Response.objects.filter(question=question).values("id", "response")
+                )
+            )()
+
+            question_data = {
+                "question_id": question.pk,
+                "question_label": question_labels.get(question.pk, question.question),
+                "options": [
+                    {
+                        "option_id": option["id"],
+                        "label": option["response"],
+                    }
+                    for option in options
+                ],
+                "required": False,
+                "type": "dropdown",
+            }
+            question_data_list.append(question_data)
+        
+        response.status_code = status.HTTP_200_OK
+        return UserProfileQuestionResponse(
+            status=True,
+            message="Successfully fetched option for questions",
+            status_code=status.HTTP_200_OK,
+            section_id=10,
+            data=question_data_list
+        )
+    except Exception as e:
+        return UserProfileQuestionResponse(
+            status=False,
+            message=f"Error fetching section questions: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            data=[]
+        )
