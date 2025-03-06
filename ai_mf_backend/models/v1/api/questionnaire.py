@@ -61,3 +61,6 @@ class SectionCompletionStatus(BaseModel):
 class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
     pass
+
+class TotalCompletionStatusResponse(Response):
+    data: Dict[str, int]

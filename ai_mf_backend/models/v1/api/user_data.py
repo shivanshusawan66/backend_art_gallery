@@ -42,7 +42,6 @@ class UserPersonalFinancialFormData(BaseModel):
 class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
     pass
 
-
 class OptionModel(BaseModel):
     option_id: int
     label: str
@@ -57,3 +56,6 @@ class QuestionDataModel(BaseModel):
 class UserProfileQuestionResponse(Response):
     section_id: Optional[int] = None
     data: Optional[List[QuestionDataModel]] = None
+      
+class UserProfileOptionResponse(Response):
+    pass

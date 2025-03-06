@@ -34,6 +34,8 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     VisibilityDecisions,
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
+    TotalCompletionStatusResponse,
+    
 )
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
@@ -349,7 +351,7 @@ async def get_section_wise_questions(
 
 
 @router.get(
-    "/section_completion_status/",
+    "/section_completion_status",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
@@ -374,17 +376,12 @@ async def get_section_completion_status(
             )
         )()
 
-        # Extract base question IDs
-        base_questions = list(set(cq.question.pk for cq in conditionals if cq.question))
-        logger.info("These are our base questions", base_questions)
-
         # Get user responses only for base questions
         user_responses = await sync_to_async(
             lambda: list(
                 UserResponse.objects.filter(
                     user_id=user_id,
                     deleted=False,
-                    
                 ).select_related("question_id", "response_id", "section_id")
             )
         )()
@@ -396,12 +393,12 @@ async def get_section_completion_status(
             response_id = response.response_id.pk if response.response_id else None
             if question_id:
                 user_responses_dict[question_id] = response_id
-        print("Thsess are our user's responses", user_responses_dict)
 
         # Get all sections with their questions
         sections_with_questions = await sync_to_async(
             lambda: list(Section.objects.prefetch_related("question_set").all())
         )()
+
         dependency_dict = {}
         for cq in conditionals:
             dependent_question_id = (
@@ -416,58 +413,38 @@ async def get_section_completion_status(
                 dependency_dict[dependent_question_id][
                     base_question_id
                 ] = base_response_id
-        print("this is our dependecny dict", dependency_dict)
 
         section_completion_status = []
 
         for section in sections_with_questions:
-            print("Processing started for section with section_id  :",section.pk)
             visible_questions = 0
             answered_visible_questions = 0
-            # print("these are our questions", section.question_set.all())
 
             # Count visible questions and answered visible questions
             for question in section.question_set.all():
-                print("Processing started for question with question_id  :",question.pk)
-
                 should_skip = False
 
                 # Check if question should be hidden based on conditional logic
                 if question.pk in dependency_dict:
-                    
-                    print(f"Question with id {question.pk} found in {dependency_dict}")
-
                     visibility = dependency_dict[question.pk]
-                    print("checkinig visibility conditions against" , visibility)
                     for base_question_id, required_response_id in visibility.items():
                         user_response = user_responses_dict.get(base_question_id)
-                        print(f"{user_response} for {base_question_id} ")
                         if (
                             user_response is not None
                             and user_response == required_response_id
                         ):
                             should_skip = True
-                            print(question.pk, "will be skiped")
                             break
 
                 if not should_skip:
-                    print(question.pk, "will not be skiped")
                     visible_questions += 1
-                    print("checking weather user has answered", question.pk , user_responses_dict)
                     if question.pk in user_responses_dict.keys():
-                        print(f"yes {question.pk} has been answered")
-                        print("incrementing answered questiopns value from ", answered_visible_questions)
                         answered_visible_questions += 1
-                        print("to", answered_visible_questions)
                     else:
-                        print(f"No the user hasn't answered {question.pk}")
-            print(f"section {section.pk} has been proceesed")
-            print(f"visibile_qusestion for sectiomn {section.pk} {visible_questions}")
-            print(f"answered_visible_questions for section {section.pk} {answered_visible_questions}")
+                        continue
 
             if visible_questions > 0:
                 completion_rate = int((answered_visible_questions / visible_questions) * 100)
-                
             else:
                 completion_rate = 0.0
 
@@ -494,4 +471,49 @@ async def get_section_completion_status(
             message="An unexpected error occurred.",
             status_code=500,
             data=[],
+        )
+@router.get(
+    "/total_completion_status/",
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_total_completion_status(
+    user_id: int = Query(..., description="User ID")
+) -> TotalCompletionStatusResponse:
+    try:
+        
+        section_status_response = await get_section_completion_status(user_id)
+
+        if not section_status_response.status or not section_status_response.data:
+            status_code = 400 if not section_status_response.status else 500
+            return TotalCompletionStatusResponse(
+                status=False,
+                message="Failed to fetch section completion data.",
+                total_completion_rate=0.0,
+                status_code=status_code,
+            )
+
+        
+        total_answered = sum(section.answered_questions for section in section_status_response.data)
+        total_questions = sum(section.total_questions for section in section_status_response.data)
+
+        if total_questions == 0:
+            overall_completion_rate = 0.0
+        else:
+            overall_completion_rate = (total_answered / total_questions) * 100
+
+        return TotalCompletionStatusResponse(
+            status=True,
+            message="Successfully fetched total completion status.",
+            total_completion_rate=int(overall_completion_rate),
+            status_code=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching total completion status: {str(e)}")
+        return TotalCompletionStatusResponse(
+            status=False,
+            message="An unexpected error occurred.",
+            total_completion_rate=0.0,
+            status_code=500,
         )

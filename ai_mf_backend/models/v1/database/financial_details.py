@@ -4,10 +4,7 @@ from django.core.exceptions import ValidationError
 from ai_mf_backend.models.v1.database.user import UserContactInfo, Occupation
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.utils.v1.validators.input import validate_number_dash_number
-from ai_mf_backend.utils.v1.validators.profile_update import (
-    validate_profile_modification_time,
-    track_changes,
-)
+
 
 
 logger = logging.getLogger(__name__)
@@ -93,9 +90,7 @@ class UserFinancialDetails(SoftDeleteModel):
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-    modification_count = models.PositiveIntegerField(
-        default=0
-    )  # Track number of modifications
+
 
     class Meta:
         db_table = "user_financial_details"
@@ -105,41 +100,4 @@ class UserFinancialDetails(SoftDeleteModel):
     def __str__(self):
         return f"Financial Details for {self.user}"
 
-    def save(self, *args, **kwargs):
-        # Only track changes and validate if this is an update (not creation)
-        if self.pk:  # Object exists in the database
-            old_instance = UserFinancialDetails.objects.get(pk=self.pk)
-
-            # Track changes in fields
-            changed_fields = track_changes(
-                old_instance,
-                self,
-                [
-                    "occupation",
-                    "income_category",
-                    "saving_category",
-                    "investment_amount_per_year",
-                    "regular_source_of_income",
-                    "lock_in_period_accepted",
-                    "investment_style",
-                ],
-            )
-            if changed_fields:
-                logger.info(
-                    f"User {self.user} changed profile fields: {changed_fields}"
-                )
-
-            # Validate profile modification restrictions
-            try:
-                validate_profile_modification_time(self)
-            except ValidationError as e:
-                raise ValidationError(str(e))
-
-            # Increment modification count if any fields are changed
-            self.modification_count += 1
-        else:
-            # Reset modification count for new users
-            self.modification_count = 0
-
-        # Save the instance to the database
-        super().save(*args, **kwargs)
+    
