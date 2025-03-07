@@ -34,6 +34,8 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     VisibilityDecisions,
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
+    TotalCompletionStatusResponse,
+    
 )
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
@@ -349,7 +351,7 @@ async def get_section_wise_questions(
 
 
 @router.get(
-    "/section_completion_status/",
+    "/section_completion_status",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
@@ -374,16 +376,12 @@ async def get_section_completion_status(
             )
         )()
 
-        # Extract base question IDs
-        base_questions = list(set(cq.question.pk for cq in conditionals if cq.question))
-
         # Get user responses only for base questions
         user_responses = await sync_to_async(
             lambda: list(
                 UserResponse.objects.filter(
                     user_id=user_id,
                     deleted=False,
-                    question_id__in=base_questions,  # Only get responses for base questions
                 ).select_related("question_id", "response_id", "section_id")
             )
         )()
@@ -400,6 +398,7 @@ async def get_section_completion_status(
         sections_with_questions = await sync_to_async(
             lambda: list(Section.objects.prefetch_related("question_set").all())
         )()
+
         dependency_dict = {}
         for cq in conditionals:
             dependent_question_id = (
@@ -439,13 +438,13 @@ async def get_section_completion_status(
 
                 if not should_skip:
                     visible_questions += 1
-                    if question.pk in user_responses_dict:
+                    if question.pk in user_responses_dict.keys():
                         answered_visible_questions += 1
+                    else:
+                        continue
 
             if visible_questions > 0:
-                completion_rate = round(
-                    (answered_visible_questions / visible_questions) * 100, 2
-                )
+                completion_rate = int((answered_visible_questions / visible_questions) * 100)
             else:
                 completion_rate = 0.0
 
@@ -472,4 +471,49 @@ async def get_section_completion_status(
             message="An unexpected error occurred.",
             status_code=500,
             data=[],
+        )
+@router.get(
+    "/total_completion_status/",
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def get_total_completion_status(
+    user_id: int = Query(..., description="User ID")
+) -> TotalCompletionStatusResponse:
+    try:
+        
+        section_status_response = await get_section_completion_status(user_id)
+
+        if not section_status_response.status or not section_status_response.data:
+            status_code = 400 if not section_status_response.status else 500
+            return TotalCompletionStatusResponse(
+                status=False,
+                message="Failed to fetch section completion data.",
+                total_completion_rate=0.0,
+                status_code=status_code,
+            )
+
+        
+        total_answered = sum(section.answered_questions for section in section_status_response.data)
+        total_questions = sum(section.total_questions for section in section_status_response.data)
+
+        if total_questions == 0:
+            overall_completion_rate = 0.0
+        else:
+            overall_completion_rate = (total_answered / total_questions) * 100
+
+        return TotalCompletionStatusResponse(
+            status=True,
+            message="Successfully fetched total completion status.",
+            total_completion_rate=int(overall_completion_rate),
+            status_code=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching total completion status: {str(e)}")
+        return TotalCompletionStatusResponse(
+            status=False,
+            message="An unexpected error occurred.",
+            total_completion_rate=0.0,
+            status_code=500,
         )

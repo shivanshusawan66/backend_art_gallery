@@ -3,12 +3,14 @@ import logging
 
 import django
 
-from celery import Celery
-
 from fastapi import APIRouter
 
-from ai_mf_backend.utils.v1.connections import create_connections, check_connections
+from celery import Celery
+
 from ai_mf_backend.config.v1.celery_config import celery_config
+
+
+from ai_mf_backend.utils.v1.connections import create_connections, check_connections
 
 logger = logging.getLogger(__name__)
 

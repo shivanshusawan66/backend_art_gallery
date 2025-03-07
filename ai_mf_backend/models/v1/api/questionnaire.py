@@ -55,9 +55,12 @@ class SectionCompletionStatus(BaseModel):
     section_name: str
     answered_questions: int
     total_questions: int
-    completion_rate: float
+    completion_rate: int
 
 
 class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
     pass
+
+class TotalCompletionStatusResponse(Response):
+    data: Dict[str, int]

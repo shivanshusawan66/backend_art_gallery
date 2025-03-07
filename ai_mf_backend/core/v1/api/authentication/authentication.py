@@ -382,7 +382,7 @@ async def user_authentication_otp(
                 response.status_code = 429  # Set status code in the header
                 return UserAuthenticationOTPResponse(
                     status=False,
-                    message=f"Please wait for {time_diff} seconds before sending another request.",
+                    message="Too many hits! Please wait for a moment.",
                     data={"credentials": email if email else mobile_no},
                     status_code=429,
                 )

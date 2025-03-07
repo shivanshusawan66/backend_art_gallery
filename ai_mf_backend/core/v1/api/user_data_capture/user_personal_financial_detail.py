@@ -1,3 +1,4 @@
+from django.utils import timezone
 from fastapi import APIRouter, HTTPException, Response, Depends, Header, status
 
 from asgiref.sync import sync_to_async
@@ -11,6 +12,7 @@ from ai_mf_backend.models.v1.database.user import (
     MaritalStatus,
     UserPersonalDetails,
 )
+from ai_mf_backend.models.v1.database.user_authentication import UserLogs
 from ai_mf_backend.models.v1.database.financial_details import (
     AnnualIncome,
     MonthlySavingCapacity,
@@ -21,13 +23,13 @@ from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsUpdateRequest,
     UserPersonalFinancialDetailsUpdateResponse,
 )
-
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
 
 router = APIRouter()
 
@@ -139,10 +141,21 @@ async def update_user_personal_financial_details(
             user_id=request.user_id, deleted=False
         ).first
     )()
-
+    
     if user.user_details_filled:
-        response_message = "User personal and financial details updated successfully."
-        status_code = status.HTTP_200_OK
+        try:
+            await validate_profile_modification_time(user_personal)
+            await validate_profile_modification_time(user_financial)
+            response_message = "User personal and financial details updated successfully."
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            response.status_code = 400
+            return UserPersonalFinancialDetailsUpdateResponse(
+                status=False,
+                message=str(e),
+                data={},
+                status_code=400,
+            )
     else:
         response_message = "User personal and financial details created successfully."
         status_code = status.HTTP_201_CREATED
@@ -177,7 +190,7 @@ async def update_user_personal_financial_details(
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
         user_financial.investment_style = request.investment_style
-
+    
     try:
         await sync_to_async(
             user_personal.full_clean
@@ -187,6 +200,14 @@ async def update_user_personal_financial_details(
         )()  # Run validation for user financial details
         await sync_to_async(user_personal.save)()
         await sync_to_async(user_financial.save)()
+        # To update user_logs
+        await sync_to_async(UserLogs.objects.create)(
+        user=user,
+        action="profile_update",
+        last_access=timezone.now(),
+        ip_details=None,
+        device_type=None)
+
     except ValidationError as e:
         raise HTTPException(
             status_code=422,
