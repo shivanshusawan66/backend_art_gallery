@@ -63,4 +63,5 @@ class SectionCompletionStatusResponse(Response):
     pass
 
 class TotalCompletionStatusResponse(Response):
-    data: Dict[str, int]
+    data: Optional[Dict] = None
+    total_completion_rate: int
