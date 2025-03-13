@@ -275,7 +275,7 @@ async def get_section_wise_questions(
             )
 
         questions = await sync_to_async(list)(
-            Question.objects.filter(section=current_section)
+            Question.objects.filter(section=current_section,visibility_question="show")
         )
 
         question_data_list: List[QuestionData] = []
