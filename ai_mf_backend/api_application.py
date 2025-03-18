@@ -15,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.cors import CORSMiddleware
 
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 from django.core.asgi import get_asgi_application
 
 from ai_mf_backend.core.v1.api import limiter as rate_limiter
@@ -68,6 +69,11 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
     RiskStatistics,
     FundOverview,
     AMFIMutualFund,
+)
+
+from ai_mf_backend.models.v1.database.blog import(
+    BlogCategory,
+    BlogData,
 )
 
 logger = logging.getLogger(__name__)
@@ -407,6 +413,48 @@ class AMFIMutualFundAdmin(admin.ModelAdmin):
     list_display = ("scheme_name", "q_param", "created_at", "updated_at")
     search_fields = ("scheme_name", "q_param")
     list_filter = ("created_at", "updated_at")
+
+@admin.register(BlogCategory)
+class BlogCategoryAdmin(admin.ModelAdmin):
+    list_display = ("category", "add_date", "update_date")
+    search_fields = ("category",)
+    ordering = ("category",)
+
+@admin.register(BlogData)
+class BlogDataAdmin(admin.ModelAdmin):
+    list_display = (
+        "title", 
+        "username", 
+        "category", 
+        "created_at",
+        "user_image_preview",
+        "blog_image_preview"
+    )
+    search_fields = ("title", "username", "category__category")
+    list_filter = ("category", "created_at")
+    readonly_fields = ("username", "created_at")
+    fields = (
+        "user",
+        "username",
+        "category",
+        "title",
+        "blog_data",
+        "user_image",
+        "blog_image",
+        "created_at",
+    )
+
+    @admin.display(description="User Image")
+    def user_image_preview(self, obj):
+        if obj.user_image:
+            return mark_safe(f'<img src="{obj.user_image.url}" width="50" />')
+        return "No Image"
+
+    @admin.display(description="Blog Image")
+    def blog_image_preview(self, obj):
+        if obj.blog_image:
+            return mark_safe(f'<img src="{obj.blog_image.url}" width="50" />')
+        return "No Image"
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/

@@ -41,10 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ai_mf_backend.config.v1.api_config.DjangoAppConfig",
     "phonenumber_field",
+    'tinymce',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "*",  # This is for development only not safe for  production
+    "https://localhost:3000",  # This is for development only not safe for production
+    # "*",  # This is for development only not safe for  production
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,8 @@ DATABASES = {
         "PASSWORD": postgres_config.POSTGRES_PASSWORD,
         "HOST": postgres_config.POSTGRES_HOST,
         "PORT": postgres_config.POSTGRES_PORT,
+        # "HOST": "localhost",
+        # "PORT": 5433,
     }
 }
 
@@ -138,3 +142,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -98,5 +98,5 @@ class DjangoAppConfig(AppConfig):
         )
 
         # Run the asynchronous refresh_constants during startup
-        asyncio.run(refresh_constants())
-        asyncio.run(assign_initial_section_and_question_weights())
+        # asyncio.run(refresh_constants())
+        # asyncio.run(assign_initial_section_and_question_weights())
