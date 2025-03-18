@@ -1,11 +1,16 @@
+import os
+
 from django.db import models
 from tinymce.models import HTMLField
+
+from ai_mf_backend.utils.v1.filepath import generate_unique_filename
+
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.user import UserContactInfo, UserPersonalDetails
 
 
 class BlogCategory(SoftDeleteModel):
-    category = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -15,7 +20,7 @@ class BlogCategory(SoftDeleteModel):
         verbose_name_plural = "Blog Category"
 
     def __str__(self):
-        return self.category
+        return self.name
     
 class BlogData(SoftDeleteModel):
     blog_id = models.AutoField(primary_key=True)
@@ -38,14 +43,14 @@ class BlogData(SoftDeleteModel):
         blank=True
     )
     title = models.CharField(max_length=200)
-    blog_data = HTMLField()
+    blog_description = HTMLField()
     user_image = models.ImageField(
         upload_to='blog/user_images/',
         blank=True,
         null=True
     )
-    blog_image = models.ImageField(
-        upload_to='blog/post_images/',
+    blogcard_image = models.ImageField(
+        upload_to='blog/blogcard_images/',
         blank=True,
         null=True
     )
@@ -58,12 +63,21 @@ class BlogData(SoftDeleteModel):
                 self.username = user_details.name
             except UserPersonalDetails.DoesNotExist:
                 self.username = "Unknown User"
+        
+        if self.user_image:
+            unique_filename = generate_unique_filename(self, self.user_image.name)
+            self.user_image.name = unique_filename
+        if self.blogcard_image:
+            unique_filename = generate_unique_filename(self, self.blogcard_image.name)
+            self.blogcard_image.name = unique_filename
+        
         super().save(*args, **kwargs)
         
     class Meta:
         db_table = "blog_data"
         verbose_name = "Blog Data"
         verbose_name_plural = "Blogs Data"
+        
 
     def __str__(self):
         return f"{self.blog_id} - {self.title}"
@@ -108,6 +122,3 @@ class BlogComment(SoftDeleteModel):
     def __str__(self):
         blog_title = self.blog_post.title if self.blog_post else "[Deleted Blog Post]"
         return f"Comment by {self.username} on {blog_title}"
-
-
-

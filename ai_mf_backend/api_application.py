@@ -15,7 +15,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.cors import CORSMiddleware
 
 from django.contrib import admin
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.core.asgi import get_asgi_application
 
 from ai_mf_backend.core.v1.api import limiter as rate_limiter
@@ -416,21 +416,24 @@ class AMFIMutualFundAdmin(admin.ModelAdmin):
 
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
-    list_display = ("category", "add_date", "update_date")
-    search_fields = ("category",)
-    ordering = ("category",)
+    list_display = ("name", "add_date", "update_date")
+    search_fields = ("name",)
+    ordering = ("name",)
 
 @admin.register(BlogData)
 class BlogDataAdmin(admin.ModelAdmin):
     list_display = (
-        "title", 
+        "blog_id",
+        "user_id",
         "username", 
         "category", 
+        "title", 
+        "blog_description",
         "created_at",
         "user_image_preview",
-        "blog_image_preview"
+        "blogcard_image_preview"
     )
-    search_fields = ("title", "username", "category__category")
+    search_fields = ("blog_id", "title", "username", "category__name")
     list_filter = ("category", "created_at")
     readonly_fields = ("username", "created_at")
     fields = (
@@ -438,22 +441,22 @@ class BlogDataAdmin(admin.ModelAdmin):
         "username",
         "category",
         "title",
-        "blog_data",
+        "blog_description",
         "user_image",
-        "blog_image",
+        "blogcard_image",
         "created_at",
     )
 
-    @admin.display(description="User Image")
+    @admin.display(description="User Image Preview") 
     def user_image_preview(self, obj):
         if obj.user_image:
-            return mark_safe(f'<img src="{obj.user_image.url}" width="50" />')
+            return format_html(f'<img src="/django{obj.user_image.url}" width="50" />')
         return "No Image"
 
-    @admin.display(description="Blog Image")
-    def blog_image_preview(self, obj):
-        if obj.blog_image:
-            return mark_safe(f'<img src="{obj.blog_image.url}" width="50" />')
+    @admin.display(description="Blog Image Preview")  
+    def blogcard_image_preview(self, obj):
+        if obj.blogcard_image:
+            return format_html(f'<img src="/django{obj.blogcard_image.url}" width="50" />')
         return "No Image"
 
 
