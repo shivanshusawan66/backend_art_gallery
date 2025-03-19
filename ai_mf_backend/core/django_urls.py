@@ -1,5 +1,6 @@
-from django.urls import path
+from django.urls import path,include
 from django.contrib import admin
+from django.conf import settings
 
 
 """
@@ -20,4 +21,5 @@ Including another URLconf
 """
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('tinymce/', include('tinymce.urls')),
 ]

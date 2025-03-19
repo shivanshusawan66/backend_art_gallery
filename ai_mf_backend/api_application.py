@@ -15,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.cors import CORSMiddleware
 
 from django.contrib import admin
+from django.utils.html import format_html
 from django.core.asgi import get_asgi_application
 
 from ai_mf_backend.core.v1.api import limiter as rate_limiter
@@ -68,6 +69,11 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
     RiskStatistics,
     FundOverview,
     AMFIMutualFund,
+)
+
+from ai_mf_backend.models.v1.database.blog import(
+    BlogCategory,
+    BlogData,
 )
 
 logger = logging.getLogger(__name__)
@@ -408,6 +414,43 @@ class AMFIMutualFundAdmin(admin.ModelAdmin):
     search_fields = ("scheme_name", "q_param")
     list_filter = ("created_at", "updated_at")
 
+@admin.register(BlogCategory)
+class BlogCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "add_date", "update_date")
+    search_fields = ("name",)
+    ordering = ("name",)
+
+@admin.register(BlogData)
+class BlogDataAdmin(admin.ModelAdmin):
+    list_display = (
+        "blog_id",
+        "user_id",
+        "username", 
+        "category", 
+        "title", 
+        "blog_description",
+        "created_at",
+        "blogcard_image_preview"
+    )
+    search_fields = ("blog_id", "title", "username", "category__name")
+    list_filter = ("category", "created_at")
+    readonly_fields = ("username", "created_at")
+    fields = (
+        "user",
+        "username",
+        "category",
+        "title",
+        "blog_description",
+        "blogcard_image",
+        "created_at",
+    )
+
+    @admin.display(description="Blog Image Preview")  
+    def blogcard_image_preview(self, obj):
+        if obj.blogcard_image:
+            return format_html(f'<img src="{obj.blogcard_image.url}" width="50" />')
+        return "No Image"
+
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()
@@ -420,6 +463,11 @@ application.mount(
     name="static",
 )
 
+application.mount(
+    "/media",
+    StaticFiles(directory=os.path.abspath("./ai_mf_backend/utils/v1/mediafiles")),
+    name="media"
+)
 
 @application.post("/health-check")
 def health_check():

@@ -35,6 +35,7 @@ services:
       ENVIRONMENT: server
     volumes:
       - ../ai_mf_backend/datafiles:/AIMFBackend/ai_mf_backend/datafiles
+      - ../ai_mf_backend/utils/v1/mediafiles:/AIMFBackend/ai_mf_backend/utils/v1/mediafiles
     depends_on:
       # - ai_mf_tests
       []
