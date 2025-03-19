@@ -450,13 +450,13 @@ class BlogDataAdmin(admin.ModelAdmin):
     @admin.display(description="User Image Preview") 
     def user_image_preview(self, obj):
         if obj.user_image:
-            return format_html(f'<img src="/django{obj.user_image.url}" width="50" />')
+            return format_html(f'<img src="{obj.user_image.url}" width="50" />')
         return "No Image"
 
     @admin.display(description="Blog Image Preview")  
     def blogcard_image_preview(self, obj):
         if obj.blogcard_image:
-            return format_html(f'<img src="/django{obj.blogcard_image.url}" width="50" />')
+            return format_html(f'<img src="{obj.blogcard_image.url}" width="50" />')
         return "No Image"
 
 
@@ -471,6 +471,11 @@ application.mount(
     name="static",
 )
 
+application.mount(
+    "/media",
+    StaticFiles(directory=os.path.abspath("./ai_mf_backend/media")),
+    name="media"
+)
 
 @application.post("/health-check")
 def health_check():

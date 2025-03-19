@@ -45,12 +45,12 @@ class BlogData(SoftDeleteModel):
     title = models.CharField(max_length=200)
     blog_description = HTMLField()
     user_image = models.ImageField(
-        upload_to='blog/user_images/',
+        upload_to='user_images/',
         blank=True,
         null=True
     )
     blogcard_image = models.ImageField(
-        upload_to='blog/blogcard_images/',
+        upload_to='blogcard_images/',
         blank=True,
         null=True
     )
