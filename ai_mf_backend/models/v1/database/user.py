@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
+from ai_mf_backend.utils.v1.filepath import generate_unique_filename
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
@@ -128,6 +129,11 @@ class UserPersonalDetails(SoftDeleteModel):
     marital_status = models.ForeignKey(
         MaritalStatus, on_delete=models.SET_NULL, null=True, blank=True
     )
+    user_image = models.ImageField(
+        upload_to='user_images/',
+        blank=True,
+        null=True
+    )
     add_date = models.DateTimeField(
         auto_now_add=True, validators=[validate_not_future_date]
     )
@@ -135,15 +141,18 @@ class UserPersonalDetails(SoftDeleteModel):
         auto_now=True, validators=[validate_not_future_date]
     )
 
+    def save(self, *args, **kwargs):
+        if self.user_image:
+            unique_filename = generate_unique_filename(self.user_image.name)
+            self.user_image.name = unique_filename
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "user_personal_details"
 
     def __str__(self):
         return f"Personal Details for {self.user}"
-
     
-
 
 class OTPlogs(SoftDeleteModel):
     user = models.ForeignKey(

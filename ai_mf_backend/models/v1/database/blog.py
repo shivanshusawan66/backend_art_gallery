@@ -45,9 +45,10 @@ class BlogData(SoftDeleteModel):
     title = models.CharField(max_length=200)
     blog_description = HTMLField()
     user_image = models.ImageField(
-        upload_to='user_images/',
+        upload_to="user_images/",
+        null=True,
         blank=True,
-        null=True
+        editable=False  
     )
     blogcard_image = models.ImageField(
         upload_to='blogcard_images/',
@@ -57,18 +58,20 @@ class BlogData(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if not self.username and self.user:
+        if self.user:
             try:
                 user_details = UserPersonalDetails.objects.get(user=self.user)
-                self.username = user_details.name
             except UserPersonalDetails.DoesNotExist:
-                self.username = "Unknown User"
-        
-        if self.user_image:
-            unique_filename = generate_unique_filename(self, self.user_image.name)
-            self.user_image.name = unique_filename
-        if self.blogcard_image:
-            unique_filename = generate_unique_filename(self, self.blogcard_image.name)
+                user_details = None
+
+            if not self.username:
+                self.username = user_details.name if user_details else "Unknown User"
+
+            if not self.user_image:
+                self.user_image = user_details.user_image if user_details else None
+
+        if  self.blogcard_image:
+            unique_filename = generate_unique_filename(self.blogcard_image.name)
             self.blogcard_image.name = unique_filename
         
         super().save(*args, **kwargs)

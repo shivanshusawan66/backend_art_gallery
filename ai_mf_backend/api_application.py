@@ -430,7 +430,6 @@ class BlogDataAdmin(admin.ModelAdmin):
         "title", 
         "blog_description",
         "created_at",
-        "user_image_preview",
         "blogcard_image_preview"
     )
     search_fields = ("blog_id", "title", "username", "category__name")
@@ -442,16 +441,9 @@ class BlogDataAdmin(admin.ModelAdmin):
         "category",
         "title",
         "blog_description",
-        "user_image",
         "blogcard_image",
         "created_at",
     )
-
-    @admin.display(description="User Image Preview") 
-    def user_image_preview(self, obj):
-        if obj.user_image:
-            return format_html(f'<img src="{obj.user_image.url}" width="50" />')
-        return "No Image"
 
     @admin.display(description="Blog Image Preview")  
     def blogcard_image_preview(self, obj):
@@ -473,7 +465,7 @@ application.mount(
 
 application.mount(
     "/media",
-    StaticFiles(directory=os.path.abspath("./ai_mf_backend/media")),
+    StaticFiles(directory=os.path.abspath("./ai_mf_backend/utils/v1/mediafiles")),
     name="media"
 )
 
