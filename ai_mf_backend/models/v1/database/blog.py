@@ -27,7 +27,7 @@ class BlogData(SoftDeleteModel):
         UserContactInfo,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=False
     )
     username = models.CharField(
         max_length=100,
@@ -39,7 +39,9 @@ class BlogData(SoftDeleteModel):
         BlogCategory,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        to_field="name",
+        db_column="category_name"
     )
     title = models.CharField(max_length=200)
     blog_description = HTMLField()
