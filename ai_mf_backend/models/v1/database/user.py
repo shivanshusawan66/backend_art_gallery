@@ -3,7 +3,7 @@ import logging
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-from ai_mf_backend.utils.v1.filepath import generate_unique_filename
+from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,

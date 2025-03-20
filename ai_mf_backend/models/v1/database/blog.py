@@ -3,10 +3,9 @@ import os
 from django.db import models
 from tinymce.models import HTMLField
 
-from ai_mf_backend.utils.v1.filepath import generate_unique_filename
-
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.user import UserContactInfo, UserPersonalDetails
+from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
 
 
 class BlogCategory(SoftDeleteModel):
@@ -70,7 +69,7 @@ class BlogData(SoftDeleteModel):
             if not self.user_image:
                 self.user_image = user_details.user_image if user_details else None
 
-        if  self.blogcard_image:
+        if self.blogcard_image:
             unique_filename = generate_unique_filename(self.blogcard_image.name)
             self.blogcard_image.name = unique_filename
         
