@@ -22,7 +22,7 @@ class BlogCategory(SoftDeleteModel):
         return self.name
     
 class BlogData(SoftDeleteModel):
-    blog_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         UserContactInfo,
         on_delete=models.SET_NULL,
@@ -82,7 +82,7 @@ class BlogData(SoftDeleteModel):
         
 
     def __str__(self):
-        return f"{self.blog_id} - {self.title}"
+        return f"{self.id} - {self.title}"
 
 class BlogComment(SoftDeleteModel):
     user = models.ForeignKey(

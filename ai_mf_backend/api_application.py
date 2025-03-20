@@ -423,7 +423,7 @@ class BlogCategoryAdmin(admin.ModelAdmin):
 @admin.register(BlogData)
 class BlogDataAdmin(admin.ModelAdmin):
     list_display = (
-        "blog_id",
+        "id",
         "user_id",
         "username", 
         "category", 
@@ -432,7 +432,7 @@ class BlogDataAdmin(admin.ModelAdmin):
         "created_at",
         "blogcard_image_preview"
     )
-    search_fields = ("blog_id", "title", "username", "category__name")
+    search_fields = ("id", "title", "username", "category__name")
     list_filter = ("category", "created_at")
     readonly_fields = ("username", "created_at")
     fields = (
