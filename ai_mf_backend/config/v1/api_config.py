@@ -74,6 +74,18 @@ class APIConfig(BaseSettingsWrapper):
         "worst_3y_total_return",
     ]
 
+    BLOG_DATA_COLUMNS: list[str]= [
+        "id",
+        "user_id",
+        "username",
+        "category",
+        "title",
+        "blog_description",
+        "user_image",
+        "blogcard_image",
+        "created_at",
+    ]
+
     # @field_validator("DEFAULT_DISPLAY_COLUMNS")
     # def validate_default_display_columns(cls, value, **kwargs):
     #     if not isinstance(value, list):
@@ -98,5 +110,5 @@ class DjangoAppConfig(AppConfig):
         )
 
         # Run the asynchronous refresh_constants during startup
-        asyncio.run(refresh_constants())
-        asyncio.run(assign_initial_section_and_question_weights())
+        # asyncio.run(refresh_constants())
+        # asyncio.run(assign_initial_section_and_question_weights())

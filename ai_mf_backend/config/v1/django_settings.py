@@ -45,7 +45,7 @@ INSTALLED_APPS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "*",  # This is for development only not safe for  production
+    "https://localhost:3000",  # This is for development only not safe for  production
 ]
 
 MIDDLEWARE = [

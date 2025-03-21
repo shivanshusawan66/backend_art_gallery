@@ -22,12 +22,13 @@ class BlogCategory(SoftDeleteModel):
         return self.name
     
 class BlogData(SoftDeleteModel):
-    blog_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(
+    id = models.AutoField(primary_key=True)
+    user_id  = models.ForeignKey(
         UserContactInfo,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=False,
+        db_column='user_id'
     )
     username = models.CharField(
         max_length=100,
@@ -39,7 +40,9 @@ class BlogData(SoftDeleteModel):
         BlogCategory,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        to_field="name",
+        db_column="category_name"
     )
     title = models.CharField(max_length=200)
     blog_description = HTMLField()
@@ -57,9 +60,13 @@ class BlogData(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if self.user:
+        if self.user_id:
             try:
-                user_details = UserPersonalDetails.objects.get(user=self.user)
+                user_details = (
+                UserPersonalDetails.objects.filter(user=self.user_id)
+                .order_by('-created_at') 
+                .first()
+            )
             except UserPersonalDetails.DoesNotExist:
                 user_details = None
 
@@ -82,7 +89,7 @@ class BlogData(SoftDeleteModel):
         
 
     def __str__(self):
-        return f"{self.blog_id} - {self.title}"
+        return f"{self.id} - {self.title}"
 
 class BlogComment(SoftDeleteModel):
     user = models.ForeignKey(
