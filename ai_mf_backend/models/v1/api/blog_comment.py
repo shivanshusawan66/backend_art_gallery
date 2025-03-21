@@ -18,4 +18,5 @@ class CommentCreateRequest(BaseModel):
     content: str
 
 class CommentUpdateRequest(BaseModel):
+    blog_id:int
     content: str

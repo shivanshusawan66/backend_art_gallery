@@ -123,8 +123,8 @@ async def get_comments(blog_id: int, response: Response):
         )
 
     
-@router.put("/comment/{comment_id}", response_model=CommentResponse)
-async def update_comment(comment_id: int,response:Response, request: CommentUpdateRequest, Authorization : str=Depends(login_checker)):
+@router.put("/comment", response_model=CommentResponse)
+async def update_comment(response:Response, request: CommentUpdateRequest, Authorization : str=Depends(login_checker)):
     try:
         decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
         email = decoded_payload.get("email")
@@ -153,7 +153,7 @@ async def update_comment(comment_id: int,response:Response, request: CommentUpda
             )
         
         comment = await sync_to_async(BlogComment.objects.select_related('user').get)(
-            id=comment_id, 
+            id=request.comment_id, 
             deleted=False
         )
 
