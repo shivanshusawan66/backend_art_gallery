@@ -62,7 +62,11 @@ class BlogData(SoftDeleteModel):
     def save(self, *args, **kwargs):
         if self.user_id:
             try:
-                user_details = UserPersonalDetails.objects.get(user=self.user_id)
+                user_details = (
+                UserPersonalDetails.objects.filter(user=self.user_id)
+                .order_by('-created_at') 
+                .first()
+            )
             except UserPersonalDetails.DoesNotExist:
                 user_details = None
 
