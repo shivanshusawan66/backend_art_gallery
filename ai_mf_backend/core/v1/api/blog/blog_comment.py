@@ -22,7 +22,6 @@ async def post_comment(request: CommentCreateRequest, response: Response, Author
 
         if request.blog_id is None:
             response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-            response.status_code = response_status_code
             return CommentResponse(
                 status=False,
                 message="blog id is required",
@@ -187,6 +186,7 @@ async def update_comment(comment_id: int,response:Response, request: CommentUpda
             status_code=response.status_code
         )
 
+
 @router.delete("/comment/{comment_id}", response_model=CommentResponse)
 async def delete_comment(comment_id: int, response:Response,Authorization: str=Depends(login_checker)):
     try:
@@ -228,7 +228,6 @@ async def delete_comment(comment_id: int, response:Response,Authorization: str=D
                 status_code=response.status_code,
 
             )
-           
         comment.deleted = True  # Soft delete
         await sync_to_async(comment.save)()
         response.status_code=200
@@ -238,16 +237,6 @@ async def delete_comment(comment_id: int, response:Response,Authorization: str=D
             data=[],
             status_code=response.status_code,
         )
-    
-    except BlogComment.DoesNotExist:
-        response.status_code=404
-        return CommentResponse(
-            status=False,
-            message="Comment not found",
-            data=[],
-            status_code=response.status_code,
-        )
-    
     except Exception as e:
         response.status_code=500
         return CommentResponse(
