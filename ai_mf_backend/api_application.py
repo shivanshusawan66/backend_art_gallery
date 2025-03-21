@@ -436,7 +436,7 @@ class BlogDataAdmin(admin.ModelAdmin):
     list_filter = ("category", "created_at")
     readonly_fields = ("username", "created_at")
     fields = (
-        "user",
+        "user_id",
         "username",
         "category",
         "title",

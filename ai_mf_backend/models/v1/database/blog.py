@@ -23,11 +23,12 @@ class BlogCategory(SoftDeleteModel):
     
 class BlogData(SoftDeleteModel):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(
+    user_id  = models.ForeignKey(
         UserContactInfo,
         on_delete=models.SET_NULL,
         null=True,
-        blank=False
+        blank=False,
+        db_column='user_id'
     )
     username = models.CharField(
         max_length=100,
@@ -59,9 +60,9 @@ class BlogData(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if self.user:
+        if self.user_id:
             try:
-                user_details = UserPersonalDetails.objects.get(user=self.user)
+                user_details = UserPersonalDetails.objects.get(user=self.user_id)
             except UserPersonalDetails.DoesNotExist:
                 user_details = None
 

@@ -76,7 +76,7 @@ class APIConfig(BaseSettingsWrapper):
 
     BLOG_DATA_COLUMNS: list[str]= [
         "id",
-        "user",
+        "user_id",
         "username",
         "category",
         "title",
