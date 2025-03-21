@@ -80,7 +80,7 @@ class UserContactInfo(SoftDeleteModel):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     mobile_number = models.CharField(
-        validators=[validate_mobile_number], blank=True, null=True
+        validators=[validate_mobile_number], blank=True, null=True, unique=True
     )
     password = models.CharField(max_length=100, blank=True, null=True)
 
@@ -115,7 +115,7 @@ class UserContactInfo(SoftDeleteModel):
 
 class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True, unique=True
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
     name = models.CharField(
         max_length=100, null=True, blank=True, validators=[validate_name]
