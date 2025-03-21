@@ -30,7 +30,7 @@ from ai_mf_backend.models.v1.api.display_each_mf import (
     AnnualReturnObject,
     AnnualReturnCustomResponse,
 )
-from ai_mf_backend.utils.v1.display_fund_data.display_each import (
+from ai_mf_backend.utils.v1.processor.processor import (
     process_fields,
     process_years,
 )

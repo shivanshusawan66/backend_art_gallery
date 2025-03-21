@@ -237,12 +237,22 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         "date_of_birth",
         "gender",
         "marital_status",
+        "blogcard_image_preview",
         "add_date",
         "update_date",
     )
     search_fields = ("name",)
     list_filter = ("gender", "marital_status")
     ordering = ("name",)
+
+    @admin.display(description="User Image Preview")
+    def blogcard_image_preview(self, obj):
+        if obj.user_image:
+            return format_html(
+                '<img src="{}" style="max-width:50px; max-height:50px;" />',
+                obj.user_image.url
+            )
+        return "No Image"
 
 
 @admin.register(UserContactInfo)
@@ -448,7 +458,10 @@ class BlogDataAdmin(admin.ModelAdmin):
     @admin.display(description="Blog Image Preview")  
     def blogcard_image_preview(self, obj):
         if obj.blogcard_image:
-            return format_html(f'<img src="{obj.blogcard_image.url}" width="50" />')
+            return format_html(
+                '<img src="{}" style="max-width:50px; max-height:50px;" />',
+                obj.blogcard_image.url
+            )
         return "No Image"
 
 
