@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
+from ai_mf_backend.utils.v1.database.images import validate_image_size
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
@@ -132,7 +133,8 @@ class UserPersonalDetails(SoftDeleteModel):
     user_image = models.ImageField(
         upload_to='user_images/',
         blank=True,
-        null=True
+        null=True,
+        validators=[validate_image_size]
     )
     add_date = models.DateTimeField(
         auto_now_add=True, validators=[validate_not_future_date]
