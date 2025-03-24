@@ -32,6 +32,7 @@ class Question(SoftDeleteModel):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     initial_question_weight = models.FloatField(default=0.0)
+    visibility_question=models.CharField(max_length=50)
 
     class Meta:
         db_table = "question"
