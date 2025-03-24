@@ -10,6 +10,7 @@ from ai_mf_backend.core.v1.api.authentication.forget_password import (
 from ai_mf_backend.core.v1.api.authentication.otp_verification import (
     router as otp_verification_router_v1,
 )
+from ai_mf_backend.core.v1.api.blog.blog_comment import(router as blog_comment_router_v1,)
 
 # User Data Capture Routers
 from ai_mf_backend.core.v1.api.user_data_capture.id_options import (
@@ -103,3 +104,4 @@ connect_router.include_router(blog_data_router_v1)
 connect_router.include_router(soft_delete_router_v1)
 
 connect_router.include_router(yf_data_pull_router_v1)
+connect_router.include_router(blog_comment_router_v1)
