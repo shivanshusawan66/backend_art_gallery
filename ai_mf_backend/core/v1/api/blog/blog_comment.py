@@ -151,7 +151,15 @@ async def update_comment(response:Response, request: CommentUpdateRequest, Autho
                 data=[],
                 status_code=response.status_code,
             )
-        
+        if request.comment_id is None:
+            response.status_code=400
+            return CommentResponse(
+                status=False,
+                message="comment id required",
+                data=[],
+                status_code=response.status_code,
+
+            )
         comment = await sync_to_async(BlogComment.objects.select_related('user').get)(
             id=request.comment_id, 
             deleted=False
@@ -216,7 +224,15 @@ async def delete_comment( response:Response, request: CommentDeleteRequest,Autho
                 data=[],
                 status_code=response.status_code,
             )
+        if request.comment_id is None:
+            response.status_code=400
+            return CommentResponse(
+                status=False,
+                message="comment id required",
+                data=[],
+                status_code=response.status_code,
 
+            )
         comment = await sync_to_async(BlogComment.objects.select_related('user').get)(id=request.comment_id, deleted=False)
 
         if comment.user != user:
