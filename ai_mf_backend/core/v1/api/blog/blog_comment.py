@@ -6,7 +6,7 @@ from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database.user import UserPersonalDetails
 
 from ai_mf_backend.models.v1.api.blog_comment import (
-    CommentResponse, CommentData, CommentCreateRequest, CommentUpdateRequest
+    CommentResponse, CommentData, CommentCreateRequest, CommentUpdateRequest,CommentDeleteRequest
 )
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker,jwt_token_checker
 
@@ -187,8 +187,8 @@ async def update_comment(response:Response, request: CommentUpdateRequest, Autho
         )
 
 
-@router.delete("/comment/{comment_id}", response_model=CommentResponse)
-async def delete_comment(comment_id: int, response:Response,Authorization: str=Depends(login_checker)):
+@router.delete("/comment",response_model=CommentResponse)
+async def delete_comment( response:Response, request: CommentDeleteRequest,Authorization: str=Depends(login_checker)):
     try:
         decoded_payload=jwt_token_checker(jwt_token=Authorization,encode=False)
         email=decoded_payload.get("email")
@@ -217,7 +217,7 @@ async def delete_comment(comment_id: int, response:Response,Authorization: str=D
                 status_code=response.status_code,
             )
 
-        comment = await sync_to_async(BlogComment.objects.select_related('user').get)(id=comment_id, deleted=False)
+        comment = await sync_to_async(BlogComment.objects.select_related('user').get)(id=request.comment_id, deleted=False)
 
         if comment.user != user:
             response.status_code=403,

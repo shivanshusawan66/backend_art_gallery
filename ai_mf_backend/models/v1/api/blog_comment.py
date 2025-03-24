@@ -20,3 +20,6 @@ class CommentCreateRequest(BaseModel):
 class CommentUpdateRequest(BaseModel):
     comment_id:int
     content: str
+
+class CommentDeleteRequest(BaseModel):
+    comment_id:int
