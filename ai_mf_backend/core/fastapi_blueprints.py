@@ -65,6 +65,9 @@ from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import 
 from ai_mf_backend.core.v1.api.blog.blog_data import (
     router as blog_data_router_v1,
 )
+from ai_mf_backend.core.v1.api.blog.blog_options import (
+    router as blog_options_router_v1,
+)
 
 # Soft Delete Routers
 from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
@@ -100,6 +103,7 @@ connect_router.include_router(mutual_fund_recommendations_router_v1)
 connect_router.include_router(mutual_fund_category_router_v1)
 
 connect_router.include_router(blog_data_router_v1)
+connect_router.include_router(blog_options_router_v1)
 
 connect_router.include_router(soft_delete_router_v1)
 
