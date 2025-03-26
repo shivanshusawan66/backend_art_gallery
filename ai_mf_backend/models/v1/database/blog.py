@@ -133,3 +133,48 @@ class BlogComment(SoftDeleteModel):
     def __str__(self):
         blog_title = self.blog_post.title if self.blog_post else "[Deleted Blog Post]"
         return f"Comment by {self.username} on {blog_title}"
+    
+    
+class BlogCommentReply(SoftDeleteModel):
+    user = models.ForeignKey(
+        UserContactInfo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    parent_comment = models.ForeignKey(
+        BlogComment,
+        on_delete=models.CASCADE,
+        related_name="replies"
+    )
+    content = models.TextField()
+    username = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        editable=False
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        
+        if not self.pk and not self.username and self.user:
+            self.username = (
+                UserPersonalDetails.objects.filter(user=self.user)
+                .values_list('name', flat=True)
+                .first()
+            ) or "Unknown User"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        parent_comment_content = (self.parent_comment.content[:30] + "...") if self.parent_comment else "[Deleted Comment]"
+        return f"Reply by {self.username} on {parent_comment_content}"
+
+    class Meta:
+        db_table = "blog_comment_reply"
+        verbose_name = "Blog Comment Reply"
+        verbose_name_plural = "Blog Comment Replies"
+        indexes = [
+            models.Index(fields=["parent_comment"]),
+            models.Index(fields=["created_at"]),
+        ]
