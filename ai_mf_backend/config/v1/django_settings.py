@@ -15,6 +15,7 @@ from pathlib import Path
 
 from ai_mf_backend.config.v1.database_config import postgres_config
 from ai_mf_backend.config.v1.authentication_config import authentication_config
+from ai_mf_backend.config.v1.ckeditor_config import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ai_mf_backend.config.v1.api_config.DjangoAppConfig",
     "phonenumber_field",
-    "tinymce",
+    "django_ckeditor_5",
 ]
 
 CSRF_TRUSTED_ORIGINS = [

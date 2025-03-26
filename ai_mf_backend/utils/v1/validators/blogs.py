@@ -4,15 +4,15 @@ from django.core.exceptions import ValidationError
 
 from ai_mf_backend.models.v1.database.blog import BlogCategory, BlogData
 
-async def validate_blog_category(category: Optional[str] = None):
+async def validate_blog_category_id(category_id: Optional[int] = None):
     """
     Validator to ensure a category exists in BlogCategory.
     """
-    if category:
-        exists = await sync_to_async(BlogCategory.objects.filter(name=category).exists)()
+    if category_id:
+        exists = await sync_to_async(BlogCategory.objects.filter(id=category_id).exists)()
         if not exists:
             raise ValidationError("Invalid category")
-    return category
+    return category_id
 
 async def validate_blog_id(blog_id: Optional[int] = None):
     """
