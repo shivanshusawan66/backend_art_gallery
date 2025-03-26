@@ -59,3 +59,6 @@ class UserProfileQuestionResponse(Response):
       
 class UserProfileOptionResponse(Response):
     pass
+
+class UserPersonalDetailsImageUpdateResponse(Response):
+    pass
