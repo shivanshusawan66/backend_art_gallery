@@ -39,9 +39,7 @@ class BlogData(SoftDeleteModel):
         BlogCategory,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
-        to_field="name",
-        db_column="category_name"
+        blank=True
     )
     title = models.CharField(max_length=200)
     blog_description = CKEditor5Field(

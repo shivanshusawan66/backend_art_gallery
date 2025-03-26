@@ -141,7 +141,7 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
             response.status_code = 429  # Set status code in the response
             return ForgotPasswordResponse(
                 status=False,
-                message="Too many hits! Please wait for a moment.",
+                message="Too many requests! Please wait 15 seconds before trying again.",
                 data={"credentials": email if email else mobile_no},
                 status_code=429,
             )
