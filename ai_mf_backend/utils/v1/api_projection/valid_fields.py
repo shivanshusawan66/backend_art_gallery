@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, List, Dict, Any
 
 
 def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
@@ -30,3 +30,25 @@ def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
         fields_to_project = all_fields
 
     return fields_to_project
+
+def validate_query_params(query_params: Dict[str, Any], allowed_params: List[str]) -> Dict[str, Any]:
+    """
+    Validate that the keys in the query_params dictionary are within the allowed parameters.
+
+    Args:
+        query_params (Dict[str, Any]): Dictionary of query parameters from the request.
+        allowed_params (List[str]): List of allowed query parameter names.
+
+    Returns:
+        Dict[str, Any]: The original query_params dictionary if all keys are valid.
+
+    Raises:
+        ValueError: If any query parameter is not allowed.
+    """
+    requested_params = list(query_params.keys())
+    invalid_params = [param for param in requested_params if param not in allowed_params]
+    
+    if invalid_params:
+        raise ValueError(f"Invalid query parameter(s) requested: {invalid_params}")
+    
+    return query_params

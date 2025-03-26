@@ -1,11 +1,10 @@
-import os
-
 from django.db import models
-from tinymce.models import HTMLField
+from django_ckeditor_5.fields import CKEditor5Field
 
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.user import UserContactInfo, UserPersonalDetails
 from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
+from ai_mf_backend.utils.v1.database.images import validate_image_size
 
 
 class BlogCategory(SoftDeleteModel):
@@ -40,22 +39,25 @@ class BlogData(SoftDeleteModel):
         BlogCategory,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
-        to_field="name",
-        db_column="category_name"
+        blank=True
     )
     title = models.CharField(max_length=200)
-    blog_description = HTMLField()
+    blog_description = CKEditor5Field(
+        config_name='extends',
+        blank=False,
+        null=False
+    )
     user_image = models.ImageField(
         upload_to="user_images/",
         null=True,
         blank=True,
-        editable=False  
+        editable=False
     )
     blogcard_image = models.ImageField(
         upload_to='blogcard_images/',
         blank=True,
-        null=True
+        null=True,
+        validators=[validate_image_size] 
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -64,7 +66,7 @@ class BlogData(SoftDeleteModel):
             try:
                 user_details = (
                 UserPersonalDetails.objects.filter(user=self.user_id)
-                .order_by('-created_at') 
+                .order_by('-add_date') 
                 .first()
             )
             except UserPersonalDetails.DoesNotExist:
