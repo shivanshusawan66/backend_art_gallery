@@ -1,8 +1,12 @@
+from PIL import Image, UnidentifiedImageError
+import io
+
 from django.utils import timezone
-from fastapi import APIRouter, HTTPException, Response, Depends, Header, status
+from fastapi import APIRouter, File, HTTPException, Response, Depends, Header, UploadFile, status
 
 from asgiref.sync import sync_to_async
 
+from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 
 from ai_mf_backend.models.v1.database.user import (
@@ -22,13 +26,14 @@ from ai_mf_backend.models.v1.database.financial_details import (
 from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsUpdateRequest,
     UserPersonalFinancialDetailsUpdateResponse,
+    UserPersonalDetailsImageUpdateResponse,
 )
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+from ai_mf_backend.utils.v1.authentication.secrets import jwt_token_checker, login_checker
 from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
 
 router = APIRouter()
@@ -224,3 +229,88 @@ async def update_user_personal_financial_details(
         data={"user_id": user.user_id},
         status_code=status_code,
     )
+
+
+@router.post(
+    "/user_personal_details_image_upload",
+    response_model=UserPersonalDetailsImageUpdateResponse,
+    dependencies=[Depends(login_checker)],
+)
+async def user_personal_details_image_upload(
+    response: Response,
+    file: UploadFile = File(...),
+    Authorization: str = Header(...),
+):
+    try:
+        decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        email = decoded_payload.get("email")
+        mobile_number = decoded_payload.get("mobile_number")
+
+        if not any([email, mobile_number]):
+            response.status_code = 422
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="Invalid JWT token: no email or mobile number found.",
+                data={},
+                status_code=422,
+            )
+        
+        if email:
+            user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+        else:
+            user = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_number).first)()
+
+        if not user:
+            response.status_code = 400
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="User not found",
+                data={},
+                status_code=400,
+            )
+                  
+        try:
+            contents = await file.read()
+            image = Image.open(io.BytesIO(contents))
+            image.verify()  
+        except (UnidentifiedImageError, Exception) as e:
+            response.status_code = 400
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="Uploaded file is not a valid image.",
+                data={},
+                status_code=400,
+            )
+        finally:
+            await file.close()
+    
+        content_file = ContentFile(contents, name=file.filename)
+
+        user_details, _ = await sync_to_async(UserPersonalDetails.objects.get_or_create)(user=user)
+        user_details.user_image = content_file
+        await sync_to_async(user_details.full_clean)()
+        await sync_to_async(user_details.save)()
+
+        return UserPersonalDetailsImageUpdateResponse(
+            status=True,
+            message="Image uploaded successfully",
+            data={"image_url": f"{user_details.user_image.name}"},
+            status_code=200,
+        )
+
+    except ValidationError as ve:
+        response.status_code = 400
+        return UserPersonalDetailsImageUpdateResponse(
+            status=False,
+            message=f"Validation error: {ve}",
+            data={},
+            status_code=400,
+        )
+    except Exception as e:
+        response.status_code = 500
+        return UserPersonalDetailsImageUpdateResponse(
+            status=False,
+            message=f"Internal server error: {str(e)}",
+            data={},
+            status_code=500,
+        )
