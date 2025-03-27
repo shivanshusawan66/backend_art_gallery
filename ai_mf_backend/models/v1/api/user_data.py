@@ -27,6 +27,7 @@ class UserPersonalFinancialDetailsUpdateResponse(Response):
 
 class UserPersonalFinancialFormData(BaseModel):
     name: Optional[str] = None
+    user_profile_image: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[str] = None
     marital_status: Optional[str] = None
