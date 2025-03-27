@@ -191,6 +191,7 @@ application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 class GenderAdmin(admin.ModelAdmin):
     list_display = ("gender", "add_date", "update_date")
     search_fields = ("gender",)
+    list_filter = ("gender",)
     ordering = ("gender",)
 
 
@@ -198,6 +199,7 @@ class GenderAdmin(admin.ModelAdmin):
 class MaritalStatusAdmin(admin.ModelAdmin):
     list_display = ("marital_status", "add_date", "update_date")
     search_fields = ("marital_status",)
+    list_filter = ("marital_status",)
     ordering = ("marital_status",)
 
 
@@ -205,6 +207,7 @@ class MaritalStatusAdmin(admin.ModelAdmin):
 class OccupationAdmin(admin.ModelAdmin):
     list_display = ("occupation", "add_date", "update_date")
     search_fields = ("occupation",)
+    list_filter = ("occupation",)
     ordering = ("occupation",)
 
 
@@ -212,6 +215,7 @@ class OccupationAdmin(admin.ModelAdmin):
 class AnnualIncomeAdmin(admin.ModelAdmin):
     list_display = ("income_category", "add_date", "update_date")
     search_fields = ("income_category",)
+    list_filter = ("income_category",)
     ordering = ("income_category",)
 
 
@@ -219,6 +223,7 @@ class AnnualIncomeAdmin(admin.ModelAdmin):
 class MonthlySavingCapacityAdmin(admin.ModelAdmin):
     list_display = ("saving_category", "add_date", "update_date")
     search_fields = ("saving_category",)
+    list_filter = ("saving_category",)
     ordering = ("saving_category",)
 
 
@@ -241,8 +246,8 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("name",)
-    list_filter = ("gender", "marital_status")
+    search_fields = ("name", "user__mobile_number",)
+    list_filter = ("gender", "marital_status",)
     ordering = ("name",)
 
     @admin.display(description="User Image Preview")
@@ -283,12 +288,15 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user__email",)
+    search_fields = ("user__email","user__mobile_number")
     list_filter = (
         "occupation",
         "income_category",
         "saving_category",
         "investment_amount_per_year",
+        "regular_source_of_income",
+        "lock_in_period_accepted",
+        "investment_style",
     )
     ordering = ("user",)
 
@@ -303,7 +311,7 @@ class SectionAdmin(admin.ModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ("section", "question", "add_date", "update_date")
-    search_fields = ("question",)
+    search_fields = ("section__section", "question",)
     list_filter = ("section",)
     ordering = ("section",)
 
@@ -311,7 +319,7 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Allowed_Response)
 class AllowedResponseAdmin(admin.ModelAdmin):
     list_display = ("question", "section", "response", "add_date", "update_date")
-    search_fields = ("response",)
+    search_fields = ("question__question", "response",)
     list_filter = ("section", "question")
     ordering = ("question",)
 
@@ -388,6 +396,7 @@ class TrailingReturnAdmin(admin.ModelAdmin):
 @admin.register(AnnualReturn)
 class AnnualReturnAdmin(admin.ModelAdmin):
     list_display = ("fund", "year", "fund_return", "category_return")
+    search_fields = ("fund__scheme_name",)
     list_filter = ("year", "fund")
 
 
