@@ -463,7 +463,6 @@ async def get_section_completion_status(
                     section_id=section["section"].id,
                     section_name=section["section"].section,
                     answered_questions=answered_visible_questions,
-                    non_answered_questions=visible_questions-answered_visible_questions,
                     total_questions=visible_questions,
                     completion_rate=completion_rate,
                 )

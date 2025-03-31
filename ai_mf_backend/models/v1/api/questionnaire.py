@@ -54,7 +54,6 @@ class SectionCompletionStatus(BaseModel):
     section_id: int
     section_name: str
     answered_questions: int
-    non_answered_questions:int
     total_questions: int
     completion_rate: int
 
