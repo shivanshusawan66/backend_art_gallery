@@ -56,8 +56,9 @@ async def filter_and_select_blog_data(
 
     try:
         fields_to_project = process_fields(fields, all_fields)
-        if "category" in fields_to_project:
-            fields_to_project.append("category__name")    
+        if "category" in fields_to_project:     
+            fields_to_project.append("category__name")      
+   
     except ValueError as e:
         response.status_code = 400
         return BlogCardResponse(
@@ -90,11 +91,6 @@ async def filter_and_select_blog_data(
         BlogData.objects.filter(deleted=False, **filter_kwargs)
         .values(*fields_to_project)
     )
-
-        # Changing name from category__name to category
-        for blog in blogs:
-            if 'category__name' in blog:
-                blog['category'] = blog.pop('category__name')
 
         if blogs:
             response.status_code = 200
