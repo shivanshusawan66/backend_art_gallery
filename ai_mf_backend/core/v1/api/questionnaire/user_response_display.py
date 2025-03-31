@@ -12,6 +12,7 @@ from ai_mf_backend.models.v1.database.user import (
 )
 from ai_mf_backend.models.v1.database.questions import (
     UserResponse,
+    Section,
 )
 from ai_mf_backend.models.v1.api.questionnaire_responses import (
     UserQuestionnaireResponse,
@@ -52,7 +53,15 @@ async def get_user_questionnaire_responses(
                 data={},
                 status_code=404,
             )
-
+        section_valid=await Section.objects.filter(id=section_id).aexists()
+        if not section_valid:
+            response.status_code=400
+            return UserQuestionnaireResponse(
+                status=False,
+                message="Invalid ID provided for section_id.",
+                data={},
+                status_code=400,
+            )
         user_check = await UserContactInfo.objects.filter(user_id=user_id).aexists()
 
         if not user_check:
