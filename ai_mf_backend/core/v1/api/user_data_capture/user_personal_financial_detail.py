@@ -218,7 +218,7 @@ async def update_user_personal_financial_details(
             status_code=422,
             detail={
                 "status": False,
-                "message": "Validation Error while saving details to the database.",
+                "message": "The investment style you entered is not valid. Please choose either 'Lump-Sum' or 'SIP' from the available options",
                 "errors": str(e),
             },
         )
