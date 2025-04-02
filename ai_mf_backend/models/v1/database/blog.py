@@ -5,6 +5,7 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.user import UserContactInfo, UserPersonalDetails
 from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
 from ai_mf_backend.utils.v1.database.images import validate_image_size
+from ai_mf_backend.utils.v1.validators.blog_report import validate_report_type
 
 
 class BlogCategory(SoftDeleteModel):
@@ -180,19 +181,31 @@ class BlogCommentReply(SoftDeleteModel):
             models.Index(fields=["created_at"]),
         ]
 
+class BlogCommentReportType(SoftDeleteModel):
+    report_type = models.CharField(
+        max_length=50, 
+        unique=True, 
+        validators=[validate_report_type]  
+    )
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "report_type"
+        verbose_name = "Report Type"
+        verbose_name_plural = "Report Types"
+
+    def __str__(self):
+        return self.report_type
     
-class BlogCommentReportType(models.TextChoices):
-    SPAM = "Spam","Spam"
-    HARASSMENT ="Harassment","Harassment"
-    RULESVIOLATION="Rules Violation","Rules Violation"
-    AIGENERATED="AI-generated","AI-generated"
-    OTHER="Other","Other"
 
 class BlogCommentReport(SoftDeleteModel):
     user=models.ForeignKey(UserContactInfo,on_delete=models.CASCADE)
     comment=models.ForeignKey(BlogComment,on_delete=models.CASCADE,null=True,related_name="reports")
     reply=models.ForeignKey(BlogCommentReply,on_delete=models.CASCADE,null=True,related_name="reply_reports")
-    report_type=models.CharField(max_length=20,choices=BlogCommentReportType.choices,default=BlogCommentReportType.OTHER)
+    report_type = models.ForeignKey(
+        BlogCommentReportType, on_delete=models.CASCADE  
+    )
     reported_at=models.DateTimeField(auto_now_add=True)
     username=models.CharField(max_length=150,null=True,blank=True,editable=False)
     def save(self,*args,**kwargs):

@@ -503,25 +503,32 @@ class BlogCommentReplyAdmin(admin.ModelAdmin):
     parent_comment_preview.short_description = "Parent Comment"
 
 
+@admin.register(BlogCommentReportType)
+class BlogCommentReportTypeAdmin(admin.ModelAdmin):
+    list_display = ("id", "report_type", "add_date", "update_date")
+    search_fields = ("report_type",)
+    ordering = ("add_date",)
+
 @admin.register(BlogCommentReport)
 class BlogCommentReportAdmin(admin.ModelAdmin):
     list_display = ("username", "comment_content", "reply_content", "report_type", "reported_at", "deleted")
     search_fields = ("username", "report_type", "comment__content", "reply__content")
     list_filter = ("report_type", "reported_at", "deleted")
     readonly_fields = ("username", "reported_at")
+    list_per_page = 20  
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(deleted=False)
+        queryset = super().get_queryset(request)
+        return queryset if request.user.is_superuser else queryset.filter(deleted=False)
 
     def comment_content(self, obj):
-        return obj.comment.content[:50] + "..." if obj.comment and obj.comment.content else "-"
+        return (obj.comment.content[:50] + "...") if obj.comment and hasattr(obj.comment, "content") else "-"
 
     def reply_content(self, obj):
-        return obj.reply.content[:50] + "..." if obj.reply and obj.reply.content else "-"
+        return (obj.reply.content[:50] + "...") if obj.reply and hasattr(obj.reply, "content") else "-"
 
     comment_content.short_description = "Comment"
     reply_content.short_description = "Reply"
-
     
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()

@@ -9,6 +9,7 @@ from ai_mf_backend.models.v1.database.blog import (BlogComment,BlogCommentReport
 
 router=APIRouter()
 logger = logging.getLogger(__name__)
+
 @router.post(
     "/report",
     response_model=ReportResponse,
@@ -28,7 +29,7 @@ async def report_comment_or_reply(
             data=[],
             status_code=422,
         )
-    
+
     try:
         decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
         email = decoded_payload.get("email")
@@ -42,8 +43,9 @@ async def report_comment_or_reply(
                 data=[],
                 status_code=response.status_code
             )
-        
-        user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+
+
+        user = await sync_to_async(lambda: UserContactInfo.objects.filter(email=email).first())()
         if not user:
             response.status_code = 400
             return ReportResponse(
@@ -52,12 +54,44 @@ async def report_comment_or_reply(
                 data=[],
                 status_code=response.status_code
             )
+
         
-        comment = None
-        reply = None
+        valid_types = await sync_to_async(lambda: list(BlogCommentReportType.objects.values_list("report_type", flat=True)))()
+        if request.report_type not in valid_types:
+            response.status_code = 400
+            return ReportResponse(
+                status=False,
+                message=f"Invalid report type: {request.report_type}. Allowed types: {valid_types}",
+                data=[],
+                status_code=response.status_code
+            )
+
         
+        try:
+            report_type = await sync_to_async(lambda: BlogCommentReportType.objects.get(report_type=request.report_type))()
+        except BlogCommentReportType.DoesNotExist:
+            response.status_code = 400
+            return ReportResponse(
+                status=False,
+                message="Invalid report type",
+                data=[],
+                status_code=response.status_code
+            )
+
+        comment, reply = None, None
+
+        # Fetch comment if provided
+        
+        if request.comment_id and request.reply_id :
+            response.status_code=400
+            return ReportResponse(
+                status=False,
+                message="Only one is valid either comment or reply",
+                data=[],
+                status_code=response.status_code
+            )
         if request.comment_id:
-            comment = await sync_to_async(BlogComment.objects.filter(id=request.comment_id).first)()
+            comment = await sync_to_async(lambda: BlogComment.objects.filter(id=request.comment_id).first())()
             if not comment:
                 response.status_code = 404
                 return ReportResponse(
@@ -66,9 +100,10 @@ async def report_comment_or_reply(
                     data=[],
                     status_code=response.status_code
                 )
-        
+
+        # Fetch reply if provided
         if request.reply_id:
-            reply = await sync_to_async(BlogCommentReply.objects.filter(id=request.reply_id).first)()
+            reply = await sync_to_async(lambda: BlogCommentReply.objects.filter(id=request.reply_id).first())()
             if not reply:
                 response.status_code = 404
                 return ReportResponse(
@@ -77,14 +112,25 @@ async def report_comment_or_reply(
                     data=[],
                     status_code=response.status_code
                 )
-        
-        report = await sync_to_async(BlogCommentReport.objects.create)(
+
+        # Ensure at least one of comment/reply is provided
+        if not comment and not reply:
+            response.status_code = 400
+            return ReportResponse(
+                status=False,
+                message="Either a comment or a reply must be provided.",
+                data=[],
+                status_code=response.status_code
+            )
+
+
+        report = await sync_to_async(lambda: BlogCommentReport.objects.create(
             user=user,
             comment=comment,
             reply=reply,
-            report_type=request.report_type
-        )
-        
+            report_type=report_type  
+        ))()
+
         response.status_code = 201
         return ReportResponse(
             status=True,
@@ -92,7 +138,7 @@ async def report_comment_or_reply(
             data=[],
             status_code=response.status_code
         )
-    
+
     except Exception as e:
         logger.error(f"Unexpected Error While Reporting: {e}")
         response.status_code = 500
