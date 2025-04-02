@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException,Response,status
 from asgiref.sync import sync_to_async
-from ai_mf_backend.models.v1.database.blog import BlogComment
+from ai_mf_backend.models.v1.database.blog import BlogComment,BlogCommentReply
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database.user import UserPersonalDetails
 
@@ -87,6 +87,7 @@ async def get_comments(blog_id: int, response: Response):
             .select_related("user")
             .order_by("created_at")
         )
+        
 
         formatted_comments = []
 
@@ -96,16 +97,21 @@ async def get_comments(blog_id: int, response: Response):
                 user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=comment.user).first)()
                 if user_details and user_details.name:
                     username = user_details.name
+            replies = await sync_to_async(list)(
+                BlogCommentReply.objects.filter(parent_comment_id=comment.id, deleted=False)
+                .select_related("user")
+                .order_by("created_at")
+            )
 
             formatted_comments.append(
                 CommentData(
                     id=comment.id,
                     user=username,
                     content=comment.content,
-                    created_at=comment.created_at
+                    created_at=comment.created_at,
+                    number_of_replies=len(replies)  
                 )
             )
-
         return CommentResponse(
             status=True,
             message="Comments retrieved successfully",
