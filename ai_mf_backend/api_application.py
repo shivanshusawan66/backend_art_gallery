@@ -74,6 +74,8 @@ from ai_mf_backend.models.v1.database.mutual_fund import (
 from ai_mf_backend.models.v1.database.blog import(
     BlogCategory,
     BlogData,
+    BlogComment,
+    BlogCommentReply
 )
 
 logger = logging.getLogger(__name__)
@@ -463,6 +465,36 @@ class BlogDataAdmin(admin.ModelAdmin):
                 obj.blogcard_image.url
             )
         return "No Image"
+
+@admin.register(BlogComment)
+class BlogCommentAdmin(admin.ModelAdmin):
+    list_display = ("username", "blog_post", "created_at", "updated_at", "deleted")
+    search_fields = ("username", "content")
+    list_filter = ("created_at", "updated_at", "deleted") 
+    readonly_fields = ("username", "created_at", "updated_at")
+
+    def get_queryset(self, request):
+        """Ensure that soft-deleted comments are not displayed"""
+        return super().get_queryset(request).filter(deleted=False) 
+
+
+
+@admin.register(BlogCommentReply)
+class BlogCommentReplyAdmin(admin.ModelAdmin):
+    list_display = ("username", "parent_comment_preview", "created_at", "deleted")
+    search_fields = ("username", "content")
+    list_filter = ("created_at", "deleted")
+    readonly_fields = ("username", "created_at")
+
+    def get_queryset(self, request):
+        """Ensure that soft-deleted replies are not displayed"""
+        return super().get_queryset(request).filter(deleted=False)  # ✅ Fix here
+
+    def parent_comment_preview(self, obj):
+        """Show a preview of the parent comment"""
+        return obj.parent_comment.content[:50] if obj.parent_comment else "[Deleted Comment]"
+
+    parent_comment_preview.short_description = "Parent Comment"
 
 
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
