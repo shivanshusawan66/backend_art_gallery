@@ -80,5 +80,9 @@ def custom_validate_international_phonenumber(value):
             raise ValidationError(
                 _("This phone number has no country code."), code="invalid"
             )
+        if value[1:3] == "91" and value[3] in "012345":
+            raise ValidationError(
+                "Phone number must start with 6,7, 8, or 9 after the country code."
+            )
     except ValidationError as e:
         raise ValidationError(f"Invalid phone number format: {e}")
