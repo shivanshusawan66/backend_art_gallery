@@ -396,7 +396,17 @@ async def get_section_completion_status(
 
         # Get all sections with their questions
         sections_with_questions = await sync_to_async(
-            lambda: list(Section.objects.prefetch_related("question_set").all())
+        lambda: [
+        {
+            "section": section,
+            "questions": [
+                question for question in section.question_set.all() if question.visibility_question
+            ],
+        }
+        for section in Section.objects.prefetch_related(
+            Prefetch("question_set", queryset=Question.objects.filter(visibility_question="show"))
+        ).all()
+        ]
         )()
 
         dependency_dict = {}
@@ -421,7 +431,7 @@ async def get_section_completion_status(
             answered_visible_questions = 0
 
             # Count visible questions and answered visible questions
-            for question in section.question_set.all():
+            for question in section["questions"]:
                 should_skip = False
 
                 # Check if question should be hidden based on conditional logic
@@ -450,8 +460,8 @@ async def get_section_completion_status(
 
             section_completion_status.append(
                 SectionCompletionStatus(
-                    section_id=section.id,
-                    section_name=section.section,
+                    section_id=section["section"].id,
+                    section_name=section["section"].section,
                     answered_questions=answered_visible_questions,
                     total_questions=visible_questions,
                     completion_rate=completion_rate,

@@ -8,6 +8,7 @@ class CommentData(BaseModel):
     user:str
     content:str
     created_at:datetime
+    number_of_replies:int
 
 class CommentResponse(Response):
     data: List[CommentData]
