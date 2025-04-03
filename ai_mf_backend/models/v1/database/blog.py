@@ -191,9 +191,9 @@ class BlogCommentReportType(SoftDeleteModel):
     update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "report_type"
-        verbose_name = "Report Type"
-        verbose_name_plural = "Report Types"
+        db_table = "blog_comment_report_type"
+        verbose_name = "Blog Comment Report Type"
+        verbose_name_plural = "Blog Comment Report Types"
 
     def __str__(self):
         return self.report_type

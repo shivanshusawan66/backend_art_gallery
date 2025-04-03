@@ -6,8 +6,10 @@ from asgiref.sync import sync_to_async
 class ReportCreateRequest(BaseModel):
     comment_id: Optional[int] = Field(None, gt=0)
     reply_id: Optional[int] = Field(None, gt=0)
-    report_type: str  
-
+    report_type_id: int  
 
 class ReportResponse(Response):
     data:list
+
+class BlogCommentReportOptionResponse(Response):
+    pass

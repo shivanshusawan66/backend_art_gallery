@@ -1,10 +1,15 @@
 import logging
-from fastapi import APIRouter,Depends,HTTPException,Response,status,Header
+from fastapi import APIRouter,Depends,Response,Header
 from asgiref.sync import sync_to_async
 from ai_mf_backend.models.v1.api.blog_comment_report import (ReportCreateRequest,ReportResponse)
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker,jwt_token_checker
-from ai_mf_backend.models.v1.database.user import (UserContactInfo,UserPersonalDetails)
-from ai_mf_backend.models.v1.database.blog import (BlogComment,BlogCommentReport,BlogCommentReportType,BlogCommentReply)
+from ai_mf_backend.models.v1.database.user import UserContactInfo
+from ai_mf_backend.models.v1.database.blog import (
+    BlogComment,
+    BlogCommentReport,
+    BlogCommentReportType,
+    BlogCommentReply
+)
 
 
 router=APIRouter()
@@ -56,24 +61,24 @@ async def report_comment_or_reply(
             )
 
         
-        valid_types = await sync_to_async(lambda: list(BlogCommentReportType.objects.values_list("report_type", flat=True)))()
-        if request.report_type not in valid_types:
+        valid_ids = await sync_to_async(lambda: list(BlogCommentReportType.objects.values_list("id", flat=True)))()
+        if request.report_type_id not in valid_ids:
             response.status_code = 400
             return ReportResponse(
                 status=False,
-                message=f"Invalid report type: {request.report_type}. Allowed types: {valid_types}",
+                message=f"Invalid report type ID: {request.report_type_id}. Allowed IDs: {valid_ids}",
                 data=[],
                 status_code=response.status_code
             )
 
         
         try:
-            report_type = await sync_to_async(lambda: BlogCommentReportType.objects.get(report_type=request.report_type))()
+            report_type = await sync_to_async(lambda: BlogCommentReportType.objects.get(id=request.report_type_id))()
         except BlogCommentReportType.DoesNotExist:
             response.status_code = 400
             return ReportResponse(
                 status=False,
-                message="Invalid report type",
+                message="Invalid report type ID",
                 data=[],
                 status_code=response.status_code
             )
