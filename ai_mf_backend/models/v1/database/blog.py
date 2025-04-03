@@ -5,6 +5,7 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.user import UserContactInfo, UserPersonalDetails
 from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
 from ai_mf_backend.utils.v1.database.images import validate_image_size
+from ai_mf_backend.utils.v1.validators.blog_report import validate_report_type
 
 
 class BlogCategory(SoftDeleteModel):
@@ -88,6 +89,7 @@ class BlogData(SoftDeleteModel):
         db_table = "blog_data"
         verbose_name = "Blog Data"
         verbose_name_plural = "Blogs Data"
+
         
 
     def __str__(self):
@@ -178,3 +180,59 @@ class BlogCommentReply(SoftDeleteModel):
             models.Index(fields=["parent_comment"]),
             models.Index(fields=["created_at"]),
         ]
+
+class BlogCommentReportType(SoftDeleteModel):
+    report_type = models.CharField(
+        max_length=50, 
+        unique=True, 
+        validators=[validate_report_type]  
+    )
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "blog_comment_report_type"
+        verbose_name = "Blog Comment Report Type"
+        verbose_name_plural = "Blog Comment Report Types"
+
+    def __str__(self):
+        return self.report_type
+    
+
+class BlogCommentReport(SoftDeleteModel):
+    user=models.ForeignKey(UserContactInfo,on_delete=models.CASCADE)
+    comment=models.ForeignKey(BlogComment,on_delete=models.CASCADE,null=True,related_name="reports")
+    reply=models.ForeignKey(BlogCommentReply,on_delete=models.CASCADE,null=True,related_name="reply_reports")
+    report_type = models.ForeignKey(
+        BlogCommentReportType, on_delete=models.CASCADE  
+    )
+    reported_at=models.DateTimeField(auto_now_add=True)
+    username=models.CharField(max_length=150,null=True,blank=True,editable=False)
+    def save(self,*args,**kwargs):
+        if not self.username and self.user:
+            self.username=(
+                UserPersonalDetails.objects.filter(user=self.user)
+                .values_list('name',flat=True)
+                .first()
+            ) or "Unknown User"
+        super().save(*args,**kwargs)
+            
+    def __str__(self):
+        return f"{self.username} reported{self.comment} as {self.report_type}"
+    
+    class Meta:
+        db_table="blog_comment_report"
+        verbose_name="Blog Comment Report"
+        verbose_name_plural="Blog Comment Reports"
+        constraints= [
+            models.CheckConstraint(
+                check=(
+                    models.Q(comment__isnull=False, reply__isnull=True)|
+                    models.Q(comment__isnull=True,reply__isnull=False)
+                ),
+                name='blog_comment_report_comment_or_reply'
+            )
+        ]
+
+
+
