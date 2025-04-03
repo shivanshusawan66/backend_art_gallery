@@ -87,6 +87,15 @@ async def get_comments(blog_id: int, response: Response):
             .select_related("user")
             .order_by("created_at")
         )
+        if not comments:
+            response.status_code=404
+            return CommentResponse(
+            status=False,
+            message="No comments found for this blog ID",
+            data=[],
+            status_code=response.status_code
+            )
+            
         
 
         formatted_comments = []
@@ -98,10 +107,7 @@ async def get_comments(blog_id: int, response: Response):
                 if user_details and user_details.name:
                     username = user_details.name
             replies = await sync_to_async(list)(
-                BlogCommentReply.objects.filter(parent_comment_id=comment.id, deleted=False)
-                .select_related("user")
-                .order_by("created_at")
-            )
+                BlogCommentReply.objects.filter(parent_comment_id=comment.id, deleted=False) )
 
             formatted_comments.append(
                 CommentData(
