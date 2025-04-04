@@ -26,7 +26,7 @@ class Section(SoftDeleteModel):
 
 class Question(SoftDeleteModel):
     section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False 
     )
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -49,10 +49,10 @@ class Question(SoftDeleteModel):
 
 class Allowed_Response(SoftDeleteModel):
     question = models.ForeignKey(
-        Question, on_delete=models.SET_NULL, null=True, blank=True
+        Question, on_delete=models.PROTECT, null=False, blank=False
     )
     section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False
     )
     response = models.CharField(max_length=500)
     position = models.PositiveIntegerField(default=0.0)
@@ -111,16 +111,16 @@ class ConditionalQuestion(SoftDeleteModel):
 
 class UserResponse(SoftDeleteModel):
     user_id = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+        UserContactInfo, on_delete=models.PROTECT, null=False, blank=False
     )
     question_id = models.ForeignKey(
-        Question, on_delete=models.SET_NULL, null=True, blank=True
+        Question, on_delete=models.PROTECT, null=False, blank=False
     )
     response_id = models.ForeignKey(
-        Allowed_Response, on_delete=models.SET_NULL, null=True, blank=True
+        Allowed_Response, on_delete=models.PROTECT, null=False, blank=False
     )
     section_id = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
