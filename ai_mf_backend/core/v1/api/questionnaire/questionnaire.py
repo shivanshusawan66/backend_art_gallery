@@ -483,7 +483,7 @@ async def get_section_completion_status(
             data=[],
         )
 @router.get(
-    "/total_completion_status/",
+    "/total_completion_status",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
