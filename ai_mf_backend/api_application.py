@@ -80,6 +80,8 @@ from ai_mf_backend.models.v1.database.blog import(
     BlogCommentReportType,
 )
 
+from ai_mf_backend.models.v1.database.user_review import UserReview
+
 logger = logging.getLogger(__name__)
 
 fastapi_logger.handlers = logger.handlers
@@ -529,7 +531,36 @@ class BlogCommentReportAdmin(admin.ModelAdmin):
 
     comment_content.short_description = "Comment"
     reply_content.short_description = "Reply"
-    
+
+@admin.register(UserReview)
+class UserReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'username',
+        'designation',
+        'review_title',
+        'review_body',
+        'number_of_stars',
+        'location',
+        'user_image_preview',
+        'add_date',
+        'deleted',
+    )
+    list_filter = ('designation', 'location', 'add_date')
+    search_fields = ('username', 'review_title', 'review_body', 'designation', 'location')
+    date_hierarchy = "add_date"
+
+    @admin.display(description="User Image Preview")
+    def user_image_preview(self, obj):
+        if obj.user_image:
+            return format_html(
+                '<img src="{}" style="max-width:50px; max-height:50px;" />',
+                obj.user_image.url
+            )
+        return "No Image"
+
+
+
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()
 

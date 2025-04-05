@@ -79,6 +79,11 @@ from ai_mf_backend.core.v1.api.blog.blog_comment_report_options import(
     router as blog_comment_report_options_router_v1,
 )
 
+# User review
+from ai_mf_backend.core.v1.api.user_review.user_review import (
+    router as user_review_router_v1,
+)
+
 # Soft Delete Routers
 from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
     router as soft_delete_router_v1,
@@ -118,6 +123,8 @@ connect_router.include_router(blog_options_router_v1)
 connect_router.include_router(blog_comment_reply_router_v1)
 connect_router.include_router(blog_comment_report_router_v1)
 connect_router.include_router(blog_comment_report_options_router_v1)
+
+connect_router.include_router(user_review_router_v1)
 
 connect_router.include_router(soft_delete_router_v1)
 

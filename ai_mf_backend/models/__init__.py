@@ -5,3 +5,4 @@ from ai_mf_backend.models.v1.database.user import *
 from ai_mf_backend.models.v1.database.financial_details import *
 from ai_mf_backend.models.v1.database.reference_table import *
 from ai_mf_backend.models.v1.database.blog import *
+from ai_mf_backend.models.v1.database.user_review import *
