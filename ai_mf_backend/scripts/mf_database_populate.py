@@ -1,15 +1,13 @@
-import multiprocessing
 import os
 import sys
 from itertools import chain
 import django
 import ijson
 from datetime import datetime
-from itertools import islice
-import concurrent.futures
 
-from django.db import transaction, models, connections
+from django.db import transaction, models, connection, connections
 from django.utils import timezone
+
 
 
 BASE_TXT_DIR = os.path.join(os.getcwd(), "..", "MutualFund")
@@ -23,25 +21,25 @@ from ai_mf_backend.models.v1.database.mf_additional import *
 
 
 MODEL_FILE_MAPPING = {
-    # Asset Management Companies (2)
-    MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
-    MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
+    # # Asset Management Companies (2)
+    # MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
+    # MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
     
-    # Scheme Masters (12)
-    MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
-    MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
-    MFSchemeRTCode: f"{BASE_TXT_DIR}\\Scheme_rtcode.txt",
-    MFSchemeIsInMaster: f"{BASE_TXT_DIR}\\schemeisinmaster.txt",
-    MFTypeMaster: f"{BASE_TXT_DIR}\\Type_mst.txt",
-    MFOptionMaster: f"{BASE_TXT_DIR}\\Option_mst.txt",
-    MFSchemeClassMaster: f"{BASE_TXT_DIR}\\Sclass_mst.txt",
-    MFRegistrarMaster: f"{BASE_TXT_DIR}\\Rt_mst.txt",
-    MFPlanMaster: f"{BASE_TXT_DIR}\\Plan_mst.txt",
-    MFCustodianMaster: f"{BASE_TXT_DIR}\\Cust_mst.txt",
-    MFFundManagerMaster: f"{BASE_TXT_DIR}\\Fundmanager_mst.txt",
-    MFDividendMaster: f"{BASE_TXT_DIR}\\Div_mst.txt",
+    # # Scheme Masters (12)
+    # MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
+    # MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
+    # MFSchemeRTCode: f"{BASE_TXT_DIR}\\Scheme_rtcode.txt",
+    # MFSchemeIsInMaster: f"{BASE_TXT_DIR}\\schemeisinmaster.txt",
+    # MFTypeMaster: f"{BASE_TXT_DIR}\\Type_mst.txt",
+    # MFOptionMaster: f"{BASE_TXT_DIR}\\Option_mst.txt",
+    # MFSchemeClassMaster: f"{BASE_TXT_DIR}\\Sclass_mst.txt",
+    # MFRegistrarMaster: f"{BASE_TXT_DIR}\\Rt_mst.txt",
+    # MFPlanMaster: f"{BASE_TXT_DIR}\\Plan_mst.txt",
+    # MFCustodianMaster: f"{BASE_TXT_DIR}\\Cust_mst.txt",
+    # MFFundManagerMaster: f"{BASE_TXT_DIR}\\Fundmanager_mst.txt",
+    # MFDividendMaster: f"{BASE_TXT_DIR}\\Div_mst.txt",
     
-    # Scheme Objective (1)
+    # # Scheme Objective (1)
     # MFSchemeObjective: f"{BASE_TXT_DIR}\\Scheme_objective.txt",
     
     # # SIP / STP / SWP Details (3)
@@ -107,7 +105,7 @@ MODEL_FILE_MAPPING = {
     # # Ratios (3)
     # MFRatios1Year: f"{BASE_TXT_DIR}\\Mf_ratio.txt",
     # MFRatiosDefaultBenchmark1Year: f"{BASE_TXT_DIR}\\MF_Ratios_DefaultBM.txt",
-    # MFRatios3Year: f"{BASE_TXT_DIR}\\Ratio_3Year_MonthlyRet.txt",
+    MFRatios3Year: f"{BASE_TXT_DIR}\\Ratio_3Year_MonthlyRet.txt",
  
     # # Dividend (1)
     # MFDividendDetails: f"{BASE_TXT_DIR}\\Divdetails.txt",
@@ -128,12 +126,19 @@ MODEL_FILE_MAPPING = {
 }
 
 
-BATCH_SIZE = 20000  # Increased batch size
+BATCH_SIZE = 20000  
+
+def reset_pk_sequence(model):
+    table_name = model._meta.db_table
+    sequence_sql = f"ALTER SEQUENCE {table_name}_id_seq RESTART WITH 1;"
+    with connection.cursor() as cursor:
+        cursor.execute(sequence_sql)
 
 def clear_tables(models_list):
     with transaction.atomic():
         for model in models_list:
             model.objects.all().delete()
+            reset_pk_sequence(model)
 
 def create_field_mapping(model_fields, json_columns):
     mapping = {}
@@ -202,7 +207,8 @@ def create_field_converters(model_fields, json_columns):
 
 def process_file(model, file_path):
     file_name = os.path.basename(file_path)
-    print(f"\nProcessing: {file_name}")
+    model_name = model.__name__
+    print(f"\nProcessing: {model_name} - {file_name}")
     count = 0
     errors = 0
     warning_count = 0
@@ -242,7 +248,7 @@ def process_file(model, file_path):
                     # Create model instance
                     obj = model()
                     for field_name, json_key, converter in converters:
-                        if field_name == "id":  
+                        if field_name == "id" or field_name == "created_at":  
                             continue
                         value = record.get(json_key)
                         converted_value = converter(value)
@@ -317,7 +323,7 @@ def process_file(model, file_path):
 def validate_fields(model, json_columns):
     model_fields = {f.name: f for f in model._meta.fields if not f.auto_created}
     required_fields = [f.name for f in model_fields.values() 
-                       if not f.null and not f.has_default() and f.name != "id"]
+                  if not f.null and not f.has_default() and f.name != "id" and f.name != "created_at"]
     
     for field in required_fields:
         if field not in json_columns and f'_{field}' not in json_columns:
@@ -326,7 +332,7 @@ def validate_fields(model, json_columns):
     return True, ""
 
 def import_data(clear_first=True):
-    models_to_import = list(MODEL_FILE_MAPPING.keys())
+    models_to_import = list(MODEL_FILE_MAPPING.keys())  
     
     if clear_first:
         print("Clearing existing data...")
@@ -338,31 +344,22 @@ def import_data(clear_first=True):
     
     print(f"Starting import at {start_time.strftime('%H:%M:%S')}")
     
-    # Process files in parallel
-    with concurrent.futures.ProcessPoolExecutor(max_workers=min(4, multiprocessing.cpu_count())) as executor:
-        futures = []
+    # Process models sequentially in defined order
+    for model in models_to_import:
+        file_paths = MODEL_FILE_MAPPING[model]
+        if not isinstance(file_paths, list):
+            file_paths = [file_paths]
         
-        for model in models_to_import:
-            file_paths = MODEL_FILE_MAPPING[model]
-            if not isinstance(file_paths, list):
-                file_paths = [file_paths]
+        # Process each file for this model sequentially
+        for file_path in file_paths:
+            if not os.path.exists(file_path):
+                print(f"File not found: {file_path}")
+                continue
             
-            for file_path in file_paths:
-                if not os.path.exists(file_path):
-                    print(f"File not found: {file_path}")
-                    continue
-                # Submit tasks to process pool
-                futures.append(executor.submit(process_file, model, file_path))
-        
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                success, err = future.result()
-                total += success
-                errors += err
-            except Exception as e:
-                print(f"Task failed with error: {e}")
-                errors += 1
+            # Process single file
+            success, err = process_file(model, file_path)
+            total += success
+            errors += err
     
     end_time = datetime.now()
     duration = end_time - start_time
@@ -373,7 +370,7 @@ def import_data(clear_first=True):
 
 
 if __name__ == '__main__':
-    # Close database connections before forking processes
+    # Close connections before starting (for any potential prefork setups)
     for conn in connections.all():
         conn.close()
     

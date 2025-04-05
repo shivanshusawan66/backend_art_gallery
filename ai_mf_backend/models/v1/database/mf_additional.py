@@ -10,6 +10,7 @@ class MFSchemeMonthWiseExpenseRatio(models.Model):
     date = models.DateTimeField(blank=True, null=True)
     expratio = models.FloatField(blank=True, null=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_month_wise_expense_ratio"
@@ -26,6 +27,7 @@ class MFSchemeEquityDetails(models.Model):
     PB = models.FloatField(blank=True, null=True)
     Div_Yield = models.FloatField(blank=True, null=True) 
     FLAG = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_equity_details"
@@ -50,6 +52,7 @@ class MFSchemeFMPYieldDetails(models.Model):
     tenure_no_rollover = models.FloatField(blank=True, null=True)
     tenure_option_rollover = models.CharField(max_length=10, blank=True, null=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_fmp_yield_details"
@@ -70,6 +73,7 @@ class MFSchemeAverageMaturity(models.Model):
     turnover_ratio = models.FloatField(blank=True, null=True)
     tr_mode = models.CharField(max_length=10, blank=True, null=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_average_maturity"
@@ -86,6 +90,7 @@ class MFFaceValueChange(models.Model):
     fvafter = models.FloatField()
     fvdate = models.DateTimeField()
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_face_value_change"
@@ -101,6 +106,7 @@ class MFSchemeNameChange(models.Model):
     OldName = models.CharField(max_length=255)
     Newname = models.CharField(max_length=255)
     Flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_name_change"
@@ -113,11 +119,12 @@ class MFFundmanager(models.Model):
     date = models.DateTimeField()
     amc = models.IntegerField()
     schemecode = models.IntegerField()
-    fundManager1 = models.IntegerField(null=True, blank=True)
-    fundManager2 = models.IntegerField(null=True, blank=True)
-    fundManager3 = models.IntegerField(null=True, blank=True)
-    fundManager4 = models.IntegerField(null=True, blank=True)
+    fundManger1 = models.IntegerField(null=True, blank=True)
+    fundManger2 = models.IntegerField(null=True, blank=True)
+    fundManger3 = models.IntegerField(null=True, blank=True)
+    fundManger4 = models.IntegerField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_fund_manager"
@@ -131,6 +138,7 @@ class MFMergedschemes(models.Model):
     mergedwith = models.IntegerField()
     EFFECT_DATE = models.DateTimeField()
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_merged_schemes"
@@ -150,6 +158,7 @@ class MFBulkDeals(models.Model):
     volume = models.DecimalField(max_digits=18, decimal_places=0)
     price = models.FloatField()
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_bulk_deals"
@@ -165,6 +174,7 @@ class MFSchemeAssetAllocation(models.Model):
     mininv = models.FloatField()
     maxinv = models.FloatField()
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_asset_allocation"
@@ -178,6 +188,7 @@ class MFCompanyMcap(models.Model):
     mcap = models.FloatField()
     mode = models.CharField(max_length=20)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_company_mcap"

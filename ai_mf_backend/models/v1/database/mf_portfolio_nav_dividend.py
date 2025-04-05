@@ -21,6 +21,7 @@ class MFPortfolio(models.Model):
     asect_name = models.CharField(max_length=50, null=True, blank=True)
     rating = models.CharField(max_length=50, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_portfolio"
@@ -35,6 +36,7 @@ class MFAMCPortfolioAUM(models.Model):
     aumdate = models.DateTimeField(blank=True, null=True)
     totalaum = models.FloatField(null=True, blank=True)
     FLAG = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_amc_portfolio_aum"
@@ -49,6 +51,7 @@ class MFSchemePortfolioAUM(models.Model):
     amc_code = models.IntegerField(null=True, blank=True)
     aum = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_portfolio_aum"
@@ -62,6 +65,7 @@ class MFAMCAUM(models.Model):
     aumdate = models.DateTimeField(blank=True, null=True)
     totalaum = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_amc_aum"
@@ -77,6 +81,7 @@ class MFSchemeAUM(models.Model):
     fof = models.FloatField(null=True, blank=True)
     total = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_aum"
@@ -94,6 +99,7 @@ class MFPortfolioInOut(models.Model):
     mktval = models.FloatField(null=True, blank=True)
     noshares = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_portfolio_inout"
@@ -109,9 +115,10 @@ class MFAverageSchemeAUM(models.Model):
     fof = models.FloatField(null=True, blank=True)
     total = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "mf_avg_scheme_aum"
+        db_table = "mf_average_scheme_aum"
         verbose_name = "MF Average Scheme AUM"
         verbose_name_plural = "MF Average Scheme AUMs"
         unique_together = (('schemecode', 'date'),)
@@ -132,6 +139,7 @@ class MFNSEAssetValueLatest(models.Model):
     prevnav = models.FloatField(null=True, blank=True)
     prenavdate = models.DateTimeField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_nse_asset_value_latest"
@@ -148,6 +156,7 @@ class MFNetAssetValueHistorical(models.Model):
     adjustednav_c = models.FloatField(null=True, blank=True)
     adjustednav_nonc = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_net_asset_value_historical"
@@ -199,6 +208,7 @@ class MFNetAssetValueHighLow(models.Model):
     sihdate = models.DateTimeField(null=True, blank=True)
     sildate = models.DateTimeField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
     class Meta:
@@ -251,6 +261,7 @@ class MFReturn(models.Model):
     incnav = models.FloatField(null=True, blank=True)
     incret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_return"
@@ -299,6 +310,7 @@ class MFAbsoluteReturn(models.Model):
     incnav = models.FloatField(null=True, blank=True)
     incret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_absolute_return"
@@ -347,6 +359,7 @@ class MFAnnualizedReturn(models.Model):
     incnav = models.FloatField(null=True, blank=True)
     incret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_annualized_return"
@@ -395,6 +408,7 @@ class MFCAGRReturn(models.Model):
     incnav = models.FloatField(null=True, blank=True)
     incret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_cagr_return"
@@ -456,6 +470,7 @@ class MFCategoryWiseReturn(models.Model):
     Worstincretschemecode = models.IntegerField(null=True, blank=True)
     incretworstret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_category_wise_return"
@@ -519,6 +534,7 @@ class MFBenchmarkIndicesAbsoluteReturn(models.Model):
     ytdclose = models.FloatField(null=True, blank=True)
     ytdret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_benchmark_indices_absolute_return"
@@ -581,6 +597,7 @@ class MFBenchmarkIndicesAnnualisedReturn(models.Model):
     ytdclose = models.FloatField(null=True, blank=True)
     ytdret = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_benchmark_indices_annualised_return"
@@ -619,6 +636,7 @@ class MFRatios1Year(models.Model):
     sortino_x = models.FloatField(null=True, blank=True)
     sortino_y = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_ratios_1_year"
@@ -656,6 +674,7 @@ class MFRatiosDefaultBenchmark1Year(models.Model):
     sd_annualised = models.FloatField(null=True, blank=True)  
     informationRatio = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_ratios_default_benchmark_1_year"
@@ -665,7 +684,7 @@ class MFRatiosDefaultBenchmark1Year(models.Model):
 class MFRatios3Year(models.Model):
     id = models.AutoField(primary_key=True)
     SCHEMECODE = models.IntegerField()  
-    RatioDate = models.DateTimeField(null=True, blank=True)
+    RatioDate = models.DateField(null=True, blank=True)
     Average_Nav = models.FloatField(null=True, blank=True)
     SD_Nav = models.FloatField(null=True, blank=True)
     SemiSD = models.FloatField(null=True, blank=True)
@@ -695,6 +714,7 @@ class MFRatios3Year(models.Model):
     PriceIndex = models.IntegerField(null=True, blank=True) 
     PriceIndexName = models.CharField(max_length=255, null=True, blank=True)
     Flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_ratios_3_year"
@@ -718,6 +738,7 @@ class MFDividendDetails(models.Model):
     noncorporate = models.FloatField(null=True, blank=True)
     status = models.CharField(max_length=3, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_dividend_details"

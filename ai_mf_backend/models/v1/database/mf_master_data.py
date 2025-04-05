@@ -27,6 +27,7 @@ class MFAMCMaster(models.Model):
     rtamccode = models.CharField(max_length=100, null=True, blank=True)
     rtamccode_1 = models.CharField(max_length=100, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_amc_master"
@@ -41,6 +42,7 @@ class MFAMCKeyPerson(models.Model):
     name = models.CharField(max_length=1000)
     desig = models.CharField(max_length=1000)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_amc_keyperson"
@@ -58,6 +60,7 @@ class MFSchemeMaster(models.Model):
     scheme_name = models.CharField(max_length=255)
     color = models.CharField(max_length=50)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_master"
@@ -154,6 +157,7 @@ class MFSchemeMasterInDetails(models.Model):
     Direct_Plan = models.IntegerField(null=True, blank=True)
     optionType = models.CharField(max_length=10, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_master_in_details"
@@ -165,6 +169,7 @@ class MFSchemeRTCode(models.Model):
     schemecode = models.IntegerField()
     rtschemecode = models.CharField(max_length=100, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_rt_code"
@@ -185,6 +190,7 @@ class MFSchemeIsInMaster(models.Model):
     ShortSchemeDescrip = models.CharField(max_length=255, null=True, blank=True)
     Status = models.CharField(max_length=10, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_is_in_master"
@@ -196,6 +202,7 @@ class MFTypeMaster(models.Model):
     type_code = models.IntegerField()
     type = models.CharField(max_length=50)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_type_master"
@@ -207,6 +214,7 @@ class MFOptionMaster(models.Model):
     opt_code = models.IntegerField()
     option = models.CharField(max_length=30)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_option_master"
@@ -225,6 +233,7 @@ class MFSchemeClassMaster(models.Model):
     category = models.CharField(max_length=500)
     sub_category = models.CharField(max_length=500, null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_class_master"
@@ -246,6 +255,7 @@ class MFRegistrarMaster(models.Model):
     reg_address = models.TextField(null=True, blank=True)
     email = models.CharField(max_length=500, null=True, blank=True )
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_registrar_master"
@@ -257,6 +267,7 @@ class MFPlanMaster(models.Model):
     plan_code = models.IntegerField()
     plan = models.CharField(max_length=50)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_plan_master"
@@ -272,6 +283,7 @@ class MFCustodianMaster(models.Model):
     add2 = models.TextField()
     add3 = models.TextField()
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_custodian_master"
@@ -289,6 +301,7 @@ class MFFundManagerMaster(models.Model):
     age = models.IntegerField(null=True, blank=True)  
     reporteddate = models.DateTimeField(null=True, blank=True)  
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = "mf_fundmanager_master"
@@ -300,6 +313,7 @@ class MFDividendMaster(models.Model):
     div_code = models.FloatField()
     div_type = models.CharField(max_length=30)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_dividend_master"
@@ -314,6 +328,7 @@ class MFSchemeObjective(models.Model):
     schemecode = models.IntegerField()
     objective = models.TextField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_objective"
@@ -341,6 +356,7 @@ class MFSystematicInvestmentPlan(models.Model):
     sipminunits = models.FloatField(null=True, blank=True)
     sipmultiplesunits = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_systematic_investment_plan"
@@ -366,6 +382,7 @@ class MFSystematicWithdrawalPlan(models.Model):
     swpminunits = models.FloatField(null=True, blank=True)
     swpmultiplesunits = models.FloatField(null=True, blank=True)
     Flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_systematic_withdrawal_plan"
@@ -392,6 +409,7 @@ class MFSystematicTransferPlan(models.Model):
     stpminunits = models.FloatField(null=True, blank=True)
     stpmultiplesunits = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_systematic_transfer_plan"
@@ -410,6 +428,7 @@ class MFSchemeIndexMapping(models.Model):
     IndexOrder = models.IntegerField(null=True, blank=True)
     Remark = models.CharField(max_length=100, null=True, blank=True)
     FLAG = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_index_mapping"
@@ -426,6 +445,7 @@ class MFIndexMaster(models.Model):
     index_gp = models.CharField(max_length=250)
     subgroup = models.CharField(max_length=250)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_index_master"
@@ -459,6 +479,7 @@ class MFSchemeEntryExitLoad(models.Model):
     Per_Frm = models.FloatField(null=True, blank=True)
     Per_To = models.FloatField(null=True, blank=True)
     FLAG = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_entry_exit_load"
@@ -471,6 +492,7 @@ class MFLoadTypeMaster(models.Model):
     ltypecode = models.IntegerField()
     load = models.CharField(max_length=20)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_loadtype_master"
@@ -496,6 +518,7 @@ class MFCompanyMaster(models.Model):
     sublisting = models.CharField(max_length=50, null=True, blank=True)
     fv = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_company_master"
@@ -510,6 +533,7 @@ class MFIndustryMaster(models.Model):
     Sector = models.CharField(max_length=255)
     Sector_code = models.IntegerField()
     Flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_industry_master"
@@ -523,6 +547,7 @@ class MFAssetAllocationMaster(models.Model):
     asset = models.CharField(max_length=50)
     as_name = models.CharField(max_length=50)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_asset_master"
@@ -537,6 +562,7 @@ class MFSchemeRGESS(models.Model):
     schemecode = models.IntegerField()
     schemename = models.CharField(max_length=255)
     flag = models.CharField(max_length=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "mf_scheme_rgess"
