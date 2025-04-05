@@ -61,19 +61,19 @@ class InvestmentAmountPerYear(SoftDeleteModel):
 
 class UserFinancialDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        "UserContactInfo", on_delete=models.SET_NULL, null=True, blank=True
+        "UserContactInfo", on_delete=models.PROTECT, null=True, blank=True
     )
     occupation = models.ForeignKey(
-        "Occupation", on_delete=models.SET_NULL, null=True, blank=True
+        "Occupation", on_delete=models.PROTECT, null=True, blank=True
     )
     income_category = models.ForeignKey(
-        "AnnualIncome", on_delete=models.SET_NULL, null=True, blank=True
+        "AnnualIncome", on_delete=models.PROTECT, null=True, blank=True
     )
     saving_category = models.ForeignKey(
-        "MonthlySavingCapacity", on_delete=models.SET_NULL, null=True, blank=True
+        "MonthlySavingCapacity", on_delete=models.PROTECT, null=True, blank=True
     )
     investment_amount_per_year = models.ForeignKey(
-        "InvestmentAmountPerYear", on_delete=models.SET_NULL, null=True, blank=True
+        "InvestmentAmountPerYear", on_delete=models.PROTEC, null=True, blank=True
     )
     regular_source_of_income = models.BooleanField(
         choices=[(True, "Yes"), (False, "No")], default=None, null=True, blank=True

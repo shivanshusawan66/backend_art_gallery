@@ -116,7 +116,7 @@ class UserContactInfo(SoftDeleteModel):
 
 class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+        UserContactInfo, on_delete=models.PROTECT, null=True, blank=True
     )
     name = models.CharField(
         max_length=100, null=True, blank=True, validators=[validate_name]
