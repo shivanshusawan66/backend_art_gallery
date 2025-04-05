@@ -35,6 +35,7 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
     TotalCompletionStatusResponse,
+    RunningBannerStatus,
     
 )
 from ai_mf_backend.models.v1.database.user import (
@@ -482,8 +483,10 @@ async def get_section_completion_status(
             status_code=500,
             data=[],
         )
+    
+    
 @router.get(
-    "/total_completion_status/",
+    "/total_completion_status",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
@@ -491,7 +494,6 @@ async def get_total_completion_status(
     user_id: int = Query(..., description="User ID")
 ) -> TotalCompletionStatusResponse:
     try:
-        
         section_status_response = await get_section_completion_status(user_id)
 
         if not section_status_response.status or not section_status_response.data:
@@ -500,10 +502,11 @@ async def get_total_completion_status(
                 status=False,
                 message="Failed to fetch section completion data.",
                 total_completion_rate=0.0,
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
                 status_code=status_code,
             )
 
-        
         total_answered = sum(section.answered_questions for section in section_status_response.data)
         total_questions = sum(section.total_questions for section in section_status_response.data)
 
@@ -512,12 +515,24 @@ async def get_total_completion_status(
         else:
             overall_completion_rate = (total_answered / total_questions) * 100
 
-        return TotalCompletionStatusResponse(
-            status=True,
-            message="Successfully fetched total completion status.",
-            total_completion_rate=int(overall_completion_rate),
-            status_code=200,
-        )
+        if overall_completion_rate == 100:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=False,
+                banner_message="",
+                status_code=200,
+            )
+        else:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
+                status_code=200,
+            )
 
     except Exception as e:
         logger.error(f"Unexpected error while fetching total completion status: {str(e)}")
@@ -525,5 +540,7 @@ async def get_total_completion_status(
             status=False,
             message="An unexpected error occurred.",
             total_completion_rate=0.0,
+            banner_status=True,
+            banner_message="",
             status_code=500,
         )
