@@ -1,12 +1,12 @@
 from typing import Optional
 
-from fastapi import APIRouter, Response, Depends, Query, Request
+from fastapi import APIRouter, Response, Depends, Query, Request,Header
 from asgiref.sync import sync_to_async
 from django.forms.models import model_to_dict
 
 from ai_mf_backend.core.v1.api import limiter
 
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker
+from ai_mf_backend.utils.v1.authentication.secrets import login_checker, jwt_token_checker
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
 )
@@ -33,8 +33,37 @@ async def get_user_questionnaire_responses(
     response: Response,
     user_id: Optional[int] = Query(None, description="User ID"),
     section_id: Optional[int] = Query(None, description="Section ID"),
+     Authorization: str = Header(),
 ):
+
     try:
+        decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        email = decoded_payload.get("email")
+        mobile_no = decoded_payload.get("mobile_number")
+        
+        if not any([email, mobile_no]):
+            response.status_code = 422
+            return UserQuestionnaireResponse(
+                status=False,
+                message="Invalid JWT token: no email or mobile number found.",
+                data={},
+                status_code=response.status_code,
+            )
+
+        user = None
+        if email:
+            user = await UserContactInfo.objects.filter(email=email).afirst()
+        elif mobile_no:
+            user = await UserContactInfo.objects.filter(mobile_number=mobile_no).afirst()
+
+        if not user:
+            response.status_code = 400
+            return UserQuestionnaireResponse(
+                status=False,
+                message="User not found",
+                data={},
+                status_code=response.status_code,
+            )
         if not user_id:
             response.status_code = 404
             return UserQuestionnaireResponse(
@@ -62,6 +91,14 @@ async def get_user_questionnaire_responses(
                 message="User is not registered with the platform yet.",
                 data={},
                 status_code=404,
+            )
+        if user_check!=user.user_id :
+            response.status_code=403
+            return UserQuestionnaireResponse(
+                status=False,
+                message="Unauthorized access. User ID does not match the token.",
+                data={},
+                status_code=403,
             )
 
         user_responses = await sync_to_async(list)(
