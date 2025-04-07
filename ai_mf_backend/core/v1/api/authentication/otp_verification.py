@@ -263,7 +263,7 @@ async def otp_verification(
                 status=False,
                 message="New password must be different from current password",
                 data={},
-                status_code=422,
+                status_code=400,
             )
 
         new_password_hashed = password_encoder(new_password_plain)
