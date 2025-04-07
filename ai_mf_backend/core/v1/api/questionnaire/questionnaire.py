@@ -13,7 +13,7 @@ from fastapi import APIRouter, Response, Depends, Request, Header, Query
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 from ai_mf_backend.utils.v1.authentication.validators import (
-    custom_validate_international_phonenumber,
+    custom_validate_international_phonenumber,validate_content_type
 )
 from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
@@ -97,7 +97,7 @@ async def get_all_sections(request: Request, response: Response):
 @router.post(
     "/section_wise_questions/",
     response_model=SectionQuestionsResponse,
-    dependencies=[Depends(login_checker)],
+    dependencies=[Depends(login_checker),Depends(validate_content_type)],
     status_code=200,
 )
 async def get_section_wise_questions(

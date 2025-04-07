@@ -2,7 +2,7 @@ import re
 import logging
 import unicodedata
 from django.core.exceptions import ValidationError
-
+from fastapi import Request, HTTPException, status
 from django.utils.translation import gettext_lazy as _
 
 from phonenumber_field.phonenumber import PhoneNumber, to_python
@@ -86,3 +86,15 @@ def custom_validate_international_phonenumber(value):
             )
     except ValidationError as e:
         raise ValidationError(f"Invalid phone number format: {e}")
+
+async def validate_content_type(request: Request):
+    content_type = request.headers.get("Content-Type")
+    if content_type != "application/json":
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail={
+                "status": False,
+                "status_code": 415,
+                "message": "Unsupported Media Type: Please use Content-Type application/json"
+            }
+        )
