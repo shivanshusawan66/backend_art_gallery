@@ -258,7 +258,7 @@ async def otp_verification(
         new_password_plain = request.password
 
         if user_doc.password and check_password(new_password_plain, user_doc.password):
-            response.status_code = 422
+            response.status_code = 400
             return OTPVerificationResponse(
                 status=False,
                 message="New password must be different from current password",
