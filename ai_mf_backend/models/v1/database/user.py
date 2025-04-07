@@ -131,10 +131,10 @@ class UserPersonalDetails(SoftDeleteModel):
         MaritalStatus, on_delete=models.SET_NULL, null=True, blank=True
     )
     user_image = models.ImageField(
-        upload_to='user_images/',
+        upload_to="user_images/",
         blank=True,
         null=True,
-        validators=[validate_image_size]
+        validators=[validate_image_size],
     )
     add_date = models.DateTimeField(
         auto_now_add=True, validators=[validate_not_future_date]
@@ -154,7 +154,7 @@ class UserPersonalDetails(SoftDeleteModel):
 
     def __str__(self):
         return f"Personal Details for {self.user}"
-    
+
 
 class OTPlogs(SoftDeleteModel):
     user = models.ForeignKey(

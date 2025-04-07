@@ -3,6 +3,7 @@ from django.db import models
 
 #  ADDITIONAL
 
+
 class MFSchemeMonthWiseExpenseRatio(models.Model):
     id = models.AutoField(primary_key=True)
     amc_code = models.IntegerField(blank=True, null=True)
@@ -16,7 +17,8 @@ class MFSchemeMonthWiseExpenseRatio(models.Model):
         db_table = "mf_scheme_month_wise_expense_ratio"
         verbose_name = "MF Scheme Month Wise Expense Ratio"
         verbose_name_plural = "MF Scheme Month Wise Expense Ratio"
-        unique_together = (('schemecode', 'date'),)
+        unique_together = (("schemecode", "date"),)
+
 
 class MFSchemeEquityDetails(models.Model):
     id = models.AutoField(primary_key=True)
@@ -25,7 +27,7 @@ class MFSchemeEquityDetails(models.Model):
     MCAP = models.FloatField(blank=True, null=True)
     PE = models.FloatField(blank=True, null=True)
     PB = models.FloatField(blank=True, null=True)
-    Div_Yield = models.FloatField(blank=True, null=True) 
+    Div_Yield = models.FloatField(blank=True, null=True)
     FLAG = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -33,7 +35,8 @@ class MFSchemeEquityDetails(models.Model):
         db_table = "mf_scheme_equity_details"
         verbose_name = "MF Scheme Equity Detail"
         verbose_name_plural = "MF Scheme Equity Details"
-    
+
+
 class MFSchemeFMPYieldDetails(models.Model):
     id = models.AutoField(primary_key=True)
     schemecode = models.IntegerField()
@@ -59,6 +62,7 @@ class MFSchemeFMPYieldDetails(models.Model):
         verbose_name = "MF Scheme FMP Yield Details"
         verbose_name_plural = "MF Scheme FMP Yield Details"
 
+
 class MFSchemeAverageMaturity(models.Model):
     id = models.AutoField(primary_key=True)
     amc_code = models.IntegerField()
@@ -79,7 +83,8 @@ class MFSchemeAverageMaturity(models.Model):
         db_table = "mf_scheme_average_maturity"
         verbose_name = "MF Scheme Average Maturity"
         verbose_name_plural = "MF Scheme Average Maturity"
-        unique_together = (('schemecode', 'date'),)
+        unique_together = (("schemecode", "date"),)
+
 
 class MFFaceValueChange(models.Model):
     id = models.AutoField(primary_key=True)
@@ -96,11 +101,12 @@ class MFFaceValueChange(models.Model):
         db_table = "mf_face_value_change"
         verbose_name = "MF Face Value Change"
         verbose_name_plural = "MF Face Value Change"
-        unique_together = (('schemecode', 'fvdate'),)
+        unique_together = (("schemecode", "fvdate"),)
+
 
 class MFSchemeNameChange(models.Model):
     id = models.AutoField(primary_key=True)
-    Amc_Code = models.IntegerField()  
+    Amc_Code = models.IntegerField()
     SchemeCode = models.IntegerField()
     Effectivedate = models.DateTimeField()
     OldName = models.CharField(max_length=255)
@@ -112,7 +118,8 @@ class MFSchemeNameChange(models.Model):
         db_table = "mf_scheme_name_change"
         verbose_name = "MF Scheme Name Change"
         verbose_name_plural = "MF Scheme Name Change"
-        unique_together = (('Amc_Code', 'SchemeCode', 'Effectivedate'),)
+        unique_together = (("Amc_Code", "SchemeCode", "Effectivedate"),)
+
 
 class MFFundmanager(models.Model):
     id = models.AutoField(primary_key=True)
@@ -130,7 +137,8 @@ class MFFundmanager(models.Model):
         db_table = "mf_fund_manager"
         verbose_name = "MF Fund Manager"
         verbose_name_plural = "MF Fund Manager"
-        unique_together = (('date', 'schemecode'),)
+        unique_together = (("date", "schemecode"),)
+
 
 class MFMergedschemes(models.Model):
     id = models.AutoField(primary_key=True)
@@ -144,7 +152,8 @@ class MFMergedschemes(models.Model):
         db_table = "mf_merged_schemes"
         verbose_name = "MF Merged Scheme"
         verbose_name_plural = "MF Merged Schemes"
-        unique_together = (('schemecode', 'mergedwith'),)
+        unique_together = (("schemecode", "mergedwith"),)
+
 
 class MFBulkDeals(models.Model):
     id = models.AutoField(primary_key=True)
@@ -164,7 +173,10 @@ class MFBulkDeals(models.Model):
         db_table = "mf_bulk_deals"
         verbose_name = "MF Bulk Deal"
         verbose_name_plural = "MF Bulk Deals"
-        unique_together = (('fincode', 'date', 'clientname', 'dealtype', 'volume', 'price'),)
+        unique_together = (
+            ("fincode", "date", "clientname", "dealtype", "volume", "price"),
+        )
+
 
 class MFSchemeAssetAllocation(models.Model):
     id = models.AutoField(primary_key=True)
@@ -180,7 +192,8 @@ class MFSchemeAssetAllocation(models.Model):
         db_table = "mf_scheme_asset_allocation"
         verbose_name = "MF Scheme Asset Allocation"
         verbose_name_plural = "MF Scheme Asset Allocation"
-        unique_together = (('schemecode', 'investment'),)
+        unique_together = (("schemecode", "investment"),)
+
 
 class MFCompanyMcap(models.Model):
     id = models.AutoField(primary_key=True)
