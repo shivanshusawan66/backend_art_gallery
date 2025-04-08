@@ -216,6 +216,7 @@ class OccupationAdmin(admin.ModelAdmin):
 class AnnualIncomeAdmin(admin.ModelAdmin):
     list_display = ("income_category", "add_date", "update_date")
     search_fields = ("income_category",)
+    list_filter = ("income_category",)
     ordering = ("income_category",)
 
 
@@ -245,8 +246,8 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("name",)
-    list_filter = ("gender", "marital_status")
+    search_fields = ("name", "user__mobile_number",)
+    list_filter = ("gender", "marital_status",)
     ordering = ("name",)
 
     @admin.display(description="User Image Preview")
@@ -270,7 +271,9 @@ class UserContactInfoAdmin(admin.ModelAdmin):
 class OTPlogsAdmin(admin.ModelAdmin):
     list_display = ("user", "otp", "otp_valid", "add_date", "update_date")
     search_fields = ("user__email", "otp")
+    list_filter = ("otp_valid", "add_date")
     ordering = ("-add_date",)
+    date_hierarchy = "add_date"
 
 
 @admin.register(UserFinancialDetails)
@@ -287,12 +290,15 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user__email",)
+    search_fields = ("user__email","user__mobile_number")
     list_filter = (
         "occupation",
         "income_category",
         "saving_category",
         "investment_amount_per_year",
+        "regular_source_of_income",
+        "lock_in_period_accepted",
+        "investment_style",
     )
     ordering = ("user",)
 
@@ -307,7 +313,7 @@ class SectionAdmin(admin.ModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ("section", "question", "add_date", "update_date")
-    search_fields = ("question",)
+    search_fields = ("question", "section__section")
     list_filter = ("section",)
     ordering = ("section",)
 
@@ -315,8 +321,8 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Allowed_Response)
 class AllowedResponseAdmin(admin.ModelAdmin):
     list_display = ("question", "section", "response", "add_date", "update_date")
-    search_fields = ("response",)
-    list_filter = ("section", "question")
+    search_fields = ("question__question", "response",)
+    list_filter = ("section",)
     ordering = ("question",)
 
 
@@ -330,9 +336,10 @@ class UserResponseAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user_id__email", "question_id__question")
+    search_fields = ("user_id__email","user_id__mobile_number", "question_id__question", "response_id__response")
     list_filter = ("section_id", "question_id")
-    ordering = ("user_id",)
+    ordering = ("-add_date",)
+    date_hierarchy = "add_date"
 
 
 @admin.register(ConditionalQuestion)
@@ -354,8 +361,9 @@ class ConditionalQuestionAdmin(admin.ModelAdmin):
 class UserLogsAdmin(admin.ModelAdmin):
     list_display = ("user", "device_type", "last_access", "action")
     search_fields = ("user__email", "device_type", "action")
-    list_filter = ("action", "device_type")
+    list_filter = ("action", "device_type", "last_access")
     ordering = ("-last_access",)
+    date_hierarchy = "last_access"
 
 
 @admin.register(MutualFund)
@@ -392,6 +400,7 @@ class TrailingReturnAdmin(admin.ModelAdmin):
 @admin.register(AnnualReturn)
 class AnnualReturnAdmin(admin.ModelAdmin):
     list_display = ("fund", "year", "fund_return", "category_return")
+    search_fields = ("fund__scheme_name",)
     list_filter = ("year", "fund")
 
 
@@ -448,18 +457,10 @@ class BlogDataAdmin(admin.ModelAdmin):
         "created_at",
         "blogcard_image_preview",
     )
-    search_fields = ("id", "title", "username", "category__name")
+    search_fields = ("id", "title", "username","user_id__mobile_number", "category__name", "blog_description")
     list_filter = ("category", "created_at")
     readonly_fields = ("username", "created_at")
-    fields = (
-        "user_id",
-        "username",
-        "category",
-        "title",
-        "blog_description",
-        "blogcard_image",
-        "created_at",
-    )
+    date_hierarchy = "created_at"
 
     @admin.display(description="Blog Image Preview")
     def blogcard_image_preview(self, obj):

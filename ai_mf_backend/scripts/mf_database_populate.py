@@ -25,6 +25,7 @@ MODEL_FILE_MAPPING = {
     # Asset Management Companies (2)
     MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
     MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
+
     # Scheme Masters (12)
     MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
     MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
@@ -38,24 +39,32 @@ MODEL_FILE_MAPPING = {
     MFCustodianMaster: f"{BASE_TXT_DIR}\\Cust_mst.txt",
     MFFundManagerMaster: f"{BASE_TXT_DIR}\\Fundmanager_mst.txt",
     MFDividendMaster: f"{BASE_TXT_DIR}\\Div_mst.txt",
+    
     # Scheme Objective (1)
     MFSchemeObjective: f"{BASE_TXT_DIR}\\Scheme_objective.txt",
+  
     # SIP / STP / SWP Details (3)
     MFSystematicInvestmentPlan: f"{BASE_TXT_DIR}\\Mf_sip.txt",
     MFSystematicWithdrawalPlan: f"{BASE_TXT_DIR}\\Mf_swp.txt",
     MFSystematicTransferPlan: f"{BASE_TXT_DIR}\\Mf_stp.txt",
+
+    
     # Scheme Benchmark Index (2)
     MFSchemeIndexMapping: f"{BASE_TXT_DIR}\\Scheme_index_part.txt",
     MFIndexMaster: f"{BASE_TXT_DIR}\\Index_mst.txt",
+    
     # Scheme Load (2)
     MFSchemeEntryExitLoad: f"{BASE_TXT_DIR}\\Schemeload.txt",
     MFLoadTypeMaster: f"{BASE_TXT_DIR}\\Loadtype_mst.txt",
+
     # Portfolio Masters (3)
     MFCompanyMaster: f"{BASE_TXT_DIR}\\Companymaster.txt",
     MFIndustryMaster: f"{BASE_TXT_DIR}\\Industry_mst.txt",
     MFAssetAllocationMaster: f"{BASE_TXT_DIR}\\Asect_mst.txt",
+
     # Rajiv Gandhi Equity Savings Schemes (1)
     MFSchemeRGESS: f"{BASE_TXT_DIR}\\Scheme_rgess.txt",
+
     # Portfolio (7)
     MFPortfolio: f"{BASE_TXT_DIR}\\Mf_portfolio.txt",
     MFAMCPortfolioAUM: f"{BASE_TXT_DIR}\\Amc_paum.txt",
@@ -64,6 +73,7 @@ MODEL_FILE_MAPPING = {
     MFSchemeAUM: f"{BASE_TXT_DIR}\\scheme_aum.txt",
     MFPortfolioInOut: f"{BASE_TXT_DIR}\\Portfolio_inout.txt",
     MFAverageSchemeAUM: f"{BASE_TXT_DIR}\\Avg_scheme_aum.txt",
+
     # Net Asset Value (3)
     MFNSEAssetValueLatest: f"{BASE_TXT_DIR}\\Currentnav.txt",
     MFNetAssetValueHistorical: [
@@ -84,6 +94,7 @@ MODEL_FILE_MAPPING = {
         f"{BASE_TXT_DIR}\\Navhist_15.txt",
     ],
     MFNetAssetValueHighLow: f"{BASE_TXT_DIR}\\Navhist_HL.txt",
+
     # Returns (7)
     MFReturn: f"{BASE_TXT_DIR}\\Mf_return.txt",
     MFAbsoluteReturn: f"{BASE_TXT_DIR}\\Mf_abs_return.txt",
@@ -92,13 +103,16 @@ MODEL_FILE_MAPPING = {
     MFCategoryWiseReturn: f"{BASE_TXT_DIR}\\ClassWiseReturn.txt",
     MFBenchmarkIndicesAbsoluteReturn: f"{BASE_TXT_DIR}\\BM_AbsoluteReturn.txt",
     MFBenchmarkIndicesAnnualisedReturn: f"{BASE_TXT_DIR}\\BM_AnnualisedReturn.txt",
+
     # Ratios (3)
     MFRatios1Year: f"{BASE_TXT_DIR}\\Mf_ratio.txt",
     MFRatiosDefaultBenchmark1Year: f"{BASE_TXT_DIR}\\MF_Ratios_DefaultBM.txt",
     MFRatios3Year: f"{BASE_TXT_DIR}\\Ratio_3Year_MonthlyRet.txt",
+  
     # Dividend (1)
     MFDividendDetails: f"{BASE_TXT_DIR}\\Divdetails.txt",
-    # Additional
+
+    # Additional (11)
     MFSchemeMonthWiseExpenseRatio: f"{BASE_TXT_DIR}\\Expenceratio.txt",
     MFSchemeEquityDetails: f"{BASE_TXT_DIR}\\Scheme_eq_details.txt",
     MFSchemeFMPYieldDetails: f"{BASE_TXT_DIR}\\fmp_yielddetails.txt",

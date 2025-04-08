@@ -151,6 +151,8 @@ class UserPersonalDetails(SoftDeleteModel):
 
     class Meta:
         db_table = "user_personal_details"
+        verbose_name = "User Personal Details"
+        verbose_name_plural = "User Personal Details"
 
     def __str__(self):
         return f"Personal Details for {self.user}"
