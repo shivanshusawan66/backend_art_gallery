@@ -35,7 +35,7 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
     TotalCompletionStatusResponse,
-    RunningBannerStatus,
+
     
 )
 from ai_mf_backend.models.v1.database.user import (

@@ -68,6 +68,3 @@ class TotalCompletionStatusResponse(Response):
     banner_status:bool
     banner_message:str
 
-class RunningBannerStatus(Response):
-    data:Optional[str]=None
-    banner_status:bool
