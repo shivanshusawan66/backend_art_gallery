@@ -489,7 +489,6 @@ async def get_section_completion_status(
             data=[],
         )
 
-
 @router.get(
     "/total_completion_status",
     dependencies=[Depends(login_checker)],
@@ -508,8 +507,11 @@ async def get_total_completion_status(
                 status=False,
                 message="Failed to fetch section completion data.",
                 total_completion_rate=0.0,
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
                 status_code=status_code,
             )
+
 
         total_answered = sum(
             section.answered_questions for section in section_status_response.data
@@ -523,12 +525,24 @@ async def get_total_completion_status(
         else:
             overall_completion_rate = (total_answered / total_questions) * 100
 
-        return TotalCompletionStatusResponse(
-            status=True,
-            message="Successfully fetched total completion status.",
-            total_completion_rate=int(overall_completion_rate),
-            status_code=200,
-        )
+        if overall_completion_rate == 100:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=False,
+                banner_message="",
+                status_code=200,
+            )
+        else:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
+                status_code=200,
+            )
 
     except Exception as e:
         logger.error(
@@ -538,5 +552,7 @@ async def get_total_completion_status(
             status=False,
             message="An unexpected error occurred.",
             total_completion_rate=0.0,
+            banner_status=True,
+            banner_message="",
             status_code=500,
         )
