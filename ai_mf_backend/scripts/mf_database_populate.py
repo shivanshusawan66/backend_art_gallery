@@ -21,108 +21,107 @@ from ai_mf_backend.models.v1.database.mf_additional import *
 
 
 MODEL_FILE_MAPPING = {
-    # # Asset Management Companies (2)
-    # MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
-    # MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
+    # Asset Management Companies (2)
+    MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
+    MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
     
-    # # Scheme Masters (12)
-    # MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
-    # MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
-    # MFSchemeRTCode: f"{BASE_TXT_DIR}\\Scheme_rtcode.txt",
-    # MFSchemeIsInMaster: f"{BASE_TXT_DIR}\\schemeisinmaster.txt",
-    # MFTypeMaster: f"{BASE_TXT_DIR}\\Type_mst.txt",
-    # MFOptionMaster: f"{BASE_TXT_DIR}\\Option_mst.txt",
-    # MFSchemeClassMaster: f"{BASE_TXT_DIR}\\Sclass_mst.txt",
-    # MFRegistrarMaster: f"{BASE_TXT_DIR}\\Rt_mst.txt",
-    # MFPlanMaster: f"{BASE_TXT_DIR}\\Plan_mst.txt",
-    # MFCustodianMaster: f"{BASE_TXT_DIR}\\Cust_mst.txt",
-    # MFFundManagerMaster: f"{BASE_TXT_DIR}\\Fundmanager_mst.txt",
-    # MFDividendMaster: f"{BASE_TXT_DIR}\\Div_mst.txt",
+    # Scheme Masters (12)
+    MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
+    MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
+    MFSchemeRTCode: f"{BASE_TXT_DIR}\\Scheme_rtcode.txt",
+    MFSchemeIsInMaster: f"{BASE_TXT_DIR}\\schemeisinmaster.txt",
+    MFTypeMaster: f"{BASE_TXT_DIR}\\Type_mst.txt",
+    MFOptionMaster: f"{BASE_TXT_DIR}\\Option_mst.txt",
+    MFSchemeClassMaster: f"{BASE_TXT_DIR}\\Sclass_mst.txt",
+    MFRegistrarMaster: f"{BASE_TXT_DIR}\\Rt_mst.txt",
+    MFPlanMaster: f"{BASE_TXT_DIR}\\Plan_mst.txt",
+    MFCustodianMaster: f"{BASE_TXT_DIR}\\Cust_mst.txt",
+    MFFundManagerMaster: f"{BASE_TXT_DIR}\\Fundmanager_mst.txt",
+    MFDividendMaster: f"{BASE_TXT_DIR}\\Div_mst.txt",
     
-    # # Scheme Objective (1)
-    # MFSchemeObjective: f"{BASE_TXT_DIR}\\Scheme_objective.txt",
+    # Scheme Objective (1)
+    MFSchemeObjective: f"{BASE_TXT_DIR}\\Scheme_objective.txt",
     
-    # # SIP / STP / SWP Details (3)
-    # MFSystematicInvestmentPlan: f"{BASE_TXT_DIR}\\Mf_sip.txt",
-    # MFSystematicWithdrawalPlan: f"{BASE_TXT_DIR}\\Mf_swp.txt",
-    # MFSystematicTransferPlan: f"{BASE_TXT_DIR}\\Mf_stp.txt",
+    # SIP / STP / SWP Details (3)
+    MFSystematicInvestmentPlan: f"{BASE_TXT_DIR}\\Mf_sip.txt",
+    MFSystematicWithdrawalPlan: f"{BASE_TXT_DIR}\\Mf_swp.txt",
+    MFSystematicTransferPlan: f"{BASE_TXT_DIR}\\Mf_stp.txt",
     
-    # # Scheme Benchmark Index (2)
-    # MFSchemeIndexMapping: f"{BASE_TXT_DIR}\\Scheme_index_part.txt",
-    # MFIndexMaster: f"{BASE_TXT_DIR}\\Index_mst.txt",
+    # Scheme Benchmark Index (2)
+    MFSchemeIndexMapping: f"{BASE_TXT_DIR}\\Scheme_index_part.txt",
+    MFIndexMaster: f"{BASE_TXT_DIR}\\Index_mst.txt",
     
-    # # Scheme Load (2)
-    # MFSchemeEntryExitLoad: f"{BASE_TXT_DIR}\\Schemeload.txt",
-    # MFLoadTypeMaster: f"{BASE_TXT_DIR}\\Loadtype_mst.txt",
+    # Scheme Load (2)
+    MFSchemeEntryExitLoad: f"{BASE_TXT_DIR}\\Schemeload.txt",
+    MFLoadTypeMaster: f"{BASE_TXT_DIR}\\Loadtype_mst.txt",
     
-    # # Portfolio Masters (3)
-    # MFCompanyMaster: f"{BASE_TXT_DIR}\\Companymaster.txt",
-    # MFIndustryMaster: f"{BASE_TXT_DIR}\\Industry_mst.txt",
-    # MFAssetAllocationMaster: f"{BASE_TXT_DIR}\\Asect_mst.txt",
+    # Portfolio Masters (3)
+    MFCompanyMaster: f"{BASE_TXT_DIR}\\Companymaster.txt",
+    MFIndustryMaster: f"{BASE_TXT_DIR}\\Industry_mst.txt",
+    MFAssetAllocationMaster: f"{BASE_TXT_DIR}\\Asect_mst.txt",
     
-    # # Rajiv Gandhi Equity Savings Schemes (1)
-    # MFSchemeRGESS: f"{BASE_TXT_DIR}\\Scheme_rgess.txt",
+    # Rajiv Gandhi Equity Savings Schemes (1)
+    MFSchemeRGESS: f"{BASE_TXT_DIR}\\Scheme_rgess.txt",
 
-    # # Portfolio (7)
-    # MFPortfolio: f"{BASE_TXT_DIR}\\Mf_portfolio.txt",
-    # MFAMCPortfolioAUM: f"{BASE_TXT_DIR}\\Amc_paum.txt",
-    # MFSchemePortfolioAUM: f"{BASE_TXT_DIR}\\Scheme_paum.txt",
-    # MFAMCAUM: f"{BASE_TXT_DIR}\\amc_aum.txt",
-    # MFSchemeAUM: f"{BASE_TXT_DIR}\\scheme_aum.txt",
-    # MFPortfolioInOut: f"{BASE_TXT_DIR}\\Portfolio_inout.txt",
-    # MFAverageSchemeAUM: f"{BASE_TXT_DIR}\\Avg_scheme_aum.txt",
+    # Portfolio (7)
+    MFPortfolio: f"{BASE_TXT_DIR}\\Mf_portfolio.txt",
+    MFAMCPortfolioAUM: f"{BASE_TXT_DIR}\\Amc_paum.txt",
+    MFSchemePortfolioAUM: f"{BASE_TXT_DIR}\\Scheme_paum.txt",
+    MFAMCAUM: f"{BASE_TXT_DIR}\\amc_aum.txt",
+    MFSchemeAUM: f"{BASE_TXT_DIR}\\scheme_aum.txt",
+    MFPortfolioInOut: f"{BASE_TXT_DIR}\\Portfolio_inout.txt",
+    MFAverageSchemeAUM: f"{BASE_TXT_DIR}\\Avg_scheme_aum.txt",
 
-    # # Net Asset Value (3)
-    # MFNSEAssetValueLatest: f"{BASE_TXT_DIR}\\Currentnav.txt",
-    # MFNetAssetValueHistorical: [
-    #     f"{BASE_TXT_DIR}\\Navhist_01.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_02.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_03.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_04.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_05.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_06.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_07.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_08.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_09.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_10.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_11.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_12.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_13.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_14.txt",
-    #     f"{BASE_TXT_DIR}\\Navhist_15.txt",
-    # ],
-    # MFNetAssetValueHighLow: f"{BASE_TXT_DIR}\\Navhist_HL.txt",
+    # Net Asset Value (3)
+    MFNSEAssetValueLatest: f"{BASE_TXT_DIR}\\Currentnav.txt",
+    MFNetAssetValueHistorical: [
+        f"{BASE_TXT_DIR}\\Navhist_01.txt",
+        f"{BASE_TXT_DIR}\\Navhist_02.txt",
+        f"{BASE_TXT_DIR}\\Navhist_03.txt",
+        f"{BASE_TXT_DIR}\\Navhist_04.txt",
+        f"{BASE_TXT_DIR}\\Navhist_05.txt",
+        f"{BASE_TXT_DIR}\\Navhist_06.txt",
+        f"{BASE_TXT_DIR}\\Navhist_07.txt",
+        f"{BASE_TXT_DIR}\\Navhist_08.txt",
+        f"{BASE_TXT_DIR}\\Navhist_09.txt",
+        f"{BASE_TXT_DIR}\\Navhist_10.txt",
+        f"{BASE_TXT_DIR}\\Navhist_11.txt",
+        f"{BASE_TXT_DIR}\\Navhist_12.txt",
+        f"{BASE_TXT_DIR}\\Navhist_13.txt",
+        f"{BASE_TXT_DIR}\\Navhist_14.txt",
+        f"{BASE_TXT_DIR}\\Navhist_15.txt",
+    ],
+    MFNetAssetValueHighLow: f"{BASE_TXT_DIR}\\Navhist_HL.txt",
 
-    # # Returns (7)
-    # MFReturn: f"{BASE_TXT_DIR}\\Mf_return.txt",
-    # MFAbsoluteReturn: f"{BASE_TXT_DIR}\\Mf_abs_return.txt",
-    # MFAnnualizedReturn: f"{BASE_TXT_DIR}\\Mf_ans_return.txt",
-    # MFCAGRReturn: f"{BASE_TXT_DIR}\\Mf_cagr_return.txt",
-    # MFCategoryWiseReturn: f"{BASE_TXT_DIR}\\ClassWiseReturn.txt",
-    # MFBenchmarkIndicesAbsoluteReturn: f"{BASE_TXT_DIR}\\BM_AbsoluteReturn.txt",
-    # MFBenchmarkIndicesAnnualisedReturn: f"{BASE_TXT_DIR}\\BM_AnnualisedReturn.txt",
+    # Returns (7)
+    MFReturn: f"{BASE_TXT_DIR}\\Mf_return.txt",
+    MFAbsoluteReturn: f"{BASE_TXT_DIR}\\Mf_abs_return.txt",
+    MFAnnualizedReturn: f"{BASE_TXT_DIR}\\Mf_ans_return.txt",
+    MFCAGRReturn: f"{BASE_TXT_DIR}\\Mf_cagr_return.txt",
+    MFCategoryWiseReturn: f"{BASE_TXT_DIR}\\ClassWiseReturn.txt",
+    MFBenchmarkIndicesAbsoluteReturn: f"{BASE_TXT_DIR}\\BM_AbsoluteReturn.txt",
+    MFBenchmarkIndicesAnnualisedReturn: f"{BASE_TXT_DIR}\\BM_AnnualisedReturn.txt",
 
-    # # Ratios (3)
-    # MFRatios1Year: f"{BASE_TXT_DIR}\\Mf_ratio.txt",
-    # MFRatiosDefaultBenchmark1Year: f"{BASE_TXT_DIR}\\MF_Ratios_DefaultBM.txt",
+    # Ratios (3)
+    MFRatios1Year: f"{BASE_TXT_DIR}\\Mf_ratio.txt",
+    MFRatiosDefaultBenchmark1Year: f"{BASE_TXT_DIR}\\MF_Ratios_DefaultBM.txt",
     MFRatios3Year: f"{BASE_TXT_DIR}\\Ratio_3Year_MonthlyRet.txt",
  
-    # # Dividend (1)
-    # MFDividendDetails: f"{BASE_TXT_DIR}\\Divdetails.txt",
+    # Dividend (1)
+    MFDividendDetails: f"{BASE_TXT_DIR}\\Divdetails.txt",
 
-    # # Additional
-    # MFSchemeMonthWiseExpenseRatio: f"{BASE_TXT_DIR}\\Expenceratio.txt",
-    # MFSchemeEquityDetails: f"{BASE_TXT_DIR}\\Scheme_eq_details.txt",
-    # MFSchemeFMPYieldDetails: f"{BASE_TXT_DIR}\\Scheme_eq_details.txt",
-    # MFSchemeFMPYieldDetails: f"{BASE_TXT_DIR}\\fmp_yielddetails.txt",
-    # MFSchemeAverageMaturity: f"{BASE_TXT_DIR}\\Avg_maturity.txt",
-    # MFFaceValueChange: f"{BASE_TXT_DIR}\\Fvchange.txt",
-    # MFSchemeNameChange: f"{BASE_TXT_DIR}\\Scheme_Name_Change.txt",
-    # MFFundmanager: f"{BASE_TXT_DIR}\\DailyFundmanager.txt",
-    # MFMergedschemes: f"{BASE_TXT_DIR}\\Mergedschemes.txt",
-    # MFBulkDeals: f"{BASE_TXT_DIR}\\MFBULKDEALS.txt",
-    # MFSchemeAssetAllocation: f"{BASE_TXT_DIR}\\Scheme_assetalloc.txt",
-    # MFCompanyMcap: f"{BASE_TXT_DIR}\\CompanyMcap.txt",
+    # Additional (11)
+    MFSchemeMonthWiseExpenseRatio: f"{BASE_TXT_DIR}\\Expenceratio.txt",
+    MFSchemeEquityDetails: f"{BASE_TXT_DIR}\\Scheme_eq_details.txt",
+    MFSchemeFMPYieldDetails: f"{BASE_TXT_DIR}\\fmp_yielddetails.txt",
+    MFSchemeAverageMaturity: f"{BASE_TXT_DIR}\\Avg_maturity.txt",
+    MFFaceValueChange: f"{BASE_TXT_DIR}\\Fvchange.txt",
+    MFSchemeNameChange: f"{BASE_TXT_DIR}\\Scheme_Name_Change.txt",
+    MFFundmanager: f"{BASE_TXT_DIR}\\DailyFundmanager.txt",
+    MFMergedschemes: f"{BASE_TXT_DIR}\\Mergedschemes.txt",
+    MFBulkDeals: f"{BASE_TXT_DIR}\\MFBULKDEALS.txt",
+    MFSchemeAssetAllocation: f"{BASE_TXT_DIR}\\Scheme_assetalloc.txt",
+    MFCompanyMcap: f"{BASE_TXT_DIR}\\CompanyMcap.txt",
 }
 
 
