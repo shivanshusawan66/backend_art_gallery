@@ -15,7 +15,7 @@ class UserReview(SoftDeleteModel):
     designation = models.CharField(max_length=100, blank=True, null=True)
     review_title = models.CharField(max_length=100, blank=False, null=False)
     review_body = models.TextField(blank=False, null=False)
-    number_of_stars = models.FloatField(blank=False, null=False, validators=[MinValueValidator(0), MaxValueValidator(5)])
+    number_of_stars = models.IntegerField(blank=False, null=False, validators=[MinValueValidator(0), MaxValueValidator(5)])
     location = models.CharField(max_length=100, blank=True, null=True)
     user_image = models.ImageField(
         null=True,

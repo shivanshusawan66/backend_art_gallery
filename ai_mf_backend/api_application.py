@@ -546,7 +546,7 @@ class UserReviewAdmin(admin.ModelAdmin):
         'add_date',
         'deleted',
     )
-    list_filter = ('designation', 'location', 'add_date')
+    list_filter = ('number_of_stars' ,'designation', 'location', 'add_date')
     search_fields = ('username', 'review_title', 'review_body', 'designation', 'location')
     date_hierarchy = "add_date"
 
