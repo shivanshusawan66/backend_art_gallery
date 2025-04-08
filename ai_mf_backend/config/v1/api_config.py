@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional, List
 
 # from pydantic import field_validator
@@ -39,6 +38,8 @@ class APIConfig(BaseSettingsWrapper):
     OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
     OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
 
+    FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
+
     DEFAULT_ALL_MF_DISPLAY_COLUMNS: Optional[List[str]] = [
         "fund_id",
         "scheme_name",
@@ -74,7 +75,7 @@ class APIConfig(BaseSettingsWrapper):
         "worst_3y_total_return",
     ]
 
-    BLOG_DATA_COLUMNS: list[str]= [
+    BLOG_DATA_COLUMNS: list[str] = [
         "id",
         "user_id",
         "username",
