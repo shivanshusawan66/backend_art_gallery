@@ -1,23 +1,37 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException,Response,status,Header
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Header
 from asgiref.sync import sync_to_async
 from ai_mf_backend.models.v1.database.blog import BlogComment
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database.user import UserPersonalDetails
 from ai_mf_backend.models.v1.database.blog import BlogCommentReply
-from ai_mf_backend.models.v1.api.blog_comment_reply import ( CommentReplyData,CommentReplyResponse,CommentReplyCreateRequest)
+from ai_mf_backend.models.v1.api.blog_comment_reply import (
+    CommentReplyData,
+    CommentReplyResponse,
+    CommentReplyCreateRequest,
+)
 
 
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker,jwt_token_checker
-router=APIRouter()
-logger=logging.getLogger(__name__)
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    login_checker,
+    jwt_token_checker,
+)
 
-@router.post("/comment_reply",response_model=CommentReplyResponse, dependencies=[Depends(login_checker)],
-    status_code=200,)
-async def post_comment_reply(request:CommentReplyCreateRequest,
- response: Response, 
- Authorization: str = Header(),
-):  
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+@router.post(
+    "/comment_reply",
+    response_model=CommentReplyResponse,
+    dependencies=[Depends(login_checker)],
+    status_code=200,
+)
+async def post_comment_reply(
+    request: CommentReplyCreateRequest,
+    response: Response,
+    Authorization: str = Header(),
+):
     if not Authorization:
         response.status_code = 422
         return CommentReplyResponse(
@@ -31,7 +45,6 @@ async def post_comment_reply(request:CommentReplyCreateRequest,
         email = decoded_payload.get("email")
         mobile_no = decoded_payload.get("mobile_number")
 
-        
         if request.comment_id is None:
             response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             return CommentReplyResponse(
@@ -40,8 +53,7 @@ async def post_comment_reply(request:CommentReplyCreateRequest,
                 data=[],
                 status_code=response_status_code,
             )
-        
-        
+
         if not any([email, mobile_no]):
             response.status_code = 422
             return CommentReplyResponse(
@@ -55,9 +67,10 @@ async def post_comment_reply(request:CommentReplyCreateRequest,
         if email:
             user = await UserContactInfo.objects.filter(email=email).afirst()
         elif mobile_no:
-            user = await UserContactInfo.objects.filter(mobile_number=mobile_no).afirst()
+            user = await UserContactInfo.objects.filter(
+                mobile_number=mobile_no
+            ).afirst()
 
-        
         if not user:
             response.status_code = 400
             return CommentReplyResponse(
@@ -66,14 +79,11 @@ async def post_comment_reply(request:CommentReplyCreateRequest,
                 data=[],
                 status_code=response.status_code,
             )
-        
+
         new_comment_reply = await sync_to_async(BlogCommentReply.objects.create)(
-            parent_comment_id=request.comment_id, 
-            user=user,
-            content=request.content
+            parent_comment_id=request.comment_id, user=user, content=request.content
         )
 
-        
         response.status_code = 201
         return CommentReplyResponse(
             status=True,
@@ -89,14 +99,13 @@ async def post_comment_reply(request:CommentReplyCreateRequest,
         return CommentReplyResponse(
             status=False,
             message="An unexpected error occurred",
-            data=[],  
+            data=[],
             status_code=response.status_code,
         )
-    
 
 
 @router.get("/comment_reply/{comment_id}", response_model=CommentReplyResponse)
-async def get_comment_replies( comment_id: int, response: Response):
+async def get_comment_replies(comment_id: int, response: Response):
     try:
         replies = await sync_to_async(list)(
             BlogCommentReply.objects.filter(parent_comment_id=comment_id, deleted=False)
@@ -107,9 +116,11 @@ async def get_comment_replies( comment_id: int, response: Response):
         formatted_replies = []
 
         for reply in replies:
-            username = "Anonymous"  
+            username = "Anonymous"
             if reply.user:
-                user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=reply.user).first)()
+                user_details = await sync_to_async(
+                    UserPersonalDetails.objects.filter(user=reply.user).first
+                )()
                 if user_details and user_details.name:
                     username = user_details.name
 
@@ -118,7 +129,7 @@ async def get_comment_replies( comment_id: int, response: Response):
                     id=reply.id,
                     user=username,
                     content=reply.content,
-                    created_at=reply.created_at
+                    created_at=reply.created_at,
                 )
             )
 
@@ -126,7 +137,7 @@ async def get_comment_replies( comment_id: int, response: Response):
             status=True,
             message="Replies retrieved successfully",
             data=formatted_replies,
-            status_code=200
+            status_code=200,
         )
 
     except Exception as e:
@@ -135,5 +146,5 @@ async def get_comment_replies( comment_id: int, response: Response):
             status=False,
             message=f"Error: {str(e)}",
             data=[],
-            status_code=response.status_code
+            status_code=response.status_code,
         )

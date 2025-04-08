@@ -85,7 +85,9 @@ async def get_user_personal_financial_details(
         data = UserPersonalFinancialFormData(
             name=user_personal.name if user_personal else None,
             user_profile_image=(
-                user_personal.user_image.name if user_personal and user_personal.user_image else None
+                user_personal.user_image.name
+                if user_personal and user_personal.user_image
+                else None
             ),
             date_of_birth=user_personal.date_of_birth if user_personal else None,
             gender=(

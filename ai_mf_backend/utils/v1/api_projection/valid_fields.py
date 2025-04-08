@@ -31,7 +31,10 @@ def process_fields(fields: Optional[str], all_fields: List[str]) -> List[str]:
 
     return fields_to_project
 
-def validate_query_params(query_params: Dict[str, Any], allowed_params: List[str]) -> Dict[str, Any]:
+
+def validate_query_params(
+    query_params: Dict[str, Any], allowed_params: List[str]
+) -> Dict[str, Any]:
     """
     Validate that the keys in the query_params dictionary are within the allowed parameters.
 
@@ -46,9 +49,11 @@ def validate_query_params(query_params: Dict[str, Any], allowed_params: List[str
         ValueError: If any query parameter is not allowed.
     """
     requested_params = list(query_params.keys())
-    invalid_params = [param for param in requested_params if param not in allowed_params]
-    
+    invalid_params = [
+        param for param in requested_params if param not in allowed_params
+    ]
+
     if invalid_params:
         raise ValueError(f"Invalid query parameter(s) requested: {invalid_params}")
-    
+
     return query_params

@@ -5,15 +5,16 @@ from datetime import datetime
 
 
 class CommentReplyData(BaseModel):
-    id:int
-    user:str
-    content:str
-    created_at:datetime
+    id: int
+    user: str
+    content: str
+    created_at: datetime
+
 
 class CommentReplyResponse(Response):
-    data:List[CommentReplyData]
+    data: List[CommentReplyData]
+
 
 class CommentReplyCreateRequest(BaseModel):
-    comment_id:int
-    content:str
-
+    comment_id: int
+    content: str
