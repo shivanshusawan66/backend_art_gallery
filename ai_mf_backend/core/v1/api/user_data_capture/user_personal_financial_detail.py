@@ -211,7 +211,15 @@ async def update_user_personal_financial_details(
     if isinstance(request.lock_in_period_accepted, bool):
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
-        user_financial.investment_style = request.investment_style
+      if request.investment_style not in ["Lump-Sum", "SIP"]:
+        response.status_code = 400
+        return UserPersonalFinancialDetailsUpdateResponse(
+            status=False,
+            message="The investment style you entered is not valid. Please choose either 'Lump-Sum' or 'SIP' from the available options",
+            data={},
+            status_code=400,
+         )
+      user_financial.investment_style = request.investment_style
 
     try:
         await sync_to_async(
@@ -236,7 +244,7 @@ async def update_user_personal_financial_details(
             status_code=422,
             detail={
                 "status": False,
-                "message": "Validation Error while saving details to the database.",
+                "message": "The investment style you entered is not valid. Please choose either 'Lump-Sum' or 'SIP' from the available options",
                 "errors": str(e),
             },
         )
