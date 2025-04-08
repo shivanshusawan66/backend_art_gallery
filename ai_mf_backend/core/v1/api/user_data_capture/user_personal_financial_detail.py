@@ -3,7 +3,16 @@ import io
 import os
 
 from django.utils import timezone
-from fastapi import APIRouter, File, HTTPException, Response, Depends, Header, UploadFile, status
+from fastapi import (
+    APIRouter,
+    File,
+    HTTPException,
+    Response,
+    Depends,
+    Header,
+    UploadFile,
+    status,
+)
 
 from asgiref.sync import sync_to_async
 
@@ -34,8 +43,13 @@ from ai_mf_backend.utils.v1.validators.dates import (
     validate_reasonable_birth_date,
 )
 from ai_mf_backend.utils.v1.validators.name import validate_name
-from ai_mf_backend.utils.v1.authentication.secrets import jwt_token_checker, login_checker
-from ai_mf_backend.utils.v1.validators.profile_update import validate_profile_modification_time
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    jwt_token_checker,
+    login_checker,
+)
+from ai_mf_backend.utils.v1.validators.profile_update import (
+    validate_profile_modification_time,
+)
 
 router = APIRouter()
 
@@ -147,12 +161,14 @@ async def update_user_personal_financial_details(
             user_id=request.user_id, deleted=False
         ).first
     )()
-    
+
     if user.user_details_filled:
         try:
             await validate_profile_modification_time(user_personal)
             await validate_profile_modification_time(user_financial)
-            response_message = "User personal and financial details updated successfully."
+            response_message = (
+                "User personal and financial details updated successfully."
+            )
             status_code = status.HTTP_200_OK
         except ValidationError as e:
             response.status_code = 400
@@ -190,13 +206,13 @@ async def update_user_personal_financial_details(
         user_financial.saving_category = monthly_saving_capacity
     if request.investment_amount_per_year_id:
         user_financial.investment_amount_per_year = investment_amount_per_year
-    if isinstance(request.regular_source_of_income, bool): 
+    if isinstance(request.regular_source_of_income, bool):
         user_financial.regular_source_of_income = request.regular_source_of_income
     if isinstance(request.lock_in_period_accepted, bool):
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
         user_financial.investment_style = request.investment_style
-    
+
     try:
         await sync_to_async(
             user_personal.full_clean
@@ -208,11 +224,12 @@ async def update_user_personal_financial_details(
         await sync_to_async(user_financial.save)()
         # To update user_logs
         await sync_to_async(UserLogs.objects.create)(
-        user=user,
-        action="profile_update",
-        last_access=timezone.now(),
-        ip_details=None,
-        device_type=None)
+            user=user,
+            action="profile_update",
+            last_access=timezone.now(),
+            ip_details=None,
+            device_type=None,
+        )
 
     except ValidationError as e:
         raise HTTPException(
@@ -256,9 +273,13 @@ async def user_personal_details_image_upload(
             )
 
         if email:
-            user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+            user = await sync_to_async(
+                UserContactInfo.objects.filter(email=email).first
+            )()
         else:
-            user = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_number).first)()
+            user = await sync_to_async(
+                UserContactInfo.objects.filter(mobile_number=mobile_number).first
+            )()
 
         if not user:
             response.status_code = 400
@@ -273,7 +294,7 @@ async def user_personal_details_image_upload(
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
             image.verify()
-        except (UnidentifiedImageError, Exception):
+        except (UnidentifiedImageError, Exception) as e:
             response.status_code = 400
             return UserPersonalDetailsImageUpdateResponse(
                 status=False,
@@ -285,13 +306,12 @@ async def user_personal_details_image_upload(
             await file.close()
 
         content_file = ContentFile(contents, name=file.filename)
-
         
         user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
 
         if not user_details:
             user_details = UserPersonalDetails(user=user)
-    
+   
         user_details.user_image = content_file
 
         

@@ -6,7 +6,6 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.utils.v1.validators.input import validate_number_dash_number
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +90,6 @@ class UserFinancialDetails(SoftDeleteModel):
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
-
     class Meta:
         db_table = "user_financial_details"
         verbose_name = "User Financial Detail"
@@ -99,5 +97,3 @@ class UserFinancialDetails(SoftDeleteModel):
 
     def __str__(self):
         return f"Financial Details for {self.user}"
-
-    
