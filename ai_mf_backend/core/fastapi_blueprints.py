@@ -60,7 +60,7 @@ from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import 
     router as mutual_fund_category_router_v1,
 )
 
-# Blog Data
+# Blog Data Routers
 from ai_mf_backend.core.v1.api.blog.blog_data import (
     router as blog_data_router_v1,
 )
@@ -78,6 +78,11 @@ from ai_mf_backend.core.v1.api.blog.blog_comment_report import (
 )
 from ai_mf_backend.core.v1.api.blog.blog_comment_report_options import (
     router as blog_comment_report_options_router_v1,
+)
+
+# Contact Message Routers
+from ai_mf_backend.core.v1.api.contact_message.contact_message import (
+    router as contact_message_router_v1,
 )
 
 # Soft Delete Routers
@@ -119,6 +124,8 @@ connect_router.include_router(blog_options_router_v1)
 connect_router.include_router(blog_comment_reply_router_v1)
 connect_router.include_router(blog_comment_report_router_v1)
 connect_router.include_router(blog_comment_report_options_router_v1)
+
+connect_router.include_router(contact_message_router_v1)
 
 connect_router.include_router(soft_delete_router_v1)
 
