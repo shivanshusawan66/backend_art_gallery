@@ -1,20 +1,32 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException,Response,status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from asgiref.sync import sync_to_async
-from ai_mf_backend.models.v1.database.blog import BlogComment,BlogCommentReply
+from ai_mf_backend.models.v1.database.blog import BlogComment, BlogCommentReply
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database.user import UserPersonalDetails
 
 from ai_mf_backend.models.v1.api.blog_comment import (
-    CommentResponse, CommentData, CommentCreateRequest, CommentUpdateRequest,CommentDeleteRequest
+    CommentResponse,
+    CommentData,
+    CommentCreateRequest,
+    CommentUpdateRequest,
+    CommentDeleteRequest,
 )
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker,jwt_token_checker
+from ai_mf_backend.utils.v1.authentication.secrets import (
+    login_checker,
+    jwt_token_checker,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 @router.post("/comment", response_model=CommentResponse)
-async def post_comment(request: CommentCreateRequest, response: Response, Authorization: str = Depends(login_checker)):
+async def post_comment(
+    request: CommentCreateRequest,
+    response: Response,
+    Authorization: str = Depends(login_checker),
+):
     try:
         decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
         email = decoded_payload.get("email")
@@ -42,7 +54,9 @@ async def post_comment(request: CommentCreateRequest, response: Response, Author
         if email:
             user = await UserContactInfo.objects.filter(email=email).afirst()
         elif mobile_no:
-            user = await UserContactInfo.objects.filter(mobile_number=mobile_no).afirst()
+            user = await UserContactInfo.objects.filter(
+                mobile_number=mobile_no
+            ).afirst()
 
         if not user:
             response.status_code = 400
@@ -54,9 +68,7 @@ async def post_comment(request: CommentCreateRequest, response: Response, Author
             )
 
         new_comment = await sync_to_async(BlogComment.objects.create)(
-            blog_post_id=request.blog_id, 
-            user=user,
-            content=request.content
+            blog_post_id=request.blog_id, user=user, content=request.content
         )
 
         response.status_code = 201
@@ -74,10 +86,10 @@ async def post_comment(request: CommentCreateRequest, response: Response, Author
         return CommentResponse(
             status=False,
             message="An unexpected error occurred",
-            data=[],  
+            data=[],
             status_code=response.status_code,
         )
-    
+
 
 @router.get("/comments/{blog_id}", response_model=CommentResponse)
 async def get_comments(blog_id: int, response: Response):
@@ -88,26 +100,29 @@ async def get_comments(blog_id: int, response: Response):
             .order_by("created_at")
         )
         if not comments:
-            response.status_code=404
+            response.status_code = 404
             return CommentResponse(
-            status=False,
-            message="No comments found for this blog ID",
-            data=[],
-            status_code=response.status_code
+                status=False,
+                message="No comments found for this blog ID",
+                data=[],
+                status_code=response.status_code,
             )
-            
-        
 
         formatted_comments = []
 
         for comment in comments:
-            username = "Anonymous"  
+            username = "Anonymous"
             if comment.user:
-                user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=comment.user).first)()
+                user_details = await sync_to_async(
+                    UserPersonalDetails.objects.filter(user=comment.user).first
+                )()
                 if user_details and user_details.name:
                     username = user_details.name
             replies = await sync_to_async(list)(
-                BlogCommentReply.objects.filter(parent_comment_id=comment.id, deleted=False) )
+                BlogCommentReply.objects.filter(
+                    parent_comment_id=comment.id, deleted=False
+                )
+            )
 
             formatted_comments.append(
                 CommentData(
@@ -115,14 +130,14 @@ async def get_comments(blog_id: int, response: Response):
                     user=username,
                     content=comment.content,
                     created_at=comment.created_at,
-                    number_of_replies=len(replies)  
+                    number_of_replies=len(replies),
                 )
             )
         return CommentResponse(
             status=True,
             message="Comments retrieved successfully",
             data=formatted_comments,
-            status_code=200
+            status_code=200,
         )
 
     except Exception as e:
@@ -131,12 +146,16 @@ async def get_comments(blog_id: int, response: Response):
             status=False,
             message=f"Error: {str(e)}",
             data=[],
-            status_code=response.status_code
+            status_code=response.status_code,
         )
 
-    
+
 @router.put("/comment", response_model=CommentResponse)
-async def update_comment(response:Response, request: CommentUpdateRequest, Authorization : str=Depends(login_checker)):
+async def update_comment(
+    response: Response,
+    request: CommentUpdateRequest,
+    Authorization: str = Depends(login_checker),
+):
     try:
         decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
         email = decoded_payload.get("email")
@@ -151,9 +170,11 @@ async def update_comment(response:Response, request: CommentUpdateRequest, Autho
                 status_code=response.status_code,
             )
         if email:
-            user = await (UserContactInfo.objects.filter(email=email)).afirst()
+            user = await UserContactInfo.objects.filter(email=email).afirst()
         else:
-            user = await (UserContactInfo.objects.filter(mobile_number=mobile_no)).afirst()
+            user = await UserContactInfo.objects.filter(
+                mobile_number=mobile_no
+            ).afirst()
 
         if not user:
             response.status_code = 400
@@ -164,55 +185,56 @@ async def update_comment(response:Response, request: CommentUpdateRequest, Autho
                 status_code=response.status_code,
             )
         if request.comment_id is None:
-            response.status_code=400
+            response.status_code = 400
             return CommentResponse(
                 status=False,
                 message="comment id required",
                 data=[],
                 status_code=response.status_code,
-
             )
-        comment = await sync_to_async(BlogComment.objects.select_related('user').get)(
-            id=request.comment_id, 
-            deleted=False
+        comment = await sync_to_async(BlogComment.objects.select_related("user").get)(
+            id=request.comment_id, deleted=False
         )
 
         if comment.user != user:
-            response.status_code=403,
+            response.status_code = (403,)
             return CommentResponse(
                 status=False,
                 message="You can only edit your own comments.",
                 data=[],
                 status_code=response.status_code,
-
             )
 
         comment.content = request.content
         await sync_to_async(comment.save)()
-        response.status_code=200
+        response.status_code = 200
         return CommentResponse(
             status=True,
             message="Comment updated successfully",
             data=[],
-            status_code=response.status_code
+            status_code=response.status_code,
         )
-    
+
     except Exception as e:
-        response.status_code=500
+        response.status_code = 500
         return CommentResponse(
             status=False,
             message=f"Error: {str(e)}",
             data=[],
-            status_code=response.status_code
+            status_code=response.status_code,
         )
 
 
-@router.delete("/comment",response_model=CommentResponse)
-async def delete_comment( response:Response, request: CommentDeleteRequest,Authorization: str=Depends(login_checker)):
+@router.delete("/comment", response_model=CommentResponse)
+async def delete_comment(
+    response: Response,
+    request: CommentDeleteRequest,
+    Authorization: str = Depends(login_checker),
+):
     try:
-        decoded_payload=jwt_token_checker(jwt_token=Authorization,encode=False)
-        email=decoded_payload.get("email")
-        mobile_no=decoded_payload.get("mobile_number")
+        decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        email = decoded_payload.get("email")
+        mobile_no = decoded_payload.get("mobile_number")
 
         if not any([email, mobile_no]):
             response.status_code = 422
@@ -222,11 +244,13 @@ async def delete_comment( response:Response, request: CommentDeleteRequest,Autho
                 data=[],
                 status_code=response.status_code,
             )
-        
+
         if email:
-            user=await (UserContactInfo.objects.filter(email=email)).afirst()
+            user = await UserContactInfo.objects.filter(email=email).afirst()
         else:
-            user=await (UserContactInfo.objects.filter(mobile_number=mobile_no)).afirst()
+            user = await UserContactInfo.objects.filter(
+                mobile_number=mobile_no
+            ).afirst()
 
         if not user:
             response.status_code = 400
@@ -237,28 +261,28 @@ async def delete_comment( response:Response, request: CommentDeleteRequest,Autho
                 status_code=response.status_code,
             )
         if request.comment_id is None:
-            response.status_code=400
+            response.status_code = 400
             return CommentResponse(
                 status=False,
                 message="comment id required",
                 data=[],
                 status_code=response.status_code,
-
             )
-        comment = await sync_to_async(BlogComment.objects.select_related('user').get)(id=request.comment_id, deleted=False)
+        comment = await sync_to_async(BlogComment.objects.select_related("user").get)(
+            id=request.comment_id, deleted=False
+        )
 
         if comment.user != user:
-            response.status_code=403,
+            response.status_code = (403,)
             return CommentResponse(
                 status=False,
                 message="You can only edit your own comments.",
                 data=[],
                 status_code=response.status_code,
-
             )
         comment.deleted = True  # Soft delete
         await sync_to_async(comment.save)()
-        response.status_code=200
+        response.status_code = 200
         return CommentResponse(
             status=True,
             message="Comment deleted successfully",
@@ -266,7 +290,7 @@ async def delete_comment( response:Response, request: CommentDeleteRequest,Autho
             status_code=response.status_code,
         )
     except Exception as e:
-        response.status_code=500
+        response.status_code = 500
         return CommentResponse(
             status=False,
             message=f"Error: {str(e)}",

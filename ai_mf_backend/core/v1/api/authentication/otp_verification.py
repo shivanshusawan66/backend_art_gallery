@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import check_password
 
 from ai_mf_backend.utils.v1.authentication.validators import (
     custom_validate_international_phonenumber,
@@ -254,9 +255,21 @@ async def otp_verification(
             )
 
     elif payload["token_type"] == "forgot_password":
+        new_password_plain = request.password
+
+        if user_doc.password and check_password(new_password_plain, user_doc.password):
+            response.status_code = 400
+            return OTPVerificationResponse(
+                status=False,
+                message="New password must be different from current password",
+                data={},
+                status_code=400,
+            )
+
+        new_password_hashed = password_encoder(new_password_plain)
         password_added = True if not user_doc.password else False
         user_doc.is_verified = True
-        user_doc.password = password_encoder(request.password)
+        user_doc.password = new_password_hashed
         await sync_to_async(user_doc.save)()
         return OTPVerificationResponse(
             status=True,
