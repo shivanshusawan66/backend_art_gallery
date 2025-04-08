@@ -23,6 +23,10 @@ from ai_mf_backend.core.v1.api import limiter as rate_limiter
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
+from ai_mf_backend.models.v1.database.contact_message import (
+    ContactMessage,
+    ContactMessageFundCategory
+)
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
 )
@@ -529,6 +533,31 @@ class BlogCommentReportAdmin(admin.ModelAdmin):
 
     comment_content.short_description = "Comment"
     reply_content.short_description = "Reply"
+
+@admin.register(ContactMessageFundCategory)
+class ContactMessageFundCategoryrAdmin(admin.ModelAdmin):
+    list_display = ("name", "add_date", "update_date")
+    search_fields = ("name",)
+    ordering = ("name",)
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        'first_name', 
+        'last_name', 
+        'email', 
+        'phone_number', 
+        'category_id__name', 
+        'created_at'
+    )
+    search_fields = (
+        'first_name', 
+        'last_name', 
+        'email', 
+        'phone_number',
+        'message'
+    )
+    list_filter = ('category_id', 'created_at')
     
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()
