@@ -9,10 +9,11 @@ from django.db import transaction, models, connection, connections
 from django.utils import timezone
 
 
-
 BASE_TXT_DIR = os.path.join(os.getcwd(), "..", "MutualFund")
 sys.path.append(os.getcwd())
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings")
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
+)
 django.setup()
 
 from ai_mf_backend.models.v1.database.mf_master_data import *
@@ -24,7 +25,7 @@ MODEL_FILE_MAPPING = {
     # Asset Management Companies (2)
     MFAMCMaster: f"{BASE_TXT_DIR}\\Amc_mst_new.txt",
     MFAMCKeyPerson: f"{BASE_TXT_DIR}\\Amc_keypersons.txt",
-    
+
     # Scheme Masters (12)
     MFSchemeMaster: f"{BASE_TXT_DIR}\\Scheme_master.txt",
     MFSchemeMasterInDetails: f"{BASE_TXT_DIR}\\Scheme_details.txt",
@@ -41,11 +42,12 @@ MODEL_FILE_MAPPING = {
     
     # Scheme Objective (1)
     MFSchemeObjective: f"{BASE_TXT_DIR}\\Scheme_objective.txt",
-    
+  
     # SIP / STP / SWP Details (3)
     MFSystematicInvestmentPlan: f"{BASE_TXT_DIR}\\Mf_sip.txt",
     MFSystematicWithdrawalPlan: f"{BASE_TXT_DIR}\\Mf_swp.txt",
     MFSystematicTransferPlan: f"{BASE_TXT_DIR}\\Mf_stp.txt",
+
     
     # Scheme Benchmark Index (2)
     MFSchemeIndexMapping: f"{BASE_TXT_DIR}\\Scheme_index_part.txt",
@@ -54,12 +56,12 @@ MODEL_FILE_MAPPING = {
     # Scheme Load (2)
     MFSchemeEntryExitLoad: f"{BASE_TXT_DIR}\\Schemeload.txt",
     MFLoadTypeMaster: f"{BASE_TXT_DIR}\\Loadtype_mst.txt",
-    
+
     # Portfolio Masters (3)
     MFCompanyMaster: f"{BASE_TXT_DIR}\\Companymaster.txt",
     MFIndustryMaster: f"{BASE_TXT_DIR}\\Industry_mst.txt",
     MFAssetAllocationMaster: f"{BASE_TXT_DIR}\\Asect_mst.txt",
-    
+
     # Rajiv Gandhi Equity Savings Schemes (1)
     MFSchemeRGESS: f"{BASE_TXT_DIR}\\Scheme_rgess.txt",
 
@@ -106,7 +108,7 @@ MODEL_FILE_MAPPING = {
     MFRatios1Year: f"{BASE_TXT_DIR}\\Mf_ratio.txt",
     MFRatiosDefaultBenchmark1Year: f"{BASE_TXT_DIR}\\MF_Ratios_DefaultBM.txt",
     MFRatios3Year: f"{BASE_TXT_DIR}\\Ratio_3Year_MonthlyRet.txt",
- 
+  
     # Dividend (1)
     MFDividendDetails: f"{BASE_TXT_DIR}\\Divdetails.txt",
 
@@ -125,7 +127,8 @@ MODEL_FILE_MAPPING = {
 }
 
 
-BATCH_SIZE = 20000  
+BATCH_SIZE = 20000
+
 
 def reset_pk_sequence(model):
     table_name = model._meta.db_table
@@ -133,25 +136,28 @@ def reset_pk_sequence(model):
     with connection.cursor() as cursor:
         cursor.execute(sequence_sql)
 
+
 def clear_tables(models_list):
     with transaction.atomic():
         for model in models_list:
             model.objects.all().delete()
             reset_pk_sequence(model)
 
+
 def create_field_mapping(model_fields, json_columns):
     mapping = {}
     for field_name in model_fields:
         if field_name in json_columns:
             mapping[field_name] = field_name
-        elif field_name.startswith('_') and field_name[1:] in json_columns:
+        elif field_name.startswith("_") and field_name[1:] in json_columns:
             mapping[field_name] = field_name[1:]
     return mapping
+
 
 def create_field_converters(model_fields, json_columns):
     converters = []
     field_mapping = create_field_mapping(model_fields, json_columns)
-    
+
     for model_field in model_fields.values():
         json_key = field_mapping.get(model_field.name)
         if not json_key:
@@ -159,50 +165,64 @@ def create_field_converters(model_fields, json_columns):
 
         field = model_field
         if isinstance(field, models.DateTimeField):
+
             def make_datetime_converter():
-                field_type = 'datetime'
+                field_type = "datetime"
+
                 def converter(value):
-                    if not value or value.lower() == 'null':
+                    if not value or value.lower() == "null":
                         return None
                     try:
-                        cleaned = value.split('.')[0]
+                        cleaned = value.split(".")[0]
                         dt = datetime.strptime(cleaned, "%Y-%m-%d %H:%M:%S")
                         return timezone.make_aware(dt)
                     except:
                         return None
+
                 return converter
+
             converters.append((model_field.name, json_key, make_datetime_converter()))
-        
+
         elif isinstance(field, models.DateField):
+
             def make_date_converter():
                 def converter(value):
-                    if not value or value.lower() == 'null':
+                    if not value or value.lower() == "null":
                         return None
                     try:
                         return datetime.strptime(value, "%Y-%m-%d").date()
                     except:
                         return None
+
                 return converter
+
             converters.append((model_field.name, json_key, make_date_converter()))
-        
+
         elif isinstance(field, (models.IntegerField, models.FloatField)):
+
             def make_number_converter():
                 def converter(value):
                     try:
-                        return float(value.replace(',', '')) if value else None
+                        return float(value.replace(",", "")) if value else None
                     except:
                         return None
+
                 return converter
+
             converters.append((model_field.name, json_key, make_number_converter()))
-        
+
         else:
+
             def make_string_converter():
                 def converter(value):
                     return str(value).strip() if value else None
+
                 return converter
+
             converters.append((model_field.name, json_key, make_string_converter()))
-    
+
     return converters
+
 
 def process_file(model, file_path):
     file_name = os.path.basename(file_path)
@@ -214,15 +234,15 @@ def process_file(model, file_path):
 
     try:
         # First pass to count records
-        with open(file_path, 'rb') as f:
-            total_records = sum(1 for _ in ijson.items(f, 'Table.item'))
+        with open(file_path, "rb") as f:
+            total_records = sum(1 for _ in ijson.items(f, "Table.item"))
             print(f"Records to process: {total_records}")
-        
+
         # Second pass to import data
-        with open(file_path, 'rb') as f:
-            items = ijson.items(f, 'Table.item')
+        with open(file_path, "rb") as f:
+            items = ijson.items(f, "Table.item")
             first_record = next(items, None)
-            
+
             if not first_record:
                 print(f"ERROR: Empty file.")
                 return 0, 0
@@ -236,38 +256,40 @@ def process_file(model, file_path):
 
             model_fields = {f.name: f for f in model._meta.fields if not f.auto_created}
             converters = create_field_converters(model_fields, json_columns)
-            
+
             # Process records
             all_items = chain([first_record], items)
             batch = []
             milestone = total_records // 10  # Report at each 10%
-            
+
             for i, record in enumerate(all_items):
                 try:
                     # Create model instance
                     obj = model()
                     for field_name, json_key, converter in converters:
-                        if field_name == "id" or field_name == "created_at":  
+                        if field_name == "id" or field_name == "created_at":
                             continue
                         value = record.get(json_key)
                         converted_value = converter(value)
-                        
+
                         # Check for potential data issues
                         if value and converted_value is None:
                             warning_count += 1
                             if warning_count <= 5:  # Limit warning output
-                                print(f"WARNING: Could not convert '{value}' for field '{field_name}' at record {i}")
+                                print(
+                                    f"WARNING: Could not convert '{value}' for field '{field_name}' at record {i}"
+                                )
                             elif warning_count == 6:
                                 print("Additional warnings suppressed...")
-                                
+
                         setattr(obj, field_name, converted_value)
                     batch.append(obj)
-                    
+
                     # Show simple progress at 10% intervals
                     if milestone > 0 and i % milestone == 0:
                         percent = (i // milestone) * 10
                         print(f"{file_name}: {percent}% done")
-                    
+
                     # Bulk create when batch is full
                     if len(batch) >= BATCH_SIZE:
                         try:
@@ -285,14 +307,16 @@ def process_file(model, file_path):
                                 except Exception as e2:
                                     errors += 1
                                     if errors <= 10:
-                                        print(f"ERROR: Record insert failed: {str(e2)[:150]}")
+                                        print(
+                                            f"ERROR: Record insert failed: {str(e2)[:150]}"
+                                        )
                         batch = []
-                        
+
                 except Exception as e:
                     errors += 1
                     if errors <= 10:  # Limit error output
                         print(f"ERROR: Processing record {i}: {str(e)[:150]}")
-            
+
             # Process remaining records
             if batch:
                 try:
@@ -309,68 +333,78 @@ def process_file(model, file_path):
                             count += 1
                         except Exception:
                             errors += 1
-                
+
             print(f"{file_name}: 100% done")
-                
+
     except Exception as e:
         print(f"CRITICAL ERROR: File processing failed: {str(e)}")
         errors += 1
-    
-    print(f"Completed {file_name}: {count} records processed, {errors} errors, {warning_count} warnings")
+
+    print(
+        f"Completed {file_name}: {count} records processed, {errors} errors, {warning_count} warnings"
+    )
     return count, errors
+
 
 def validate_fields(model, json_columns):
     model_fields = {f.name: f for f in model._meta.fields if not f.auto_created}
-    required_fields = [f.name for f in model_fields.values() 
-                  if not f.null and not f.has_default() and f.name != "id" and f.name != "created_at"]
-    
+    required_fields = [
+        f.name
+        for f in model_fields.values()
+        if not f.null
+        and not f.has_default()
+        and f.name != "id"
+        and f.name != "created_at"
+    ]
+
     for field in required_fields:
-        if field not in json_columns and f'_{field}' not in json_columns:
+        if field not in json_columns and f"_{field}" not in json_columns:
             return False, f"Missing required field: {field}"
-    
+
     return True, ""
 
+
 def import_data(clear_first=True):
-    models_to_import = list(MODEL_FILE_MAPPING.keys())  
-    
+    models_to_import = list(MODEL_FILE_MAPPING.keys())
+
     if clear_first:
         print("Clearing existing data...")
         clear_tables(models_to_import)
-    
+
     start_time = datetime.now()
     total = 0
     errors = 0
-    
+
     print(f"Starting import at {start_time.strftime('%H:%M:%S')}")
-    
+
     # Process models sequentially in defined order
     for model in models_to_import:
         file_paths = MODEL_FILE_MAPPING[model]
         if not isinstance(file_paths, list):
             file_paths = [file_paths]
-        
+
         # Process each file for this model sequentially
         for file_path in file_paths:
             if not os.path.exists(file_path):
                 print(f"File not found: {file_path}")
                 continue
-            
+
             # Process single file
             success, err = process_file(model, file_path)
             total += success
             errors += err
-    
+
     end_time = datetime.now()
     duration = end_time - start_time
-    
+
     print(f"\nImport completed at {end_time.strftime('%H:%M:%S')}")
     print(f"Duration: {duration}")
     print(f"Total inserted: {total} | Errors: {errors}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Close connections before starting (for any potential prefork setups)
     for conn in connections.all():
         conn.close()
-    
-    import_data(input("Clear existing data? (y/n): ").lower() == 'y')
+
+    import_data(input("Clear existing data? (y/n): ").lower() == "y")
