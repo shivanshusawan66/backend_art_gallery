@@ -157,6 +157,21 @@ async def request_validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
     )
 
+@application.middleware("http")
+async def enforce_json_content_type(request: Request, call_next):
+    if request.method in ("POST", "PUT", "PATCH"):  # Only check for methods that typically have a body
+        content_type = request.headers.get("Content-Type")
+        if content_type != "application/json":
+            return JSONResponse(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                content={
+                    "status": False,
+                    "status_code": 415,
+                    "message": "Unsupported Media Type: Please use Content-Type application/json",
+                },
+            )
+    return await call_next(request)
+
 
 @application.middleware("http")
 async def log_requests(request: Request, call_next):
