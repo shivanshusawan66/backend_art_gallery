@@ -536,9 +536,9 @@ class BlogCommentReportAdmin(admin.ModelAdmin):
 
 @admin.register(ContactMessageFundCategory)
 class ContactMessageFundCategoryrAdmin(admin.ModelAdmin):
-    list_display = ("name", "add_date", "update_date")
-    search_fields = ("name",)
-    ordering = ("name",)
+    list_display = ("fund_type", "add_date", "update_date")
+    search_fields = ("fund_type",)
+    ordering = ("fund_type",)
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
@@ -547,7 +547,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
         'last_name', 
         'email', 
         'phone_number', 
-        'category_id__name', 
+        'category_id__fund_type', 
         'created_at'
     )
     search_fields = (

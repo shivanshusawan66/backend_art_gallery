@@ -71,6 +71,9 @@ async def submit_contact_message(
     response: Response,
 ):
     try:
+        if not request.first_name.strip():
+            raise ValidationError("First name cannot be empty.")
+        
         validate_name(request.first_name)
         if request.last_name:  
             validate_name(request.last_name)
@@ -80,13 +83,13 @@ async def submit_contact_message(
         if not category:
             raise ValidationError("Invalid category ID provided.")
 
-        contact_message = await sync_to_async(ContactMessage.objects.create)(
-            first_name=request.first_name,
-            last_name=request.last_name,
-            email=request.email,
-            phone_number=request.phone_number,
-            category_id=category,  
-            message=request.message,
+        contact_message = ContactMessage(
+        first_name=request.first_name,
+        last_name=request.last_name,
+        email=request.email,
+        phone_number=request.phone_number,
+        category_id=category,
+        message=request.message,
         )
 
         await sync_to_async(contact_message.full_clean)()

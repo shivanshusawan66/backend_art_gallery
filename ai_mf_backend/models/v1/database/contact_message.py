@@ -10,7 +10,7 @@ from ai_mf_backend.utils.v1.validators.name import validate_name
 logger = logging.getLogger(__name__)
 
 class ContactMessageFundCategory(SoftDeleteModel):
-    name = models.CharField(
+    fund_type = models.CharField(
         max_length=50,
         unique=True,
         validators=[validate_name]
@@ -24,7 +24,7 @@ class ContactMessageFundCategory(SoftDeleteModel):
         verbose_name_plural = "Contact Message Fund Categories"
 
     def __str__(self):
-        return self.name
+        return self.fund_type
     
 class ContactMessage(SoftDeleteModel):
     first_name = models.CharField(
@@ -34,7 +34,8 @@ class ContactMessage(SoftDeleteModel):
     last_name = models.CharField(
         max_length=100,
         blank=True,
-        null=True
+        null=True,
+        validators=[validate_name]
     )
     email = models.EmailField()
     phone_number = models.CharField(
