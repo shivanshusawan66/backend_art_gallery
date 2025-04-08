@@ -217,10 +217,11 @@ async def get_current_holding_options(response: Response):
 
             question_data = {
                 "question_id": question.pk,
-                "question_label": question_labels.get(question.pk, question.question),
+                "name": question_labels.get(question.pk, question.question).lower(),
+                "label": question_labels.get(question.pk, question.question),
                 "options": [
                     {
-                        "option_id": option["id"],
+                        "key": option["id"],                         
                         "label": option["response"],
                     }
                     for option in options

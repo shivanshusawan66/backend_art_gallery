@@ -6,3 +6,6 @@ from ai_mf_backend.models.v1.database.financial_details import *
 from ai_mf_backend.models.v1.database.reference_table import *
 from ai_mf_backend.models.v1.database.blog import *
 from ai_mf_backend.models.v1.database.user_review import *
+from ai_mf_backend.models.v1.database.mf_master_data import *
+from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
+from ai_mf_backend.models.v1.database.mf_additional import *
