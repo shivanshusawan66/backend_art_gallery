@@ -299,21 +299,13 @@ async def user_personal_details_image_upload(
             status_code=200,
         )
 
-    except ValidationError as ve:
+    except Exception as e:
         response.status_code = 400
         return UserPersonalDetailsImageUpdateResponse(
             status=False,
-            message=f"Validation error: {ve}",
+            message=f"Error in uploading User Profile image: {str(e)}",
             data={},
             status_code=400,
-        )
-    except Exception as e:
-        response.status_code = 500
-        return UserPersonalDetailsImageUpdateResponse(
-            status=False,
-            message=f"Internal server error: {str(e)}",
-            data={},
-            status_code=500,
         )
   
 
@@ -378,19 +370,11 @@ async def user_personal_details_image_delete(
             status_code=200,
         )
 
-    except ValidationError as ve:
+    except Exception as e:
         response.status_code = 400
         return UserPersonalDetailsImageUpdateResponse(
             status=False,
-            message=f"Validation error: {ve}",
+            message=f"Error in deleting User profile image: {str(e)}",
             data={},
             status_code=400,
-        )
-    except Exception as e:
-        response.status_code = 500
-        return UserPersonalDetailsImageUpdateResponse(
-            status=False,
-            message=f"Internal server error: {str(e)}",
-            data={},
-            status_code=500,
         )
