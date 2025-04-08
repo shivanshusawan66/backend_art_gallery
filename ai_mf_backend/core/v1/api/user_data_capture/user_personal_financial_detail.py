@@ -1,5 +1,6 @@
 from PIL import Image, UnidentifiedImageError
 import io
+import os
 
 from django.utils import timezone
 from fastapi import (
@@ -247,7 +248,6 @@ async def update_user_personal_financial_details(
         status_code=status_code,
     )
 
-
 @router.post(
     "/user_personal_details_image_upload",
     response_model=UserPersonalDetailsImageUpdateResponse,
@@ -306,11 +306,15 @@ async def user_personal_details_image_upload(
             await file.close()
 
         content_file = ContentFile(contents, name=file.filename)
+        
+        user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
 
-        user_details, _ = await sync_to_async(
-            UserPersonalDetails.objects.get_or_create
-        )(user=user)
+        if not user_details:
+            user_details = UserPersonalDetails(user=user)
+   
         user_details.user_image = content_file
+
+        
         await sync_to_async(user_details.full_clean)()
         await sync_to_async(user_details.save)()
 
@@ -321,19 +325,82 @@ async def user_personal_details_image_upload(
             status_code=200,
         )
 
-    except ValidationError as ve:
+    except Exception as e:
         response.status_code = 400
         return UserPersonalDetailsImageUpdateResponse(
             status=False,
-            message=f"Validation error: {ve}",
+            message=f"Error in uploading User Profile image: {str(e)}",
             data={},
             status_code=400,
         )
+
+
+@router.delete(
+    "/user_personal_details_image_delete",
+    response_model=UserPersonalDetailsImageUpdateResponse,
+    dependencies=[Depends(login_checker)],
+)
+async def user_personal_details_image_delete(
+    response: Response,
+    Authorization: str = Header(...),
+):
+    try:
+        decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+        email = decoded_payload.get("email")
+        mobile_number = decoded_payload.get("mobile_number")
+
+        if not any([email, mobile_number]):
+            response.status_code = 422
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="Invalid JWT token: no email or mobile number found.",
+                data={},
+                status_code=422,
+            )
+
+        if email:
+            user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+        else:
+            user = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_number).first)()
+
+        if not user:
+            response.status_code = 400
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="User not found",
+                data={},
+                status_code=400,
+            )
+
+        user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
+        if not user_details or not user_details.user_image:
+            response.status_code = 400
+            return UserPersonalDetailsImageUpdateResponse(
+                status=False,
+                message="No image found to delete.",
+                data={},
+                status_code=400,
+            )
+
+        image_path = user_details.user_image.path
+        if await sync_to_async(os.path.exists)(image_path):
+            await sync_to_async(os.remove)(image_path)  
+
+        user_details.user_image = None
+        await sync_to_async(user_details.save)()
+
+        return UserPersonalDetailsImageUpdateResponse(
+            status=True,
+            message="Image deleted successfully",
+            data={},
+            status_code=200,
+        )
+
     except Exception as e:
-        response.status_code = 500
+        response.status_code = 400
         return UserPersonalDetailsImageUpdateResponse(
             status=False,
-            message=f"Internal server error: {str(e)}",
+            message=f"Error in deleting User profile image: {str(e)}",
             data={},
-            status_code=500,
+            status_code=400,
         )
