@@ -9,3 +9,4 @@ from ai_mf_backend.models.v1.database.user_review import *
 from ai_mf_backend.models.v1.database.mf_master_data import *
 from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
 from ai_mf_backend.models.v1.database.mf_additional import *
+from ai_mf_backend.models.v1.database.contact_message import *
