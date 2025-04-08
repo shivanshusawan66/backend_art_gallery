@@ -1,4 +1,4 @@
-from django.urls import path,include
+from django.urls import path, include
 from django.contrib import admin
 from django.conf import settings
 
@@ -21,5 +21,5 @@ Including another URLconf
 """
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("ckeditor5/", include('django_ckeditor_5.urls')),
+    path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]

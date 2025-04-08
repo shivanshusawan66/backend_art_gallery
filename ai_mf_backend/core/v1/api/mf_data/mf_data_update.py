@@ -23,9 +23,9 @@ data_feed_configs = [
         "model": MFAMCMaster,
         "primary_key": "amc_code",
     },
-
     # Add additional configurations for your other tables
 ]
+
 
 async def fetch_data(url: str):
     async with httpx.AsyncClient() as client:
@@ -36,6 +36,7 @@ async def fetch_data(url: str):
         logger.error(f"Failed to fetch data from {url}, status: {response.status_code}")
         return None
 
+
 def upsert_record(session, model, primary_key, record):
     """
     Upsert a single record where API attribute names match model attributes.
@@ -45,7 +46,11 @@ def upsert_record(session, model, primary_key, record):
         logger.warning(f"Primary key {primary_key} missing in record: {record}")
         return
 
-    existing_record = session.query(model).filter(getattr(model, primary_key) == primary_value).first()
+    existing_record = (
+        session.query(model)
+        .filter(getattr(model, primary_key) == primary_value)
+        .first()
+    )
 
     if existing_record:
         # Update each attribute from the record
@@ -56,6 +61,7 @@ def upsert_record(session, model, primary_key, record):
         # Create a new record, filtering out any keys not present in the model (if necessary)
         new_record = model(**record)
         session.add(new_record)
+
 
 def update_data_for_feed(config):
     """Fetch data from the endpoint and upsert records using the provided configuration."""
@@ -74,10 +80,12 @@ def update_data_for_feed(config):
     finally:
         session.close()
 
+
 def update_all_feeds():
     """Loop over all configured feeds and update each table."""
     for config in data_feed_configs:
         update_data_for_feed(config)
+
 
 # Example integration with APScheduler in FastAPI:
 from fastapi import FastAPI
@@ -86,17 +94,20 @@ from apscheduler.schedulers.background import BackgroundScheduler
 app = FastAPI()
 scheduler = BackgroundScheduler()
 
+
 @app.on_event("startup")
 def startup_event():
     # Schedule the update_all_feeds to run at the desired interval (e.g., every 15 minutes)
-    scheduler.add_job(update_all_feeds, 'interval', minutes=15)
+    scheduler.add_job(update_all_feeds, "interval", minutes=15)
     scheduler.start()
     logger.info("Scheduler started")
+
 
 @app.on_event("shutdown")
 def shutdown_event():
     scheduler.shutdown()
     logger.info("Scheduler shut down")
+
 
 # Optional: Manual trigger endpoint
 @app.get("/trigger_update")

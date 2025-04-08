@@ -2,6 +2,7 @@ from django.db import models
 
 # 1.1 ASSET MANAGEMENT COMPANIES
 
+
 class MFAMCMaster(models.Model):
     id = models.AutoField(primary_key=True)
     amc_code = models.IntegerField()
@@ -34,6 +35,7 @@ class MFAMCMaster(models.Model):
         verbose_name = "MF AMC Master"
         verbose_name_plural = "MF AMC Masters"
 
+
 class MFAMCKeyPerson(models.Model):
     id = models.AutoField(primary_key=True)
     amc_code = models.IntegerField()
@@ -48,15 +50,16 @@ class MFAMCKeyPerson(models.Model):
         db_table = "mf_amc_keyperson"
         verbose_name = "MF AMC Key Person"
         verbose_name_plural = "MF AMC Key Persons"
-        unique_together = (('amc_code', 'srno'),)
+        unique_together = (("amc_code", "srno"),)
 
 
-# 1.2 SCHEME MASTERS 
+# 1.2 SCHEME MASTERS
+
 
 class MFSchemeMaster(models.Model):
     id = models.AutoField(primary_key=True)
     schemecode = models.IntegerField()
-    amc_code = models.IntegerField(blank=True, null=True) 
+    amc_code = models.IntegerField(blank=True, null=True)
     scheme_name = models.CharField(max_length=255)
     color = models.CharField(max_length=50)
     flag = models.CharField(max_length=1)
@@ -66,6 +69,7 @@ class MFSchemeMaster(models.Model):
         db_table = "mf_scheme_master"
         verbose_name = "MF Scheme Master"
         verbose_name_plural = "MF Scheme Masters"
+
 
 class MFSchemeMasterInDetails(models.Model):
     id = models.AutoField(primary_key=True)
@@ -79,7 +83,7 @@ class MFSchemeMasterInDetails(models.Model):
     type_code = models.IntegerField(null=True, blank=True)
     opt_code = models.IntegerField(null=True, blank=True)
     classcode = models.IntegerField(null=True, blank=True)
-    theme_code = models.IntegerField(null=True, blank=True)  
+    theme_code = models.IntegerField(null=True, blank=True)
     rt_code = models.IntegerField(null=True, blank=True)
     plan = models.IntegerField(null=True, blank=True)
     cust_code = models.IntegerField(null=True, blank=True)
@@ -90,7 +94,7 @@ class MFSchemeMasterInDetails(models.Model):
     nfo_open = models.DateTimeField(null=True, blank=True)
     nfo_close = models.DateTimeField(null=True, blank=True)
     reopen_dt = models.DateTimeField(null=True, blank=True)
-    elf = models.CharField(max_length=1, null=True, blank=True)  
+    elf = models.CharField(max_length=1, null=True, blank=True)
     etf = models.CharField(max_length=1, null=True, blank=True)
     stp = models.CharField(max_length=1, null=True, blank=True)
     primary_fund = models.CharField(max_length=1, null=True, blank=True)
@@ -108,12 +112,12 @@ class MFSchemeMasterInDetails(models.Model):
     fund_mgr4 = models.CharField(max_length=1000, null=True, blank=True)
     since = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, null=True, blank=True)
-    cutsub = models.CharField(max_length=10, null=True, blank=True) 
-    cutred = models.CharField(max_length=10, null=True, blank=True) 
-    red = models.CharField(max_length=50, null=True, blank=True) 
-    mob_name = models.CharField(max_length=255, null=True, blank=True)  
+    cutsub = models.CharField(max_length=10, null=True, blank=True)
+    cutred = models.CharField(max_length=10, null=True, blank=True)
+    red = models.CharField(max_length=50, null=True, blank=True)
+    mob_name = models.CharField(max_length=255, null=True, blank=True)
     div_freq = models.IntegerField(null=True, blank=True)
-    scheme_symbol = models.CharField(max_length=50, null=True, blank=True) 
+    scheme_symbol = models.CharField(max_length=50, null=True, blank=True)
     fund_mgr_code1 = models.IntegerField(null=True, blank=True)
     FUND_MGR_CODE2 = models.IntegerField(null=True, blank=True)
     FUND_MGR_CODE3 = models.IntegerField(null=True, blank=True)
@@ -121,31 +125,31 @@ class MFSchemeMasterInDetails(models.Model):
     Redemption_date = models.DateTimeField(null=True, blank=True)
     DateOfAllot = models.DateTimeField(null=True, blank=True)
     Div_Code = models.FloatField(null=True, blank=True)
-    LegalNames = models.CharField(max_length=255,null=True, blank=True)
+    LegalNames = models.CharField(max_length=255, null=True, blank=True)
     AMFIType = models.CharField(max_length=50, null=True, blank=True)
     NonTxnDay = models.CharField(max_length=4, null=True, blank=True)
-    SchemeBank = models.CharField(max_length=255, null=True, blank=True)  
-    SchemeBankAccountNumber = models.CharField(max_length=50, null=True, blank=True)  
-    SchemeBankBranch = models.CharField(max_length=255, null=True, blank=True) 
-    DividendOptionFlag = models.CharField(max_length=1,null=True, blank=True)
+    SchemeBank = models.CharField(max_length=255, null=True, blank=True)
+    SchemeBankAccountNumber = models.CharField(max_length=50, null=True, blank=True)
+    SchemeBankBranch = models.CharField(max_length=255, null=True, blank=True)
+    DividendOptionFlag = models.CharField(max_length=1, null=True, blank=True)
     LockIn = models.CharField(max_length=50, null=True, blank=True)
     IsPurchaseAvailable = models.CharField(max_length=1, null=True, blank=True)
     IsRedeemAvailable = models.CharField(max_length=1, null=True, blank=True)
     MinRedemptionAmount = models.FloatField(null=True, blank=True)
     RedemptionMultipleAmount = models.FloatField(null=True, blank=True)
-    MinRedemptionUnits = models.FloatField(null=True, blank=True)  
-    RedemptionMultiplesUnits = models.FloatField(null=True, blank=True)  
+    MinRedemptionUnits = models.FloatField(null=True, blank=True)
+    RedemptionMultiplesUnits = models.FloatField(null=True, blank=True)
     MinSwitchAmount = models.FloatField(null=True, blank=True)
     SwitchMultipleAmount = models.FloatField(null=True, blank=True)
-    MinSwitchUnits = models.FloatField(null=True, blank=True)  
+    MinSwitchUnits = models.FloatField(null=True, blank=True)
     SwitchMultiplesUnits = models.FloatField(null=True, blank=True)
-    securitycode = models.CharField(max_length=50, null=True, blank=True)  
+    securitycode = models.CharField(max_length=50, null=True, blank=True)
     unit = models.CharField(max_length=50, null=True, blank=True)
     SwitchOut = models.CharField(max_length=1, null=True, blank=True)
     MinSwitchOutAmount = models.FloatField(null=True, blank=True)
     SwitchOutMultipleAmount = models.FloatField(null=True, blank=True)
-    MinSwitchOutUnits = models.FloatField(null=True, blank=True) 
-    SwitchOutMultiplesUnits = models.FloatField(null=True, blank=True)  
+    MinSwitchOutUnits = models.FloatField(null=True, blank=True)
+    SwitchOutMultiplesUnits = models.FloatField(null=True, blank=True)
     Incept_date = models.DateTimeField(null=True, blank=True)
     Incept_Nav = models.FloatField(null=True, blank=True)
     DefaultOpt = models.CharField(max_length=50, null=True, blank=True)
@@ -153,7 +157,7 @@ class MFSchemeMasterInDetails(models.Model):
     LockPeriod = models.IntegerField(null=True, blank=True)
     ODDraftDate = models.DateTimeField(null=True, blank=True)
     Liquidated_Date = models.DateTimeField(null=True, blank=True)
-    Old_Plan = models.IntegerField(null=True, blank=True)  
+    Old_Plan = models.IntegerField(null=True, blank=True)
     Direct_Plan = models.IntegerField(null=True, blank=True)
     optionType = models.CharField(max_length=10, null=True, blank=True)
     flag = models.CharField(max_length=1)
@@ -163,6 +167,7 @@ class MFSchemeMasterInDetails(models.Model):
         db_table = "mf_scheme_master_in_details"
         verbose_name = "MF Scheme Master In Detail"
         verbose_name_plural = "MF Scheme Master In Details"
+
 
 class MFSchemeRTCode(models.Model):
     id = models.AutoField(primary_key=True)
@@ -176,12 +181,13 @@ class MFSchemeRTCode(models.Model):
         verbose_name = "MF Scheme RT Code"
         verbose_name_plural = "MF Scheme RT Codes"
 
+
 class MFSchemeIsInMaster(models.Model):
     id = models.AutoField(primary_key=True)
     Id = models.IntegerField()
     ISIN = models.CharField(max_length=100)
-    Schemecode = models.IntegerField() 
-    Amc_code = models.IntegerField() 
+    Schemecode = models.IntegerField()
+    Amc_code = models.IntegerField()
     NseSymbol = models.CharField(max_length=100, null=True, blank=True)
     Series = models.CharField(max_length=50, null=True, blank=True)
     RTASchemecode = models.CharField(max_length=50, null=True, blank=True)
@@ -197,6 +203,7 @@ class MFSchemeIsInMaster(models.Model):
         verbose_name = "MF Scheme ISIN Master"
         verbose_name_plural = "MF Scheme ISIN Masters"
 
+
 class MFTypeMaster(models.Model):
     id = models.AutoField(primary_key=True)
     type_code = models.IntegerField()
@@ -207,7 +214,8 @@ class MFTypeMaster(models.Model):
     class Meta:
         db_table = "mf_type_master"
         verbose_name = "MF Type Master"
-        verbose_name_plural = "MF Type Masters" 
+        verbose_name_plural = "MF Type Masters"
+
 
 class MFOptionMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -220,9 +228,10 @@ class MFOptionMaster(models.Model):
         db_table = "mf_option_master"
         verbose_name = "MF Option Master"
         verbose_name_plural = "MF Option Masters"
-    
+
     def __str__(self):
         return self.option
+
 
 class MFSchemeClassMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -240,6 +249,7 @@ class MFSchemeClassMaster(models.Model):
         verbose_name = "MF Scheme Class Master"
         verbose_name_plural = "MF Scheme Class Masters"
 
+
 class MFRegistrarMaster(models.Model):
     id = models.AutoField(primary_key=True)
     rt_code = models.IntegerField()
@@ -253,7 +263,7 @@ class MFRegistrarMaster(models.Model):
     fax = models.TextField(null=True, blank=True)
     website = models.CharField(max_length=100, null=True, blank=True)
     reg_address = models.TextField(null=True, blank=True)
-    email = models.CharField(max_length=500, null=True, blank=True )
+    email = models.CharField(max_length=500, null=True, blank=True)
     flag = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -261,6 +271,7 @@ class MFRegistrarMaster(models.Model):
         db_table = "mf_registrar_master"
         verbose_name = "MF Registrar Master"
         verbose_name_plural = "MF Registrar Masters"
+
 
 class MFPlanMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -273,6 +284,7 @@ class MFPlanMaster(models.Model):
         db_table = "mf_plan_master"
         verbose_name = "MF Plan Master"
         verbose_name_plural = "MF Plan Masters"
+
 
 class MFCustodianMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -290,23 +302,25 @@ class MFCustodianMaster(models.Model):
         verbose_name = "MF Custodian Master"
         verbose_name_plural = "MF Custodian Masters"
 
+
 class MFFundManagerMaster(models.Model):
     id = models.AutoField(primary_key=True)
     initial = models.CharField(max_length=10)
     fundmanager = models.CharField(max_length=200)
     qualification = models.CharField(max_length=200, null=True, blank=True)
-    experience = models.CharField(max_length=200, null=True, blank=True)  
-    basicdetails = models.CharField(max_length=1000, null=True, blank=True) 
-    designation = models.CharField(max_length=100, null=True, blank=True) 
-    age = models.IntegerField(null=True, blank=True)  
-    reporteddate = models.DateTimeField(null=True, blank=True)  
+    experience = models.CharField(max_length=200, null=True, blank=True)
+    basicdetails = models.CharField(max_length=1000, null=True, blank=True)
+    designation = models.CharField(max_length=100, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
+    reporteddate = models.DateTimeField(null=True, blank=True)
     flag = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = "mf_fundmanager_master"
         verbose_name = "MF Fund Manager Master"
         verbose_name_plural = "MF Fund Manager Masters"
+
 
 class MFDividendMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -323,6 +337,7 @@ class MFDividendMaster(models.Model):
 
 # 1.3 SCHEME OBJECTIVE
 
+
 class MFSchemeObjective(models.Model):
     id = models.AutoField(primary_key=True)
     schemecode = models.IntegerField()
@@ -337,6 +352,7 @@ class MFSchemeObjective(models.Model):
 
 
 # 1.4.1 SYSTEMATIC INVESTMENT PLAN
+
 
 class MFSystematicInvestmentPlan(models.Model):
     id = models.AutoField(primary_key=True)
@@ -362,7 +378,8 @@ class MFSystematicInvestmentPlan(models.Model):
         db_table = "mf_systematic_investment_plan"
         verbose_name = "MF Systematic Investment Plan"
         verbose_name_plural = "MF Systematic Investment Plan"
-        unique_together = ('schemecode', 'frequency')
+        unique_together = ("schemecode", "frequency")
+
 
 class MFSystematicWithdrawalPlan(models.Model):
     id = models.AutoField(primary_key=True)
@@ -388,7 +405,8 @@ class MFSystematicWithdrawalPlan(models.Model):
         db_table = "mf_systematic_withdrawal_plan"
         verbose_name = "MF Systematic Withdrawal Plan"
         verbose_name_plural = "MF Systematic Withdrawal Plan"
-        unique_together = ('schemecode', 'frequency')
+        unique_together = ("schemecode", "frequency")
+
 
 class MFSystematicTransferPlan(models.Model):
     id = models.AutoField(primary_key=True)
@@ -415,10 +433,11 @@ class MFSystematicTransferPlan(models.Model):
         db_table = "mf_systematic_transfer_plan"
         verbose_name = "MF Systematic Transfer Plan"
         verbose_name_plural = "MF Systematic Transfer Plan"
-        unique_together = ('schemecode', 'frequency', 'stpinout')
+        unique_together = ("schemecode", "frequency", "stpinout")
 
 
-#1.5 SCHEME BENCHMARK INDEX
+# 1.5 SCHEME BENCHMARK INDEX
+
 
 class MFSchemeIndexMapping(models.Model):
     id = models.AutoField(primary_key=True)
@@ -434,7 +453,8 @@ class MFSchemeIndexMapping(models.Model):
         db_table = "mf_scheme_index_mapping"
         verbose_name = "MF Scheme Index Mapping"
         verbose_name_plural = "MF Scheme Index Mappings"
-        unique_together = (('SCHEMECODE', 'INDEXCODE'))
+        unique_together = ("SCHEMECODE", "INDEXCODE")
+
 
 class MFIndexMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -455,6 +475,7 @@ class MFIndexMaster(models.Model):
 
 # 1.6 SCHEME ENTRY EXIT LOAD
 
+
 class MFSchemeEntryExitLoad(models.Model):
     id = models.AutoField(primary_key=True)
     SCHEMECODE = models.IntegerField()
@@ -472,7 +493,7 @@ class MFSchemeEntryExitLoad(models.Model):
     REMARKS = models.TextField(null=True, blank=True)
     Period_Condition = models.CharField(max_length=10, null=True, blank=True)
     Period_Type = models.CharField(max_length=10, null=True, blank=True)
-    Period = models.CharField(max_length=100,null=True, blank=True)
+    Period = models.CharField(max_length=100, null=True, blank=True)
     Amount_Condition = models.CharField(max_length=10, null=True, blank=True)
     Amount_Type = models.CharField(max_length=10, null=True, blank=True)
     Per_Condition = models.CharField(max_length=10, null=True, blank=True)
@@ -485,7 +506,8 @@ class MFSchemeEntryExitLoad(models.Model):
         db_table = "mf_scheme_entry_exit_load"
         verbose_name = "MF Scheme Entry Exit Load"
         verbose_name_plural = "MF Scheme Entry Exit Load"
-        unique_together = (('SCHEMECODE', 'LDATE', 'LTYPECODE', 'LSRNO'),)
+        unique_together = (("SCHEMECODE", "LDATE", "LTYPECODE", "LSRNO"),)
+
 
 class MFLoadTypeMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -498,9 +520,10 @@ class MFLoadTypeMaster(models.Model):
         db_table = "mf_loadtype_master"
         verbose_name = "MF Load Type Master"
         verbose_name_plural = "MF Load Type Masters"
-    
+
 
 # 1.7 PORTFOLIO MASTERS
+
 
 class MFCompanyMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -513,7 +536,7 @@ class MFCompanyMaster(models.Model):
     Industry = models.CharField(max_length=100, null=True, blank=True)
     isin = models.CharField(max_length=50, null=True, blank=True)
     status = models.CharField(max_length=50, null=True, blank=True)
-    series = models.CharField(max_length=2,null=True, blank=True)
+    series = models.CharField(max_length=2, null=True, blank=True)
     listing = models.CharField(max_length=50, null=True, blank=True)
     sublisting = models.CharField(max_length=50, null=True, blank=True)
     fv = models.FloatField(null=True, blank=True)
@@ -524,6 +547,7 @@ class MFCompanyMaster(models.Model):
         db_table = "mf_company_master"
         verbose_name = "MF Company Master"
         verbose_name_plural = "MF Company Masters"
+
 
 class MFIndustryMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -539,6 +563,7 @@ class MFIndustryMaster(models.Model):
         db_table = "mf_industry_master"
         verbose_name = "MF Industry Master"
         verbose_name_plural = "MF Industry Masters"
+
 
 class MFAssetAllocationMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -556,6 +581,7 @@ class MFAssetAllocationMaster(models.Model):
 
 
 # 1.8 RAJIV GANDHI EQUITY SAVING SCHEMES
+
 
 class MFSchemeRGESS(models.Model):
     id = models.AutoField(primary_key=True)
