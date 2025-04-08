@@ -231,7 +231,6 @@ async def update_user_personal_financial_details(
         status_code=status_code,
     )
 
-
 @router.post(
     "/user_personal_details_image_upload",
     response_model=UserPersonalDetailsImageUpdateResponse,
@@ -255,7 +254,7 @@ async def user_personal_details_image_upload(
                 data={},
                 status_code=422,
             )
-        
+
         if email:
             user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
         else:
@@ -269,12 +268,12 @@ async def user_personal_details_image_upload(
                 data={},
                 status_code=400,
             )
-                  
+
         try:
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
-            image.verify()  
-        except (UnidentifiedImageError, Exception) as e:
+            image.verify()
+        except (UnidentifiedImageError, Exception):
             response.status_code = 400
             return UserPersonalDetailsImageUpdateResponse(
                 status=False,
@@ -284,11 +283,18 @@ async def user_personal_details_image_upload(
             )
         finally:
             await file.close()
-    
+
         content_file = ContentFile(contents, name=file.filename)
 
-        user_details, _ = await sync_to_async(UserPersonalDetails.objects.get_or_create)(user=user)
+        
+        user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
+
+        if not user_details:
+            user_details = UserPersonalDetails(user=user)
+    
         user_details.user_image = content_file
+
+        
         await sync_to_async(user_details.full_clean)()
         await sync_to_async(user_details.save)()
 
@@ -307,7 +313,7 @@ async def user_personal_details_image_upload(
             data={},
             status_code=400,
         )
-  
+
 
 @router.delete(
     "/user_personal_details_image_delete",
