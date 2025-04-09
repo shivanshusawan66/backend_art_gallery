@@ -11,7 +11,7 @@ class CeleryConfig(BaseSettingsWrapper):
     CELERY_BROKER_URL: str = "redis://redis:6379"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379"
     CELERY_ENABLE_UTC: int = 0
-    CELERY_TIMEZONE: str = "UTC"
+    CELERY_TIMEZONE: str = "Asia/Kolkata"
 
     @field_validator("CELERY_ENABLE_UTC", mode="after")
     def set_enable_utc(cls, CELERY_ENABLE_UTC: int):

@@ -27,6 +27,7 @@ class UserPersonalFinancialDetailsUpdateResponse(Response):
 
 class UserPersonalFinancialFormData(BaseModel):
     name: Optional[str] = None
+    user_profile_image: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[str] = None
     marital_status: Optional[str] = None
@@ -42,20 +43,29 @@ class UserPersonalFinancialFormData(BaseModel):
 class UserPersonalFinancialDetailsResponsesDisplayResponse(Response):
     pass
 
+
 class OptionModel(BaseModel):
-    option_id: int
+    key: int
     label: str
+
 
 class QuestionDataModel(BaseModel):
     question_id: int
-    question_label: str
+    label: str
+    name: str
     options: List[OptionModel]
     required: bool
     type: str
 
+
 class UserProfileQuestionResponse(Response):
     section_id: Optional[int] = None
     data: Optional[List[QuestionDataModel]] = None
-      
+
+
 class UserProfileOptionResponse(Response):
+    pass
+
+
+class UserPersonalDetailsImageUpdateResponse(Response):
     pass

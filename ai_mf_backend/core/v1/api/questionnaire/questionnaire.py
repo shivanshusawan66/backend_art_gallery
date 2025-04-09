@@ -35,7 +35,6 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionCompletionStatus,
     SectionCompletionStatusResponse,
     TotalCompletionStatusResponse,
-    
 )
 from ai_mf_backend.models.v1.database.user import (
     UserContactInfo,
@@ -275,7 +274,7 @@ async def get_section_wise_questions(
             )
 
         questions = await sync_to_async(list)(
-            Question.objects.filter(section=current_section,visibility_question="show")
+            Question.objects.filter(section=current_section, visibility_question="show")
         )
 
         question_data_list: List[QuestionData] = []
@@ -396,7 +395,22 @@ async def get_section_completion_status(
 
         # Get all sections with their questions
         sections_with_questions = await sync_to_async(
-            lambda: list(Section.objects.prefetch_related("question_set").all())
+            lambda: [
+                {
+                    "section": section,
+                    "questions": [
+                        question
+                        for question in section.question_set.all()
+                        if question.visibility_question
+                    ],
+                }
+                for section in Section.objects.prefetch_related(
+                    Prefetch(
+                        "question_set",
+                        queryset=Question.objects.filter(visibility_question="show"),
+                    )
+                ).all()
+            ]
         )()
 
         dependency_dict = {}
@@ -421,7 +435,7 @@ async def get_section_completion_status(
             answered_visible_questions = 0
 
             # Count visible questions and answered visible questions
-            for question in section.question_set.all():
+            for question in section["questions"]:
                 should_skip = False
 
                 # Check if question should be hidden based on conditional logic
@@ -444,14 +458,16 @@ async def get_section_completion_status(
                         continue
 
             if visible_questions > 0:
-                completion_rate = int((answered_visible_questions / visible_questions) * 100)
+                completion_rate = int(
+                    (answered_visible_questions / visible_questions) * 100
+                )
             else:
                 completion_rate = 0.0
 
             section_completion_status.append(
                 SectionCompletionStatus(
-                    section_id=section.id,
-                    section_name=section.section,
+                    section_id=section["section"].id,
+                    section_name=section["section"].section,
                     answered_questions=answered_visible_questions,
                     total_questions=visible_questions,
                     completion_rate=completion_rate,
@@ -472,8 +488,9 @@ async def get_section_completion_status(
             status_code=500,
             data=[],
         )
+
 @router.get(
-    "/total_completion_status/",
+    "/total_completion_status",
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
@@ -481,7 +498,7 @@ async def get_total_completion_status(
     user_id: int = Query(..., description="User ID")
 ) -> TotalCompletionStatusResponse:
     try:
-        
+
         section_status_response = await get_section_completion_status(user_id)
 
         if not section_status_response.status or not section_status_response.data:
@@ -490,30 +507,52 @@ async def get_total_completion_status(
                 status=False,
                 message="Failed to fetch section completion data.",
                 total_completion_rate=0.0,
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
                 status_code=status_code,
             )
 
-        
-        total_answered = sum(section.answered_questions for section in section_status_response.data)
-        total_questions = sum(section.total_questions for section in section_status_response.data)
+
+        total_answered = sum(
+            section.answered_questions for section in section_status_response.data
+        )
+        total_questions = sum(
+            section.total_questions for section in section_status_response.data
+        )
 
         if total_questions == 0:
             overall_completion_rate = 0.0
         else:
             overall_completion_rate = (total_answered / total_questions) * 100
 
-        return TotalCompletionStatusResponse(
-            status=True,
-            message="Successfully fetched total completion status.",
-            total_completion_rate=int(overall_completion_rate),
-            status_code=200,
-        )
+        if overall_completion_rate == 100:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=False,
+                banner_message="",
+                status_code=200,
+            )
+        else:
+            return TotalCompletionStatusResponse(
+                status=True,
+                message="Successfully fetched total completion status.",
+                total_completion_rate=int(overall_completion_rate),
+                banner_status=True,
+                banner_message="Complete your profile for better Mutual Fund recommendations",
+                status_code=200,
+            )
 
     except Exception as e:
-        logger.error(f"Unexpected error while fetching total completion status: {str(e)}")
+        logger.error(
+            f"Unexpected error while fetching total completion status: {str(e)}"
+        )
         return TotalCompletionStatusResponse(
             status=False,
             message="An unexpected error occurred.",
             total_completion_rate=0.0,
+            banner_status=True,
+            banner_message="",
             status_code=500,
         )

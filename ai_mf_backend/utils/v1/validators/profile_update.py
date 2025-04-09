@@ -17,8 +17,7 @@ async def validate_profile_modification_time(instance):
     Validator to restrict profile modification within a defined period and number of changes.
     Validates if the user has exceeded the allowed changes in a time zone window
     """
-    
-    
+
     max_changes = api_config.MAX_CHANGES_PER_WINDOW
     window_days = api_config.CHANGES_WINDOW
     restriction_period = timedelta(days=window_days)
@@ -28,20 +27,22 @@ async def validate_profile_modification_time(instance):
 
     # Count profile updates within the window
     change_count = await sync_to_async(
-    UserLogs.objects.filter(
-        user_id=instance.user_id,
-        action="profile_update",
-        last_access__gte=start_time
-    ).count
+        UserLogs.objects.filter(
+            user_id=instance.user_id,
+            action="profile_update",
+            last_access__gte=start_time,
+        ).count
     )()
 
     if change_count >= max_changes:
         oldest_log = await sync_to_async(
-        UserLogs.objects.filter(
-            user_id=instance.user_id,
-            action="profile_update",
-            last_access__gte=start_time
-        ).order_by("last_access").first
+            UserLogs.objects.filter(
+                user_id=instance.user_id,
+                action="profile_update",
+                last_access__gte=start_time,
+            )
+            .order_by("last_access")
+            .first
         )()
 
         next_allowed_time = oldest_log.last_access + restriction_period

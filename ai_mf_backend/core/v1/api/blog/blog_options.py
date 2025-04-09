@@ -7,9 +7,7 @@ from asgiref.sync import sync_to_async
 router = APIRouter()
 
 
-@router.get("/options_blog_category",
-            response_model=BlogCategoryOptionResponse
-)
+@router.get("/options_blog_category", response_model=BlogCategoryOptionResponse)
 async def get_blog_category_options():
     try:
         categories = await sync_to_async(list)(BlogCategory.objects.all())
@@ -17,8 +15,8 @@ async def get_blog_category_options():
         category_options = [
             {
                 "key": int(category.id),
-                "label": category.name,  
-                "value": category.name.lower()
+                "label": category.name,
+                "value": category.name.lower(),
             }
             for category in categories
         ]
@@ -38,7 +36,7 @@ async def get_blog_category_options():
             status=True,
             message="Blog category options fetched successfully",
             data=data,
-            status_code=200
+            status_code=200,
         )
 
     except Exception as e:
@@ -46,5 +44,5 @@ async def get_blog_category_options():
             status=False,
             message=f"Failed to fetch blog category options: {str(e)}",
             data={},
-            status_code=500
+            status_code=500,
         )
