@@ -28,8 +28,8 @@ async def get_options_contact_message_fund_category():
         category_options = [
             {
                 "key": int(category.id),
-                "label": category.name,  
-                "value": category.name.lower()
+                "label": category.fund_type,  
+                "value": category.fund_type.lower()
             }
             for category in categories
         ]

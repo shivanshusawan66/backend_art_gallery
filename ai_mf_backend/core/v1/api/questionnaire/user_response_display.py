@@ -91,7 +91,7 @@ async def get_user_questionnaire_responses(
                 data={},
                 status_code=400,
             )
-        user_check = await UserContactInfo.objects.filter(user_id=user_id).aexists()
+        user_check = await UserContactInfo.objects.filter(user_id=user_id).afirst() 
 
         if not user_check:
             response.status_code = 404
@@ -101,7 +101,7 @@ async def get_user_questionnaire_responses(
                 data={},
                 status_code=404,
             )
-        if user_check!=user.user_id :
+        if user_check.user_id!=user.user_id :
             response.status_code=403
             return UserQuestionnaireResponse(
                 status=False,
@@ -143,7 +143,6 @@ async def get_user_questionnaire_responses(
             status_code=200,
         )
     except Exception as e:
-        # General exception handling for any other issues
         return UserQuestionnaireResponse(
             status=False,
             message=f"An unexpected error occurred: {str(e)}",
