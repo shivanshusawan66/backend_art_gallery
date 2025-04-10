@@ -82,7 +82,7 @@ from ai_mf_backend.core.v1.api.blog.blog_comment_report_options import (
 
 from ai_mf_backend.core.v1.api.user_review.user_review import (
     router as user_review_router_v1,
-
+)
 from ai_mf_backend.core.v1.api.contact_message.contact_message import (
     router as contact_message_router_v1,
 )
