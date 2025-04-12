@@ -15,9 +15,28 @@ class SignUpType(Enum):
     password = "password"
 
 
-class ReferenceTableEnums(Enum):
-    projection_table_mapping = "projection_table_mapping"
-
+class ReferenceTableEnums(str, Enum):
+    SCHEME_DETAILS = "MFSchemeMasterInDetails"
+    SCHEME_PAUM = "MFSchemePortfolioAUM"
+    TYPE_MST = "MFTypeMaster"
+    SCHEME_MASTER = "MFSchemeMaster"
+    MF_RATIOS = "MFRatios1Year"
+    SCHEME_LOAD="MFSchemeEntryExitLoad"
+    MF_PORTFOLIO = "MFPortfolio"
+    ASECT_MST = "MFAssetAllocationMaster"
+    #MF_Absolute_Return="MFAbsoluteReturn"
+    SCLASS_MST = "MFSchemeClassMaster"
+    SCHEME_EQ_DETAILS = "MFSchemeEquityDetails"
+    COMPANY_MCAP = "MFCompanyMcap"
+    AVG_MATURITY = "MFSchemeAverageMaturity"
+    EXPENSE_RATIO = "MFSchemeMonthWiseExpenseRatio"
+    MF_SIP = "MFSystematicInvestmentPlan"
+    MF_RETURN = "MFReturn"
+    MF_CAGR_RETURN = "MFCAGRReturn"
+    #SCHEME_ISIN_MASTER = "MFSchemeIsInMaster"
+    NAV_HIST="MFNetAssetValueHistorical"
+    CURRENT_NAV="MFNSEAssetValueLatest"
+    #MF_LOAD_TYPE_MASTER ="MFLoadTypeMaster"
 
 date_str = datetime.today().strftime("%d%m%Y")
 
