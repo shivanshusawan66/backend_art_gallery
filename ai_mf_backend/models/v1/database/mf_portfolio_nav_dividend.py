@@ -31,6 +31,9 @@ class MFPortfolio(models.Model):
         verbose_name = "MF Portfolio"
         verbose_name_plural = "MF Portfolio"
         unique_together = (("schemecode", "invdate", "srno"),)
+        indexes = [
+            models.Index(fields=["schemecode", "invdate", "srno"])
+        ]
 
 
 class MFAMCPortfolioAUM(models.Model):
@@ -46,6 +49,9 @@ class MFAMCPortfolioAUM(models.Model):
         verbose_name = "MF AMC Portfolio AUM"
         verbose_name_plural = "MF AMC Portfolio AUMs"
         unique_together = (("amc_code", "aumdate"),)
+        indexes = [
+            models.Index(fields=["amc_code", "aumdate"])
+        ]
 
 
 class MFSchemePortfolioAUM(models.Model):
@@ -62,6 +68,9 @@ class MFSchemePortfolioAUM(models.Model):
         verbose_name = "MF Scheme Portfolio AUM"
         verbose_name_plural = "MF Scheme Portfolio AUMs"
         unique_together = (("schemecode", "monthend"),)
+        indexes = [
+            models.Index(fields=["schemecode", "monthend"])
+        ]
 
 
 class MFAMCAUM(models.Model):
@@ -77,6 +86,9 @@ class MFAMCAUM(models.Model):
         verbose_name = "MF AMC AUM"
         verbose_name_plural = "MF AMC AUMs"
         unique_together = (("amc_code", "aumdate"),)
+        indexes = [
+            models.Index(fields=["amc_code", "aumdate"])
+        ]
 
 
 class MFSchemeAUM(models.Model):
@@ -94,6 +106,9 @@ class MFSchemeAUM(models.Model):
         verbose_name = "MF Scheme AUM"
         verbose_name_plural = "MF Scheme AUMs"
         unique_together = (("schemecode", "date"),)
+        indexes = [
+            models.Index(fields=["schemecode", "date"])
+        ]
 
 
 class MFPortfolioInOut(models.Model):
@@ -113,6 +128,9 @@ class MFPortfolioInOut(models.Model):
         verbose_name = "MF Portfolio InOut"
         verbose_name_plural = "MF Portfolio InOuts"
         unique_together = (("fincode", "invdate", "mode"),)
+        indexes = [
+            models.Index(fields=["fincode", "invdate", "mode"])
+        ]
 
 
 class MFAverageSchemeAUM(models.Model):
@@ -130,6 +148,9 @@ class MFAverageSchemeAUM(models.Model):
         verbose_name = "MF Average Scheme AUM"
         verbose_name_plural = "MF Average Scheme AUMs"
         unique_together = (("schemecode", "date"),)
+        indexes = [
+            models.Index(fields=["schemecode", "date"])
+        ]
 
 
 # 1.2 NET ASSET VALUE
@@ -154,6 +175,9 @@ class MFNSEAssetValueLatest(models.Model):
         db_table = "mf_nse_asset_value_latest"
         verbose_name = "MF NSE Asset Value Latest"
         verbose_name_plural = "MF NSE Asset Value Latest"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 class MFNetAssetValueHistorical(models.Model):
@@ -173,6 +197,9 @@ class MFNetAssetValueHistorical(models.Model):
         verbose_name = "MF Net Asset Value Historical"
         verbose_name_plural = "MF Net Asset Value Historical"
         unique_together = (("schemecode", "navdate"),)
+        indexes = [
+            models.Index(fields=["schemecode", "navdate"])
+        ]
 
 
 class MFNetAssetValueHighLow(models.Model):
@@ -225,6 +252,9 @@ class MFNetAssetValueHighLow(models.Model):
         db_table = "mf_net_asset_value_high_low"
         verbose_name = "MF Net Asset Value High Low"
         verbose_name_plural = "MF Net Asset Value High Low"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 # 1.3 RETURNS
@@ -278,6 +308,9 @@ class MFReturn(models.Model):
         db_table = "mf_return"
         verbose_name = "MF Return"
         verbose_name_plural = "MF Returns"
+        indexes = [
+            models.Index(fields=["schemecode", "c_date"])
+        ]
 
 
 class MFAbsoluteReturn(models.Model):
@@ -328,6 +361,9 @@ class MFAbsoluteReturn(models.Model):
         db_table = "mf_absolute_return"
         verbose_name = "MF Absolute Return"
         verbose_name_plural = "MF Absolute Returns"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 class MFAnnualizedReturn(models.Model):
@@ -378,7 +414,9 @@ class MFAnnualizedReturn(models.Model):
         db_table = "mf_annualized_return"
         verbose_name = "MF Annualized Return"
         verbose_name_plural = "MF Annualized Returns"
-
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 class MFCAGRReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -428,6 +466,9 @@ class MFCAGRReturn(models.Model):
         db_table = "mf_cagr_return"
         verbose_name = "MF CAGR Return"
         verbose_name_plural = "MF CAGR Returns"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 class MFCategoryWiseReturn(models.Model):
@@ -492,6 +533,9 @@ class MFCategoryWiseReturn(models.Model):
         verbose_name = "MF Category Wise Return"
         verbose_name_plural = "MF Category Wise Returns"
         unique_together = (("classcode", "opt_code"),)
+        indexes = [
+            models.Index(fields=["classcode", "opt_code"])
+        ]
 
 
 class MFBenchmarkIndicesAbsoluteReturn(models.Model):
@@ -556,6 +600,9 @@ class MFBenchmarkIndicesAbsoluteReturn(models.Model):
         db_table = "mf_benchmark_indices_absolute_return"
         verbose_name = "MF Benchmark Indices Absolute Return"
         verbose_name_plural = "MF Benchmark Indices Absolute Returns"
+        indexes = [
+            models.Index(fields=["index_code"])
+        ]
 
 
 class MFBenchmarkIndicesAnnualisedReturn(models.Model):
@@ -620,6 +667,9 @@ class MFBenchmarkIndicesAnnualisedReturn(models.Model):
         db_table = "mf_benchmark_indices_annualised_return"
         verbose_name = "MF Benchmark Indices Annualised Return"
         verbose_name_plural = "MF Benchmark Indices Annualised Returns"
+        indexes = [
+            models.Index(fields=["index_code"])
+        ]
 
 
 # 1.4 RATIOS
@@ -659,7 +709,10 @@ class MFRatios1Year(models.Model):
     class Meta:
         db_table = "mf_ratios_1_year"
         verbose_name = "MF Ratios 1 Year"
-        verbose_name_plural = "MF Ratios 1 Year"
+        verbose_name_plural = "MF Ratios 1 Year"   
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 class MFRatiosDefaultBenchmark1Year(models.Model):
@@ -699,6 +752,9 @@ class MFRatiosDefaultBenchmark1Year(models.Model):
         db_table = "mf_ratios_default_benchmark_1_year"
         verbose_name = "MF Ratios Default Benchmark 1 Year"
         verbose_name_plural = "MF Ratios Default Benchmark 1 Year"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 class MFRatios3Year(models.Model):
@@ -740,6 +796,9 @@ class MFRatios3Year(models.Model):
         db_table = "mf_ratios_3_year"
         verbose_name = "MF Ratios 3 Year"
         verbose_name_plural = "MF Ratios 3 Year"
+        indexes = [
+            models.Index(fields=["SCHEMECODE"])
+        ]
 
 
 # 1.5 DIVIDEND
@@ -766,3 +825,6 @@ class MFDividendDetails(models.Model):
         verbose_name = "MF Dividend Detail"
         verbose_name_plural = "MF Dividend Details"
         unique_together = (("schemecode", "recorddate"),)
+        indexes = [
+            models.Index(fields=["schemecode", "recorddate"])
+        ]

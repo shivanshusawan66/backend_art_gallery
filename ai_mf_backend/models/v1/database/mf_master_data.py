@@ -34,6 +34,7 @@ class MFAMCMaster(models.Model):
         db_table = "mf_amc_master"
         verbose_name = "MF AMC Master"
         verbose_name_plural = "MF AMC Masters"
+        indexes = [models.Index(fields=["amc_code"])]   
 
 
 class MFAMCKeyPerson(models.Model):
@@ -51,6 +52,10 @@ class MFAMCKeyPerson(models.Model):
         verbose_name = "MF AMC Key Person"
         verbose_name_plural = "MF AMC Key Persons"
         unique_together = (("amc_code", "srno"),)
+        indexes = [
+            models.Index(fields=["amc_code", "srno"]),
+        ]
+
 
 
 # 1.2 SCHEME MASTERS
@@ -69,6 +74,7 @@ class MFSchemeMaster(models.Model):
         db_table = "mf_scheme_master"
         verbose_name = "MF Scheme Master"
         verbose_name_plural = "MF Scheme Masters"
+        indexes = [models.Index(fields=["schemecode"])]
 
 
 class MFSchemeMasterInDetails(models.Model):
@@ -167,7 +173,9 @@ class MFSchemeMasterInDetails(models.Model):
         db_table = "mf_scheme_master_in_details"
         verbose_name = "MF Scheme Master In Detail"
         verbose_name_plural = "MF Scheme Master In Details"
-
+        indexes = [
+            models.Index(fields=["schemecode"]),
+        ]
 
 class MFSchemeRTCode(models.Model):
     id = models.AutoField(primary_key=True)
@@ -180,7 +188,9 @@ class MFSchemeRTCode(models.Model):
         db_table = "mf_scheme_rt_code"
         verbose_name = "MF Scheme RT Code"
         verbose_name_plural = "MF Scheme RT Codes"
-
+        indexes = [
+            models.Index(fields=["schemecode"]),
+        ]
 
 class MFSchemeIsInMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -202,7 +212,9 @@ class MFSchemeIsInMaster(models.Model):
         db_table = "mf_scheme_is_in_master"
         verbose_name = "MF Scheme ISIN Master"
         verbose_name_plural = "MF Scheme ISIN Masters"
-
+        indexes = [
+            models.Index(fields=["ISIN"]),
+        ]
 
 class MFTypeMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -215,6 +227,9 @@ class MFTypeMaster(models.Model):
         db_table = "mf_type_master"
         verbose_name = "MF Type Master"
         verbose_name_plural = "MF Type Masters"
+        indexes = [
+            models.Index(fields=["type_code"]),
+        ]
 
 
 class MFOptionMaster(models.Model):
@@ -228,6 +243,9 @@ class MFOptionMaster(models.Model):
         db_table = "mf_option_master"
         verbose_name = "MF Option Master"
         verbose_name_plural = "MF Option Masters"
+        indexes = [ 
+            models.Index(fields=["opt_code"]),
+        ]
 
     def __str__(self):
         return self.option
@@ -248,7 +266,9 @@ class MFSchemeClassMaster(models.Model):
         db_table = "mf_scheme_class_master"
         verbose_name = "MF Scheme Class Master"
         verbose_name_plural = "MF Scheme Class Masters"
-
+        indexes = [
+            models.Index(fields=["classcode"]),
+        ]
 
 class MFRegistrarMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -271,7 +291,9 @@ class MFRegistrarMaster(models.Model):
         db_table = "mf_registrar_master"
         verbose_name = "MF Registrar Master"
         verbose_name_plural = "MF Registrar Masters"
-
+        indexes = [
+            models.Index(fields=["rt_code"])
+        ]
 
 class MFPlanMaster(models.Model):
     id = models.AutoField(primary_key=True)
@@ -284,6 +306,9 @@ class MFPlanMaster(models.Model):
         db_table = "mf_plan_master"
         verbose_name = "MF Plan Master"
         verbose_name_plural = "MF Plan Masters"
+        indexes = [
+            models.Index(fields=["plan_code"])
+        ]
 
 
 class MFCustodianMaster(models.Model):
@@ -301,6 +326,9 @@ class MFCustodianMaster(models.Model):
         db_table = "mf_custodian_master"
         verbose_name = "MF Custodian Master"
         verbose_name_plural = "MF Custodian Masters"
+        indexes = [
+            models.Index(fields=["cust_code"])
+        ]
 
 
 class MFFundManagerMaster(models.Model):
@@ -333,6 +361,9 @@ class MFDividendMaster(models.Model):
         db_table = "mf_dividend_master"
         verbose_name = "MF Dividend Master"
         verbose_name_plural = "MF Dividend Masters"
+        indexes = [
+            models.Index(fields=["div_code"])
+        ]
 
 
 # 1.3 SCHEME OBJECTIVE
@@ -349,6 +380,9 @@ class MFSchemeObjective(models.Model):
         db_table = "mf_scheme_objective"
         verbose_name = "MF Scheme Objective"
         verbose_name_plural = "MF Scheme Objectives"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 # 1.4.1 SYSTEMATIC INVESTMENT PLAN
@@ -379,7 +413,9 @@ class MFSystematicInvestmentPlan(models.Model):
         verbose_name = "MF Systematic Investment Plan"
         verbose_name_plural = "MF Systematic Investment Plan"
         unique_together = ("schemecode", "frequency")
-
+        indexes = [
+            models.Index(fields=["schemecode", "frequency"])
+        ]
 
 class MFSystematicWithdrawalPlan(models.Model):
     id = models.AutoField(primary_key=True)
@@ -406,6 +442,9 @@ class MFSystematicWithdrawalPlan(models.Model):
         verbose_name = "MF Systematic Withdrawal Plan"
         verbose_name_plural = "MF Systematic Withdrawal Plan"
         unique_together = ("schemecode", "frequency")
+        indexes = [
+            models.Index(fields=["schemecode", "frequency"])
+        ]
 
 
 class MFSystematicTransferPlan(models.Model):
@@ -434,6 +473,9 @@ class MFSystematicTransferPlan(models.Model):
         verbose_name = "MF Systematic Transfer Plan"
         verbose_name_plural = "MF Systematic Transfer Plan"
         unique_together = ("schemecode", "frequency", "stpinout")
+        indexes = [
+            models.Index(fields=["schemecode", "frequency", "stpinout"])
+        ]
 
 
 # 1.5 SCHEME BENCHMARK INDEX
@@ -454,6 +496,9 @@ class MFSchemeIndexMapping(models.Model):
         verbose_name = "MF Scheme Index Mapping"
         verbose_name_plural = "MF Scheme Index Mappings"
         unique_together = ("SCHEMECODE", "INDEXCODE")
+        indexes = [
+            models.Index(fields=["SCHEMECODE", "INDEXCODE"])
+        ]
 
 
 class MFIndexMaster(models.Model):
@@ -471,6 +516,9 @@ class MFIndexMaster(models.Model):
         db_table = "mf_index_master"
         verbose_name = "MF Index Master"
         verbose_name_plural = "MF Index Masters"
+        indexes = [
+            models.Index(fields=["indexcode"])
+        ]
 
 
 # 1.6 SCHEME ENTRY EXIT LOAD
@@ -507,6 +555,9 @@ class MFSchemeEntryExitLoad(models.Model):
         verbose_name = "MF Scheme Entry Exit Load"
         verbose_name_plural = "MF Scheme Entry Exit Load"
         unique_together = (("SCHEMECODE", "LDATE", "LTYPECODE", "LSRNO"),)
+        indexes = [
+            models.Index(fields=["SCHEMECODE", "LDATE", "LTYPECODE", "LSRNO"])
+        ]
 
 
 class MFLoadTypeMaster(models.Model):
@@ -520,6 +571,9 @@ class MFLoadTypeMaster(models.Model):
         db_table = "mf_loadtype_master"
         verbose_name = "MF Load Type Master"
         verbose_name_plural = "MF Load Type Masters"
+        indexes = [
+            models.Index(fields=["ltypecode"])
+        ]
 
 
 # 1.7 PORTFOLIO MASTERS
@@ -547,6 +601,9 @@ class MFCompanyMaster(models.Model):
         db_table = "mf_company_master"
         verbose_name = "MF Company Master"
         verbose_name_plural = "MF Company Masters"
+        indexes = [
+            models.Index(fields=["fincode"])
+        ]
 
 
 class MFIndustryMaster(models.Model):
@@ -563,6 +620,9 @@ class MFIndustryMaster(models.Model):
         db_table = "mf_industry_master"
         verbose_name = "MF Industry Master"
         verbose_name_plural = "MF Industry Masters"
+        indexes = [
+            models.Index(fields=["Ind_code"])
+        ]
 
 
 class MFAssetAllocationMaster(models.Model):
@@ -578,6 +638,9 @@ class MFAssetAllocationMaster(models.Model):
         db_table = "mf_asset_master"
         verbose_name = "MF Asset Allocation Master"
         verbose_name_plural = "MF Asset Allocation Masters"
+        indexes = [
+            models.Index(fields=["asect_code"])
+        ]
 
 
 # 1.8 RAJIV GANDHI EQUITY SAVING SCHEMES
@@ -594,3 +657,6 @@ class MFSchemeRGESS(models.Model):
         db_table = "mf_scheme_rgess"
         verbose_name = "MF Scheme RGESS"
         verbose_name_plural = "MF Scheme RGESS"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
