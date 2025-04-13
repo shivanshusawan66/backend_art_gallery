@@ -4,7 +4,7 @@ from typing import Optional, List
 from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
-from ai_mf_backend.scripts.reference_table_populate import projection_table_mapping
+from ai_mf_backend.scripts.mf_reference_table_populate import projection_table_mapping
 
 class APIConfig(BaseSettingsWrapper):
     """
