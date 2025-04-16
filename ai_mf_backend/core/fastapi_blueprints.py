@@ -38,6 +38,11 @@ from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
 )
 
+# Display Mutual Fund Data
+from ai_mf_backend.core.v1.api.display_mf_data.display_high_return_mutual_funds import(
+    router as display_high_return_mutual_funds_router_v1
+)
+
 # Display Mutual Fund Data Routers
 from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data_by_filters import (
     router as display_mf_data_by_filters_router_v1,
@@ -130,6 +135,8 @@ connect_router.include_router(blog_comment_report_options_router_v1)
 connect_router.include_router(user_review_router_v1)
 
 connect_router.include_router(contact_message_router_v1)
+
+connect_router.include_router(display_high_return_mutual_funds_router_v1)
 
 connect_router.include_router(soft_delete_router_v1)
 
