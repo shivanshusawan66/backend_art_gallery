@@ -3,7 +3,7 @@ from ai_mf_backend.models.v1.database.mutual_fund import *
 from ai_mf_backend.models.v1.database.questions import *
 from ai_mf_backend.models.v1.database.user import *
 from ai_mf_backend.models.v1.database.financial_details import *
-from ai_mf_backend.models.v1.database.reference_table import *
+from ai_mf_backend.models.v1.database.mf_reference_table import *
 from ai_mf_backend.models.v1.database.blog import *
 from ai_mf_backend.models.v1.database.user_review import *
 from ai_mf_backend.models.v1.database.mf_master_data import *
