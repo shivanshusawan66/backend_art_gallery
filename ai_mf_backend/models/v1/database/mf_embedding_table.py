@@ -48,3 +48,31 @@ class MFMarkerOptions(SoftDeleteModel):
 
     def __str__(self):
         return self.option
+    
+class MFResponse(SoftDeleteModel):
+    scheme_code = models.IntegerField()
+    marker_id = models.ForeignKey(
+        MFMarker,
+        on_delete=models.PROTECT,
+        db_column="marker_id"
+    )
+    option_id = models.ForeignKey(
+        MFMarkerOptions,
+        on_delete=models.PROTECT,
+        db_column="option_id"
+    )
+    section_id = models.ForeignKey(
+        Section,
+        on_delete=models.PROTECT,
+        db_column="section_id"
+    )
+    add_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "mf_response"
+        verbose_name = "MF Response"
+        verbose_name_plural = "MF Response"
+
+    def __str__(self):
+        return f"{self.scheme_code} - {self.marker}"
