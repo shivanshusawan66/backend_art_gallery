@@ -635,7 +635,7 @@ class MFAssetAllocationMaster(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "mf_asset_master"
+        db_table = "mf_asset_allocation_master"
         verbose_name = "MF Asset Allocation Master"
         verbose_name_plural = "MF Asset Allocation Masters"
         indexes = [

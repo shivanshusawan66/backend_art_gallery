@@ -2,6 +2,7 @@ import os
 import sys
 import django
 import logging
+
 from django.db import connection
 from django.db import transaction
 
@@ -31,24 +32,24 @@ TABLE_MARKER_MAPPING = {
     MFSchemeAUM:["total"],
     MFCAGRReturn: ["schemecode", "_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],
-    # "Incept_date","primary_fund","classcode"
-    # "TYPE_MST": ["type_code", "type"],
-    # "SCHEME_MASTER": ["color"],
-    # "MF_RATIOS": ["sd_Y","beta_y","treynor_y","jalpha_y","sortino_y"],
-    # "SCHEME_LOAD": ["EXITLOAD"],
-    # "MF_PORTFOLIO": ["schemecode","ASECT_CODE", "holdpercentage","rating","invenddate"],
-    # "ASECT_MST": ["asect_code", "as_name"],
-    # "SCHEME_EQ_DETAILS": ["MCAP"],
-    # "COMPANY_MCAP": ["mcap"],
-    # "AVG_MATURITY": ["avg mat num", "avg_mat_days"],
-    # "EXPENSE_RATIO": ["expratio"],
-    # "MF_SIP": ["schemecode"],
-    # "MF_RETURN": ["_1yrret", "_3yearet", "_5yearret"],
-    # #"MF_Absolute_Return":["5yearret"],
-    # #"SCHEME_ISIN_MASTER": ["scheme_code", "isin"],
-    # "NAV_HIST": ["navrs"],
-    # "CURRENT_NAV": ["navrs"],
-    # #"MF_LOAD_TYPE_MASTER":[""]
+#     "Incept_date","primary_fund","classcode"
+#     "TYPE_MST": ["type_code", "type"],
+#     "SCHEME_MASTER": ["color"],
+#     "MF_RATIOS": ["sd_Y","beta_y","treynor_y","jalpha_y","sortino_y"],
+#     "SCHEME_LOAD": ["EXITLOAD"],
+#     "MF_PORTFOLIO": ["schemecode","ASECT_CODE", "holdpercentage","rating","invenddate"],
+#     "ASECT_MST": ["asect_code", "as_name"],
+#     "SCHEME_EQ_DETAILS": ["MCAP"],
+#     "COMPANY_MCAP": ["mcap"],
+#     "AVG_MATURITY": ["avg mat num", "avg_mat_days"],
+#     "EXPENSE_RATIO": ["expratio"],
+#     "MF_SIP": ["schemecode"],
+#     "MF_RETURN": ["_1yrret", "_3yearet", "_5yearret"],
+#     "MF_Absolute_Return":["5yearret"],
+#     "SCHEME_ISIN_MASTER": ["scheme_code", "isin"],
+#     "NAV_HIST": ["navrs"],
+#     "CURRENT_NAV": ["navrs"],
+#     "MF_LOAD_TYPE_MASTER":[""]
 }
 
 def truncate_table(model):
