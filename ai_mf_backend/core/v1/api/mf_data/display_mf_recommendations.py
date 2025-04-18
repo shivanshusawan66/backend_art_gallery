@@ -6,7 +6,7 @@ from ai_mf_backend.core.v1.api import limiter
 router = APIRouter()
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
-@router.get("/mf_high_return_funds", response_model=MFRecommendationsResponse)
+@router.get("/mf_recommendations", response_model=MFRecommendationsResponse)
 async def get_high_return_funds(
     request: Request,
     response: Response,
@@ -18,8 +18,8 @@ async def get_high_return_funds(
             status=True,
             message="Success",
             page=page,
-            nav_pages=10,
-            nav_data=10,
+            total_pages=10,
+            total_data=10,
             data=[{
                 "schemecode": 44234,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(Q-IDCW)-Direct Plan",
