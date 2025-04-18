@@ -33,6 +33,10 @@ from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
     router as questionnaire_user_response_display_v1,
 )
 
+# MF DATA
+from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import (
+    router as display_high_return_mutual_funds_router_v1,
+)
 
 # Blog Data Routers
 from ai_mf_backend.core.v1.api.blog.blog_data import (

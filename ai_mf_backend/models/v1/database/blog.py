@@ -206,6 +206,3 @@ class BlogCommentReport(SoftDeleteModel):
                 name="blog_comment_report_comment_or_reply",
             )
         ]
-
-
-
