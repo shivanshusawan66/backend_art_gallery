@@ -1,7 +1,7 @@
 import logging
 
 from celery import chain
-
+from sklearn.preprocessing import normalize
 from django.db import transaction
 
 from ai_mf_backend.core import celery_app
@@ -68,6 +68,7 @@ def assign_final_section_weights(self, user_id: int):
         with transaction.atomic():
             questions = QuestionWeightsPerUser.objects.filter(user_id_id=user_id)
             sections = Section.objects.all()
+            embedding_array = []
             for section in sections:
                 final_section_weight = 0
                 for question in questions:
@@ -75,22 +76,24 @@ def assign_final_section_weights(self, user_id: int):
                         final_section_weight += question.weight
                     else:
                         continue
-                section_weight_for_user = SectionWeightsPerUser.objects.filter(
-                    user_id_id=user_id, section=section
-                ).first()
-                if section_weight_for_user:
-                    section_weight_for_user.weight = (
-                        final_section_weight * section.initial_section_weight
-                    )
-                    section_weight_for_user.save()
-                else:
-                    section_weight_for_user = SectionWeightsPerUser(
-                        user_id_id=user_id,
-                        section=section,
-                        weight=final_section_weight * section.initial_section_weight,
-                    )
-                logger.info(f"section weight saved {user_id}")
+                embedding_array.append(final_section_weight)
+            
+            normalized = normalize([embedding_array], norm='l2')[0]
+
+            section_weight_for_user = SectionWeightsPerUser.objects.filter(
+                user_id_id=user_id
+            ).first()
+
+            if section_weight_for_user:
+                section_weight_for_user.embedding = normalized.tolist()
                 section_weight_for_user.save()
+            else:
+                section_weight_for_user = SectionWeightsPerUser(
+                    user_id_id=user_id,
+                    embedding = normalized.tolist(),
+                )
+            logger.info(f"section weight saved {user_id}")
+            section_weight_for_user.save()
     except Exception as e:
         logger.error(f"Error assigning final section weights for user {user_id}: {e}")
         raise AssignWeightException(
