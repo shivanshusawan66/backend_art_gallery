@@ -204,13 +204,6 @@ def create_marker_option(marker_obj, option_value):
         option=option_value,
     )
 
-
-
-       
-                        
-
-
-
 def populate_mf_responses():
     Experience_Level_base_query = MFSchemeMasterInDetails.objects.filter(status="Active")
 
