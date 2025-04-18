@@ -38,6 +38,10 @@ from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import (
     router as display_high_return_mutual_funds_router_v1,
 )
 
+from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
+    router as mf_recommendations_router_v1,
+)
+
 # Blog Data Routers
 from ai_mf_backend.core.v1.api.blog.blog_data import (
     router as blog_data_router_v1,
@@ -74,6 +78,7 @@ connect_router.include_router(otp_verification_router_v1)
 connect_router.include_router(id_options_router_v1)
 connect_router.include_router(user_personal_financial_detail_router_v1)
 connect_router.include_router(display_user_form_responses_router_v1)
+connect_router.include_router(mf_recommendations_router_v1)
 
 connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(saving_response_router_v1)
@@ -92,6 +97,3 @@ connect_router.include_router(blog_comment_report_options_router_v1)
 connect_router.include_router(user_review_router_v1)
 
 connect_router.include_router(contact_message_router_v1)
-
-
-
