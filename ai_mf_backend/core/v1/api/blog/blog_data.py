@@ -37,11 +37,11 @@ async def filter_and_select_blog_data(
         default=None, description="Comma-separated list of fields to include"
     ),
     blog_id: Optional[List[int]] = Query(
-        default=None, description="List-style blog IDs (e.g., blog_id=1&blog_id=2"
+        default=None, description="List-style blog IDs (e.g., blog_id=1&blog_id=2)"
     ),
     category_id: Optional[List[int]] = Query(
         default=None,
-        description="List-style category IDs (e.g., category_id=1&category_id=2",
+        description="List-style category IDs (e.g., category_id=1&category_id=2)",
     ),
 ):
     allowed_params = ["fields", "category_id", "blog_id"]
