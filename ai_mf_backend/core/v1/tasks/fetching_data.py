@@ -56,7 +56,6 @@ def fetch_and_store_api_data(
 
 @celery_app.task
 def run_all_apis():
-    print("entered run all apis")
     for config in FetchApiConfig:
         fetch_and_store_api_data.delay(
             config.url, config.params, config.model, config.batch_size

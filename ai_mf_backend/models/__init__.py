@@ -1,5 +1,4 @@
 from ai_mf_backend.models.v1.database.user_authentication import *
-from ai_mf_backend.models.v1.database.mutual_fund import *
 from ai_mf_backend.models.v1.database.questions import *
 from ai_mf_backend.models.v1.database.user import *
 from ai_mf_backend.models.v1.database.financial_details import *
@@ -10,4 +9,4 @@ from ai_mf_backend.models.v1.database.mf_master_data import *
 from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
 from ai_mf_backend.models.v1.database.mf_additional import *
 from ai_mf_backend.models.v1.database.contact_message import *
-from ai_mf_backend.models.v1.database.mf_embedding_table import *
+from ai_mf_backend.models.v1.database.mf_embedding_tables import *

@@ -24,7 +24,11 @@ def process_and_store_data(
             instances = []
 
             for item in batch:
-                filtered_item = {k: v for k, v in item.items() if k in model_fields}
+                filtered_item = {
+                    ("_" + k if k and k[0].isdigit() else k): v
+                    for k, v in item.items()
+                    if ("_" + k if k and k[0].isdigit() else k) in model_fields
+                }
                 instance = model_class(**filtered_item)
                 instances.append(instance)
 

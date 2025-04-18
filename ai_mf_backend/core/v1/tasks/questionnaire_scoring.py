@@ -2,8 +2,6 @@ import logging
 
 from celery import chain
 
-from asgiref.sync import sync_to_async
-
 from django.db import transaction
 
 from ai_mf_backend.core import celery_app
