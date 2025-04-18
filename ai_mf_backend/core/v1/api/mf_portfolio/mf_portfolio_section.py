@@ -7,16 +7,16 @@ from datetime import date
 
 router = APIRouter()
 
-def format_returns(p) -> str:
+def returns_percentage(p) -> int:
     diff = p.current_value - p.invested_amount
     percent = (diff / p.invested_amount * 100) if p.invested_amount else 0
-    return f"{round(percent)}% | ₹{int(diff):,}"
+    return round(percent)
 
 @router.get("/mf_portfolio_section_real/{user_id}", response_model=PortfolioResponse)
 def get_portfolio(user_id : int):
     dummy_data =[
         Portfolio(
-            user_id=23,
+            user_id=123,
             scheme_code = 120,
             mutual_fund="HDFC Nifty 50 Index Direct Growth Plan",
             investment_date=date(2023, 1, 1),
@@ -31,7 +31,7 @@ def get_portfolio(user_id : int):
             fund_cap="Large Cap"
         ),
         Portfolio(
-            user_id=28,
+            user_id=123,
             scheme_code = 400,
             mutual_fund="UTI Nifty Midcap Direct Growth Plan",
             investment_date=date(2021, 11, 21),
@@ -46,7 +46,7 @@ def get_portfolio(user_id : int):
             fund_cap="Mid Cap"
         ),
         Portfolio(
-            user_id=28,
+            user_id=1234,
             scheme_code = 410,
             mutual_fund="UTI Nifty Midcap Direct Growth Plan New",
             investment_date=date(2021, 11, 21),
@@ -61,7 +61,7 @@ def get_portfolio(user_id : int):
             fund_cap="Mid Cap"
         ),
         Portfolio(
-            user_id=42,
+            user_id=1234,
             scheme_code = 412,
             mutual_fund="ICICI Value Discovery Fund",
             investment_date=date(2022, 6, 15),
@@ -78,9 +78,11 @@ def get_portfolio(user_id : int):
     ]
     user_data = [
         {
+            "user_id":p.user_id,
             "mutual_fund": p.mutual_fund,
             "investment_date": p.investment_date,
-            "returns": format_returns(p),
+            "returns_percentage": returns_percentage(p),
+            "returns_value":p.returns,
             "invested_amount": p.invested_amount,
             "quantity": p.quantity,
             "current_value": p.current_value,
@@ -107,7 +109,7 @@ def get_portfolio(user_id : int):
 def get_portfolio(user_id : int):
     dummy_data =[
         Portfolio(
-            user_id=23,
+            user_id=123,
             scheme_code = 120,
             mutual_fund="HDFC Nifty 50 Index Direct Growth Plan",
             investment_date=date(2023, 1, 1),
@@ -122,7 +124,7 @@ def get_portfolio(user_id : int):
             fund_cap="Large Cap"
         ),
         Portfolio(
-            user_id=28,
+            user_id=123,
             scheme_code = 400,
             mutual_fund="UTI Nifty Midcap Direct Growth Plan",
             investment_date=date(2021, 11, 21),
@@ -137,7 +139,7 @@ def get_portfolio(user_id : int):
             fund_cap="Mid Cap"
         ),
         Portfolio(
-            user_id=28,
+            user_id=1234,
             scheme_code = 410,
             mutual_fund="UTI Nifty Midcap Direct Growth Plan New",
             investment_date=date(2021, 11, 21),
@@ -152,7 +154,7 @@ def get_portfolio(user_id : int):
             fund_cap="Mid Cap"
         ),
         Portfolio(
-            user_id=42,
+            user_id=1234,
             scheme_code = 412,
             mutual_fund="ICICI Value Discovery Fund",
             investment_date=date(2022, 6, 15),
@@ -169,9 +171,11 @@ def get_portfolio(user_id : int):
     ]
     user_data = [
         {
+            "user_id":p.user_id,
             "mutual_fund": p.mutual_fund,
             "investment_date": p.investment_date,
-            "returns": format_returns(p),
+            "returns_percentage": returns_percentage(p),
+            "returns_value":p.returns,
             "invested_amount": p.invested_amount,
             "quantity": p.quantity,
             "current_value": p.current_value,
