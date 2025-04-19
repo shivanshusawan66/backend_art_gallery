@@ -28,10 +28,12 @@ TABLE_MARKER_MAPPING = {
     MFSchemeMasterInDetails:["status","schemecode"],
     MFSchemeMaster: ["schemecode","scheme_name"],
     MFAMCMaster: ["setup_date"],
-    MFSchemeClassMaster: ["asset_type","classcode"],
+    MFSchemeClassMaster: ["asset_type","classcode", "category"],
     MFSchemeAUM:["total"],
     MFCAGRReturn: ["schemecode", "_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],
+    MFNSEAssetValueLatest: ["navrs"],
+
 #     "Incept_date","primary_fund","classcode"
 #     "TYPE_MST": ["type_code", "type"],
 #     "SCHEME_MASTER": ["color"],

@@ -38,6 +38,10 @@ from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import (
     router as display_high_return_mutual_funds_router_v1,
 )
 
+from ai_mf_backend.core.v1.api.mf_data.mf_category_wise_data import (
+    router as mf_category_wise_data_router_v1,
+)
+
 from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
     router as mf_recommendations_router_v1,
 )
@@ -93,7 +97,7 @@ connect_router.include_router(saving_response_router_v1)
 connect_router.include_router(questionnaire_user_response_display_v1)
 
 connect_router.include_router(display_high_return_mutual_funds_router_v1)
-
+connect_router.include_router(mf_category_wise_data_router_v1)
 
 connect_router.include_router(portfolio_section_real_api_router_v1)
 connect_router.include_router(portfolio_section_trial_api_router_v1)
