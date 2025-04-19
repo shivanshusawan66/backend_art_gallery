@@ -44,36 +44,6 @@ def get_portfolio(user_id : int):
             nav=180.0,
             fund_type="debt",
             fund_cap="Mid Cap"
-        ),
-        Portfolio(
-            user_id=1234,
-            scheme_code = 410,
-            mutual_fund="UTI Nifty Midcap Direct Growth Plan New",
-            investment_date=date(2021, 11, 21),
-            invested_amount=110000,
-            quantity=500,
-            current_value=90000,
-            returns=-20000,
-            investment_type="Lumpsum",
-            frequency="NA",
-            nav=180.0,
-            fund_type="equity",
-            fund_cap="Mid Cap"
-        ),
-        Portfolio(
-            user_id=1234,
-            scheme_code = 412,
-            mutual_fund="ICICI Value Discovery Fund",
-            investment_date=date(2022, 6, 15),
-            invested_amount=50000,
-            quantity=200,
-            current_value=65000,
-            returns=15000,
-            investment_type="SIP",
-            frequency="Monthly",
-            nav=325.0,
-            fund_type="equity",
-            fund_cap="Small Cap"
         )
     ]
     user_data = [
@@ -89,16 +59,8 @@ def get_portfolio(user_id : int):
             "fund_type": p.fund_type,
             "fund_cap": p.fund_cap
         }
-        for p in dummy_data if p.user_id == user_id
+        for p in dummy_data 
     ]
-    if not user_data:
-        return PortfolioResponse(
-            status = False,
-            message="User is not Registered Yet",
-            data = user_data,
-            status_code=400
-        )
-    
     return PortfolioResponse(
         status=True,
         message="Portfolio fetched successfully",
@@ -137,36 +99,6 @@ def get_portfolio(user_id : int):
             nav=180.0,
             fund_type="debt",
             fund_cap="Mid Cap"
-        ),
-        Portfolio(
-            user_id=1234,
-            scheme_code = 410,
-            mutual_fund="UTI Nifty Midcap Direct Growth Plan New",
-            investment_date=date(2021, 11, 21),
-            invested_amount=110000,
-            quantity=500,
-            current_value=90000,
-            returns=-20000,
-            investment_type="Lumpsum",
-            frequency="NA",
-            nav=180.0,
-            fund_type="equity",
-            fund_cap="Mid Cap"
-        ),
-        Portfolio(
-            user_id=1234,
-            scheme_code = 412,
-            mutual_fund="ICICI Value Discovery Fund",
-            investment_date=date(2022, 6, 15),
-            invested_amount=50000,
-            quantity=200,
-            current_value=65000,
-            returns=15000,
-            investment_type="SIP",
-            frequency="Monthly",
-            nav=325.0,
-            fund_type="equity",
-            fund_cap="Small Cap"
         )
     ]
     user_data = [
@@ -182,15 +114,8 @@ def get_portfolio(user_id : int):
             "fund_type": p.fund_type,
             "fund_cap": p.fund_cap
         }
-        for p in dummy_data if p.user_id == user_id
+        for p in dummy_data
     ]
-    if not user_data:
-        return PortfolioResponse(
-            status = False,
-            message="User is not Registered Yet",
-            data = user_data,
-            status_code=400
-        )
     
     return PortfolioResponse(
         status=True,
