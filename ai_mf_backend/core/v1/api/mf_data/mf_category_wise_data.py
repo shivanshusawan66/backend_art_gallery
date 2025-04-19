@@ -71,7 +71,7 @@ async def get_mf_category_options(
         )
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
-@router.get("/mf_options_fund_subcategory/",
+@router.get("/mf_options_fund_subcategory",
             response_model = MFSubCategoryOptionResponse)
 async def get_mf_subcategory_options(
     request: Request,
