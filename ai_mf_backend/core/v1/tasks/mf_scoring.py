@@ -1,7 +1,7 @@
 import logging
 
 from celery import chain
-
+from sklearn.preprocessing import normalize
 from django.db import transaction
 
 from ai_mf_backend.core import celery_app
@@ -11,7 +11,7 @@ from ai_mf_backend.models.v1.database.mf_embedding_tables import (
     Section,
     MFMarker,
     MFMarkerOptions,
-    MutualFundResponse,
+    MFResponse,
     MarkerWeightsPerMutualFund,
     SectionWeightsPerMutualFund,
 )
@@ -26,9 +26,9 @@ def assign_final_marker_weights(self, scheme_code: int):
     try:
         with transaction.atomic():
             # Fetch all sections
-            mf_responses = MutualFundResponse.objects.filter(scheme_code=scheme_code)
+            mf_responses = MFResponse.objects.filter(scheme_code=scheme_code)
             for response in mf_responses:
-                option_id = int(response.Option.id)
+                option_id = int(response.option_id.id)
 
                 derived_option = MFMarkerOptions.objects.filter(
                     pk=option_id
@@ -38,26 +38,26 @@ def assign_final_marker_weights(self, scheme_code: int):
                     derived_option.option_weight * derived_option.position
                 )
                 Marker = MFMarker.objects.filter(
-                    question=response.marker
+                    marker=response.marker_id
                 ).first()
 
                 marker_weight_for_mutual_fund = MarkerWeightsPerMutualFund.objects.filter(
                     scheme_code=scheme_code,
-                    marker=response.marker,
-                    section=response.section,
+                    marker=response.marker_id,
+                    section=response.section_id,
                 ).first()
 
                 if marker_weight_for_mutual_fund:
                     marker_weight_for_mutual_fund.weight = (
-                        option_score * Marker.initial_Marker_weight
+                        option_score * Marker.initial_marker_weight
                     )
                     marker_weight_for_mutual_fund.save()
                 else:
                     marker_weight_for_mutual_fund = MarkerWeightsPerMutualFund(
                         scheme_code=scheme_code,
-                        marker=response.marker,
-                        section=response.section,
-                        weight=option_score * Marker.initial_Marker_weight,
+                        marker=response.marker_id,
+                        section=response.section_id,
+                        weight=option_score * Marker.initial_marker_weight,
                     )
                 logger.info(f"marker weight saved {scheme_code}")
                 marker_weight_for_mutual_fund.save()
@@ -74,6 +74,8 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
         with transaction.atomic():
             Markers = MarkerWeightsPerMutualFund.objects.filter(scheme_code=scheme_code)
             sections = Section.objects.all()
+
+            embedding_array = []
             for section in sections:
                 final_section_weight = 0
                 for marker in Markers:
@@ -81,22 +83,22 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
                         final_section_weight += marker.weight
                     else:
                         continue
+                embedding_array.append(final_section_weight)
 
-                section_weight_for_mutual_fund = SectionWeightsPerMutualFund.objects.filter(
-                    scheme_code=scheme_code, section=section
-                ).first()
+            normalized = normalize([embedding_array], norm='l2')[0]
 
-                if section_weight_for_mutual_fund:
-                    section_weight_for_mutual_fund.weight = (
-                        final_section_weight * section.initial_section_weight
-                    )
-                    section_weight_for_mutual_fund.save()
-                else:
-                    section_weight_for_mutual_fund = SectionWeightsPerMutualFund(
-                        scheme_code=scheme_code, 
-                        section=section,
-                        weight=final_section_weight * section.initial_section_weight,
-                    )
+            section_weight_for_mutual_fund = SectionWeightsPerMutualFund.objects.filter(
+                scheme_code=scheme_code,
+            ).first()
+
+            if section_weight_for_mutual_fund:
+                section_weight_for_mutual_fund.embedding = normalized.tolist()
+                section_weight_for_mutual_fund.save()
+            else:
+                section_weight_for_mutual_fund = SectionWeightsPerMutualFund(
+                    scheme_code=scheme_code, 
+                    embedding = normalized.tolist()
+                )
                 logger.info(f"section weight saved for scheme : {scheme_code}")
                 section_weight_for_mutual_fund.save()
     except Exception as e:

@@ -1,5 +1,6 @@
 import logging
 from django.db import models
+from pgvector.django import VectorField
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 from ai_mf_backend.models.v1.database.questions import Section
 
@@ -75,7 +76,7 @@ class MFResponse(SoftDeleteModel):
         verbose_name_plural = "MF Response"
 
     def __str__(self):
-        return f"{self.scheme_code} - {self.marker}"
+        return f"{self.scheme_code} - {self.marker_id}"
     
 
 class MarkerWeightsPerMutualFund(SoftDeleteModel):
@@ -88,10 +89,16 @@ class MarkerWeightsPerMutualFund(SoftDeleteModel):
     )
     weight = models.FloatField(default=0.0)
 
+    class Meta:
+        db_table = "marker_weights_per_mutual_fund"
+        verbose_name = "Marker Weights Per Mutual Fund"
+        verbose_name_plural = "Marker Weights Per Mutual Fund"
 
 class SectionWeightsPerMutualFund(SoftDeleteModel):
     scheme_code = models.IntegerField()
-    section = models.ForeignKey(
-        Section, on_delete=models.PROTECT
-    )
-    weight = models.FloatField(default=0.0)
+    embedding = VectorField(dimensions=7)
+
+    class Meta:
+        db_table = "section_weights_per_mutual_fund"
+        verbose_name = "Section Weights Per Mutual Fund"
+        verbose_name_plural = "Section Weights Per Mutual Fund"
