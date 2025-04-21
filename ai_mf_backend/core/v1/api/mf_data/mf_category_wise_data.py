@@ -79,9 +79,7 @@ async def get_mf_subcategory_options(
     category_id: int = Query(..., ge=1, title="ID of the Fund Category"),
 ):
     try:
-        category_instance = await sync_to_async(
-            lambda: MutualFundType.objects.filter(deleted=False, id=category_id).first()
-        )()
+        category_instance = await sync_to_async(lambda: MutualFundType.objects.filter(deleted=False, id=category_id).first())()
 
         if not category_instance:
             response.status_code = 404
@@ -92,16 +90,28 @@ async def get_mf_subcategory_options(
                 status_code=response.status_code,
             )
 
-        subcategories = await sync_to_async(list)(
-            MutualFundSubcategory.objects.filter(fund_type_id=category_instance.id)
-            .values_list("fund_subcategory", flat=True)
-        )
+        subcategories = await sync_to_async(
+            lambda: list(MutualFundSubcategory.objects.filter(fund_type_id=category_instance.id))
+        )()
+        subcategory_options = [
+            {
+                "key": each_subcategory.id,
+                "label": each_subcategory.fund_subcategory,
+                "value": each_subcategory.fund_subcategory.lower(),
+            }
+            for each_subcategory in subcategories
+        ]
+
+        data = {
+            "fund_category_type ": category_instance.fund_type,
+            "fund_subcategories": subcategory_options
+        }
 
         response.status_code = 200
         return MFSubCategoryOptionResponse(
             status=True,
             message="Successfully fetched mutual fund category options",
-            data={category_instance.fund_type : subcategories},
+            data=data,
             status_code=response.status_code,
         )
         

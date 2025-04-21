@@ -5,7 +5,7 @@ class MFCategoryOptionResponse(Response):
     pass
 
 class MFSubCategoryOptionResponse(Response):
-   data: Dict[str, List[str]]
+   pass
 
 class MFDataCategorySubcategoryWise(Response):
     page: int
