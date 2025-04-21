@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 # Function to fetch options for personal details
-@router.get("/options_user_personal_details/", response_model=UserProfileOptionResponse)
+@router.get("/options_user_personal_details", response_model=UserProfileOptionResponse)
 async def get_personal_options():
     try:
         # Fetching gender and marital status options asynchronously
@@ -86,7 +86,7 @@ async def get_personal_options():
 
 
 @router.get(
-    "/options_user_financial_details/", response_model=UserProfileOptionResponse
+    "/options_user_financial_details", response_model=UserProfileOptionResponse
 )
 async def get_financial_options():
     try:
