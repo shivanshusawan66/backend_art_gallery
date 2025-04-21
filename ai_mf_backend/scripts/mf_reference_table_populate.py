@@ -32,6 +32,8 @@ TABLE_MARKER_MAPPING = {
     MFSchemeAUM:["total"],
     MFCAGRReturn: ["schemecode", "_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],
+    MFSystematicInvestmentPlan: ["frequency", "sip"],
+    MFNSEAssetValueLatest: ["navrs"],
 #     "Incept_date","primary_fund","classcode"
 #     "TYPE_MST": ["type_code", "type"],
 #     "SCHEME_MASTER": ["color"],
