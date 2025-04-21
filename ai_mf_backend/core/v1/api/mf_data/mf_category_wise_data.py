@@ -149,6 +149,14 @@ async def fund_data_category_subcategory_wise(
 
         marker_list = ["navrs","_1yrret", "asset_type", "category"]
 
+        fund_category_name = await sync_to_async(
+            lambda: MutualFundType.objects.filter(id=fund_category_id).values_list("fund_type", flat=True).first()
+        )()
+
+        fund_subcategory_name = await sync_to_async(
+            lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id).values_list("fund_subcategory", flat=True).first()
+        )()
+
         filter_kwargs = {}
 
         if fund_category_id:
@@ -205,7 +213,7 @@ async def fund_data_category_subcategory_wise(
             ))
         
         filtered_query = base_query.filter(**filter_kwargs)
-        result_query = filtered_query.values("schemecode", "s_name", "_1yrret", "navrs", "category", "asset_type")    
+        result_query = filtered_query.values("schemecode", "s_name", "_1yrret", "navrs")    
         full_results = await sync_to_async(lambda: list(result_query))()
 
         total_count = len(full_results)
@@ -221,6 +229,8 @@ async def fund_data_category_subcategory_wise(
             total_pages=total_pages,
             total_data=total_count,
             data=paginated_qs,
+            fund_category=fund_category_name,
+            fund_subcategory=fund_subcategory_name,
             status_code=response.status_code,
         )
     except ValueError as e:

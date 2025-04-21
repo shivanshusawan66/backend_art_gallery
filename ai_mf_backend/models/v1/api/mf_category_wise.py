@@ -12,6 +12,8 @@ class MFDataCategorySubcategoryWise(Response):
     total_pages: int
     total_data: int
     data: Optional[List[Dict[str, Any]]] = None
+    fund_category: str = None
+    fund_subcategory: str = None
 
 
 
