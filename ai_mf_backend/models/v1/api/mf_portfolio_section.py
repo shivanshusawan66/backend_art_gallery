@@ -23,3 +23,6 @@ class Portfolio(BaseModel):
 
 class PortfolioResponse(Response):
     data: list[dict[str, Any]]
+
+class MFOptionandDetailsResponse(Response):
+    data: list[dict[str, Any]]
