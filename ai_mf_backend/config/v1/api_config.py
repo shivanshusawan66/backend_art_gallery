@@ -40,6 +40,10 @@ class APIConfig(BaseSettingsWrapper):
 
     FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
 
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
+
     DEFAULT_ALL_MF_DISPLAY_COLUMNS: Optional[List[str]] = [
         "fund_id",
         "scheme_name",
@@ -49,12 +53,19 @@ class APIConfig(BaseSettingsWrapper):
         "min_investment",
         "category",
     ]
-
-    # Default page size and validation constants
-    DEFAULT_PAGE: Optional[int] = 1
-    DEFAULT_PAGE_SIZE: Optional[int] = 10
-    MAX_PAGE_SIZE: Optional[int] = 100
-
+    
+    MUTUAL_FUND_DASHBOARD_COLOUMNS: list[str] = [
+    "jalpha_y",
+    "beta_y",
+    "_1yrret",
+    "treynor_y",
+    "sd_y",
+    "sharpe_y",
+    "_5yearret",
+    "_3yearret",
+    "s_name",
+    "sip",
+    ]
 
     BLOG_DATA_COLUMNS: list[str] = [
         "id",
@@ -92,10 +103,8 @@ class DjangoAppConfig(AppConfig):
         from ai_mf_backend.utils.v1.mf_embeddings.initial_weights import (
             assign_initial_section_and_marker_weights,
         )
-        # from ai_mf_backend.core.v1.tasks.mf_scoring import (
-        #     process_all_schemes,
-        # )
+    
 
         # asyncio.run(assign_initial_section_and_question_weights())
         # asyncio.run(assign_initial_section_and_marker_weights())
-        # # asyncio.run(process_all_schemes())
+    

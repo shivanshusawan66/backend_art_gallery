@@ -87,7 +87,6 @@ fastapi_logger.handlers = logger.handlers
 application = FastAPI(title=api_config.PROJECT_NAME)
 application.state.limiter = rate_limiter
 
-
 @application.on_event("startup")
 async def startup_event():
     logger.info("Starting up the application...")
