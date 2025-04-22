@@ -33,6 +33,8 @@ httpx = "^0.27.2"
 pillow = "^11.1.0"
 django-ckeditor-5 = "^0.2.17"
 python-multipart = "^0.0.20"
+pgvector = "^0.4.0"
+scikit-learn = "^1.6.1"
 
 
 [build-system]

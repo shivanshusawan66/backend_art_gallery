@@ -1,4 +1,5 @@
 from django.db import models
+from pgvector.django import VectorField
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database import SoftDeleteModel
 
@@ -137,7 +138,4 @@ class SectionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    weight = models.FloatField(default=0.0)
+    embedding = VectorField(dimensions=7)

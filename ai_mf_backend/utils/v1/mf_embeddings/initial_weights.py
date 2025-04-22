@@ -12,14 +12,14 @@ from ai_mf_backend.utils.v1.errors import AssignWeightException
 logger = logging.getLogger(__name__)
 
 
-async def assign_initial_section_and_question_weights():
+async def assign_initial_section_and_marker_weights():
     try:
         sections = await sync_to_async(list)(Section.objects.all())
 
         for section in sections:
 
             markers = await sync_to_async(list)(
-                MFMarkerOptions.objects.filter(section=section)
+                MFMarker.objects.filter(section_id=section)
             )
             total_markers = len(markers)
 
@@ -32,32 +32,30 @@ async def assign_initial_section_and_question_weights():
             weight_per_marker = 1 / total_markers
 
             for marker in markers:
-                marker.initial_Marker_weight = weight_per_marker
+                marker.initial_marker_weight = weight_per_marker
 
                 await sync_to_async(marker.save)()
 
-                # Fetch all responses for this question
-                responses = await sync_to_async(list)(
-                    MFMarkerOptions.objects.filter(Marker=marker)
+                options = await sync_to_async(list)(
+                    MFMarkerOptions.objects.filter(marker_id=marker)
                 )
-                total_responses = len(responses)
+                total_responses = len(options)
 
                 if not total_responses:
-                    logger.warning(f"No responses found for Question ID {question.id}")
+                    logger.warning(f"No responses found for Question ID {marker.id}")
                     raise AssignWeightException(
-                        f"No responses found for Question {question.id}"
+                        f"No responses found for Question {marker.id}"
                     )
 
                 position = 1
-                response_weight = 1 / total_responses  # Divide evenly across responses
+                option_weight = 1 / total_responses
 
-                for response in responses:
-                    response.position = position
-                    response.response_weight = response_weight
+                for option in options:
+                    option.position = position
+                    option.option_weight = option_weight
                     position += 1
 
-                    # Save response asynchronously
-                    await sync_to_async(response.save)()
+                    await sync_to_async(option.save)()
 
     except Exception as e:
         logger.error(f"Error assigning weight to sections and questions: {e}")
