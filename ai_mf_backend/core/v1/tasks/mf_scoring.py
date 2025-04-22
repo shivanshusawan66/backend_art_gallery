@@ -73,7 +73,7 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
     try:
         with transaction.atomic():
             Markers = MarkerWeightsPerMutualFund.objects.filter(scheme_code=scheme_code)
-            sections = Section.objects.all()
+            sections = Section.objects.all().order_by('id')
 
             embedding_array = []
             for section in sections:

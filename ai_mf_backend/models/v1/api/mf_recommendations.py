@@ -1,8 +1,8 @@
 from ai_mf_backend.models.v1.api import Response
-from typing import List, Dict, Any
+from typing import List, Dict, Any ,Optional
 
 class MFRecommendationsResponse(Response):
-    page: int
-    total_pages: int
-    total_data: int
+    page: Optional[int] = None
+    total_pages: Optional[int] = None
+    total_data: Optional[int] = None
     data: List[Dict[str, Any]]
