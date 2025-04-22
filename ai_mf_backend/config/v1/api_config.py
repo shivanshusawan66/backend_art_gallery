@@ -1,10 +1,10 @@
+import asyncio
 from typing import Optional, List
 
 # from pydantic import field_validator
 from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
-from ai_mf_backend.scripts.reference_table_populate import projection_table_mapping
 
 class APIConfig(BaseSettingsWrapper):
     """
@@ -22,7 +22,6 @@ class APIConfig(BaseSettingsWrapper):
     :returns: Instance of APIConfig with specific settings
     :return type: APIConfig
     """
-    PROJECTION_TABLE_MAPPING: dict = projection_table_mapping
 
     PROJECT_NAME: str = "ai_mf_backend"
     BACKEND_CORS_ORIGINS: Optional[str] = None
@@ -98,11 +97,14 @@ class DjangoAppConfig(AppConfig):
     name = api_config.PROJECT_NAME
 
     def ready(self):
-        from ai_mf_backend.utils.v1.constants import refresh_constants
         from ai_mf_backend.utils.v1.user_embeddings.initial_weights import (
             assign_initial_section_and_question_weights,
         )
+        from ai_mf_backend.utils.v1.mf_embeddings.initial_weights import (
+            assign_initial_section_and_marker_weights,
+        )
+    
 
-        # Run the asynchronous refresh_constants during startup
-        # asyncio.run(refresh_constants())
         # asyncio.run(assign_initial_section_and_question_weights())
+        # asyncio.run(assign_initial_section_and_marker_weights())
+    

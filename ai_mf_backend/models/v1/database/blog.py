@@ -16,7 +16,7 @@ class BlogCategory(SoftDeleteModel):
     class Meta:
         db_table = "blog_category"
         verbose_name = "Blog Category"
-        verbose_name_plural = "Blog Category"
+        verbose_name_plural = "Blog Categories"
 
     def __str__(self):
         return self.name
@@ -206,6 +206,3 @@ class BlogCommentReport(SoftDeleteModel):
                 name="blog_comment_report_comment_or_reply",
             )
         ]
-
-
-

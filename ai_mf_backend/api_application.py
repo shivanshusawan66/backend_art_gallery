@@ -23,6 +23,9 @@ from ai_mf_backend.core.v1.api import limiter as rate_limiter
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
+from ai_mf_backend.core.v1.tasks.mf_scoring import (
+            process_all_schemes,
+        )
 from ai_mf_backend.models.v1.database.contact_message import (
     ContactMessage,
     ContactMessageFundCategory
@@ -63,17 +66,6 @@ from ai_mf_backend.models.v1.database.questions import (
 )
 
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
-from ai_mf_backend.models.v1.database.mutual_fund import (
-    MutualFund,
-    HistoricalData,
-    PerformanceData,
-    TrailingReturn,
-    AnnualReturn,
-    FundData,
-    RiskStatistics,
-    FundOverview,
-    AMFIMutualFund,
-)
 
 from ai_mf_backend.models.v1.database.blog import (
     BlogCategory,
@@ -86,6 +78,8 @@ from ai_mf_backend.models.v1.database.blog import (
 
 from ai_mf_backend.models.v1.database.user_review import UserReview
 
+from ai_mf_backend.models.v1.database.mf_category_wise import MutualFundSubcategory, MutualFundType
+
 logger = logging.getLogger(__name__)
 
 fastapi_logger.handlers = logger.handlers
@@ -93,12 +87,11 @@ fastapi_logger.handlers = logger.handlers
 application = FastAPI(title=api_config.PROJECT_NAME)
 application.state.limiter = rate_limiter
 
-
-# @application.on_event("startup")
-# async def startup_event():
-#     logger.info("Starting up the application...")
-#     await process_all_schemes()
-#     logger.info("Application started successfully.")
+@application.on_event("startup")
+async def startup_event():
+    logger.info("Starting up the application...")
+    await process_all_schemes()
+    logger.info("Application started successfully.")
 
 @application.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
@@ -377,79 +370,6 @@ class UserLogsAdmin(admin.ModelAdmin):
     ordering = ("-last_access",)
     date_hierarchy = "last_access"
 
-
-@admin.register(MutualFund)
-class MutualFundAdmin(admin.ModelAdmin):
-    list_display = ("scheme_name", "symbol", "net_asset_value", "date")
-    search_fields = ("scheme_name", "symbol")
-    list_filter = ("date",)
-
-
-@admin.register(HistoricalData)
-class HistoricalDataAdmin(admin.ModelAdmin):
-    list_display = ("fund", "date", "open", "close", "volume")
-    list_filter = ("fund", "date")
-    date_hierarchy = "date"
-
-
-@admin.register(PerformanceData)
-class PerformanceDataAdmin(admin.ModelAdmin):
-    list_display = (
-        "fund",
-        "morningstar_return_rating",
-        "ytd_return",
-        "average_return_5y",
-    )
-    list_filter = ("morningstar_return_rating",)
-
-
-@admin.register(TrailingReturn)
-class TrailingReturnAdmin(admin.ModelAdmin):
-    list_display = ("fund", "metric", "fund_return", "benchmark_return")
-    list_filter = ("metric", "fund")
-
-
-@admin.register(AnnualReturn)
-class AnnualReturnAdmin(admin.ModelAdmin):
-    list_display = ("fund", "year", "fund_return", "category_return")
-    search_fields = ("fund__scheme_name",)
-    list_filter = ("year", "fund")
-
-
-@admin.register(FundData)
-class FundDataAdmin(admin.ModelAdmin):
-    list_display = ("fund", "min_initial_investment", "min_subsequent_investment")
-
-
-@admin.register(RiskStatistics)
-class RiskStatisticsAdmin(admin.ModelAdmin):
-    list_display = ("fund", "period", "alpha", "beta", "sharpe_ratio")
-    list_filter = ("period", "fund")
-
-
-@admin.register(FundOverview)
-class FundOverviewAdmin(admin.ModelAdmin):
-    list_display = (
-        "fund",
-        "category",
-        "fund_family",
-        "net_assets",
-        "ytd_return",
-        "yield_value",
-        "morningstar_rating",
-        "inception_date",
-    )
-    search_fields = ("fund__scheme_name", "category", "fund_family")
-    list_filter = ("category", "fund_family")
-
-
-@admin.register(AMFIMutualFund)
-class AMFIMutualFundAdmin(admin.ModelAdmin):
-    list_display = ("scheme_name", "q_param", "created_at", "updated_at")
-    search_fields = ("scheme_name", "q_param")
-    list_filter = ("created_at", "updated_at")
-
-
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "add_date", "update_date")
@@ -643,6 +563,19 @@ class ContactMessageAdmin(admin.ModelAdmin):
         'message'
     )
     list_filter = ('category_id', 'created_at')
+
+@admin.register(MutualFundType)
+class MutualFundTypeAdmin(admin.ModelAdmin):
+    list_display = ("fund_type", "add_date", "update_date")
+    search_fields = ("fund_type",)
+    ordering = ("fund_type",)
+
+@admin.register(MutualFundSubcategory)
+class MutualFundSubcategoryAdmin(admin.ModelAdmin):
+    list_display = ("fund_type_id__fund_type", "fund_subcategory", "add_date", "update_date")
+    search_fields = ("fund_type_id__fund_type", "subcategory",)
+    list_filter    = ("fund_type_id",) 
+    ordering = ("fund_type_id__fund_type",)
     
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()

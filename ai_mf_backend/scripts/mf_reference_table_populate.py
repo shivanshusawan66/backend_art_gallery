@@ -2,6 +2,7 @@ import os
 import sys
 import django
 import logging
+
 from django.db import connection
 from django.db import transaction
 
@@ -26,7 +27,7 @@ from ai_mf_backend.models.v1.database.mf_additional import *
 TABLE_MARKER_MAPPING = {
     MFSchemeMasterInDetails:["status","schemecode","sip","s_name"],
     MFAMCMaster: ["setup_date"],
-    MFSchemeClassMaster: ["asset_type","classcode"],
+    MFSchemeClassMaster: ["asset_type","classcode", "category"],
     MFSchemeAUM:["total"],
     MFCAGRReturn: ["_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],

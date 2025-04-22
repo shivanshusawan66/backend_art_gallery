@@ -1,8 +1,7 @@
 from django.db import models
+from pgvector.django import VectorField
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-
-from ai_mf_backend.utils.v1.constants import refresh_constants
 
 
 class Section(SoftDeleteModel):
@@ -19,9 +18,6 @@ class Section(SoftDeleteModel):
     def __str__(self):
         return self.section
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class Question(SoftDeleteModel):
@@ -41,10 +37,6 @@ class Question(SoftDeleteModel):
 
     def __str__(self):
         return self.question
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class Allowed_Response(SoftDeleteModel):
@@ -68,9 +60,6 @@ class Allowed_Response(SoftDeleteModel):
     def __str__(self):
         return self.response
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class ConditionalQuestion(SoftDeleteModel):
@@ -104,9 +93,6 @@ class ConditionalQuestion(SoftDeleteModel):
     def __str__(self):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class UserResponse(SoftDeleteModel):
@@ -133,9 +119,6 @@ class UserResponse(SoftDeleteModel):
     def __str__(self):
         return f"Response by {self.user_id} for {self.question_id.question}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class QuestionWeightsPerUser(SoftDeleteModel):
@@ -155,7 +138,4 @@ class SectionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    weight = models.FloatField(default=0.0)
+    embedding = VectorField(dimensions=7)
