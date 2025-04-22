@@ -94,6 +94,12 @@ application = FastAPI(title=api_config.PROJECT_NAME)
 application.state.limiter = rate_limiter
 
 
+# @application.on_event("startup")
+# async def startup_event():
+#     logger.info("Starting up the application...")
+#     await process_all_schemes()
+#     logger.info("Application started successfully.")
+
 @application.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
     api_response = ExceptionHandlerResponse(

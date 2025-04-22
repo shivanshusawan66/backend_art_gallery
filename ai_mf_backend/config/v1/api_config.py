@@ -41,6 +41,10 @@ class APIConfig(BaseSettingsWrapper):
 
     FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
 
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
+
     DEFAULT_ALL_MF_DISPLAY_COLUMNS: Optional[List[str]] = [
         "fund_id",
         "scheme_name",
@@ -50,30 +54,18 @@ class APIConfig(BaseSettingsWrapper):
         "min_investment",
         "category",
     ]
-
-    # Default page size and validation constants
-    DEFAULT_PAGE: Optional[int] = 1
-    DEFAULT_PAGE_SIZE: Optional[int] = 10
-    MAX_PAGE_SIZE: Optional[int] = 100
-
-    MUTUAL_FUND_OVERVIEW_COLOUMNS: list[str] = [
-        "id",
-        "scheme_name",
-        "q_param",
-        "net_asset_value",
-        "symbol",
-    ]
-
-    MUTUAL_FUND_PERFORMANCE_COLOUMNS: list[str] = [
-        "fund_id",
-        "ytd_return",
-        "average_return_5y",
-        "number_of_years_up",
-        "number_of_years_down",
-        "best_1y_total_return",
-        "worst_1y_total_return",
-        "best_3y_total_return",
-        "worst_3y_total_return",
+    
+    MUTUAL_FUND_DASHBOARD_COLOUMNS: list[str] = [
+    "jalpha_y",
+    "beta_y",
+    "_1yrret",
+    "treynor_y",
+    "sd_y",
+    "sharpe_y",
+    "_5yearret",
+    "_3yearret",
+    "s_name",
+    "sip",
     ]
 
     BLOG_DATA_COLUMNS: list[str] = [

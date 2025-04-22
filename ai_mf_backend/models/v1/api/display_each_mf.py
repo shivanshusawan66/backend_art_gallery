@@ -1,83 +1,69 @@
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
-from fastapi import Query
-
+from typing import Optional, List, Dict, Any
+from datetime import date
 from ai_mf_backend.models.v1.api import Response
 
 
-class CustomMutualFundOverviewCustomResponse(Response):
-    pass
+
+class FundOverview(BaseModel):
+    net_assets_value: Optional[float]
+    three_year_return: Optional[float]
+    five_year_return: Optional[float]
+    
 
 
-class AnnualReturnCustomResponse(Response):
-    pass
+
+class FundRiskStatistics(BaseModel):
+    one_year_return: Optional[float]
+    sharpe_ratio: Optional[float]
+    std_dev: Optional[float]
+    beta: Optional[float]
+    jalpha: Optional[float]
+    treynor: Optional[float]
 
 
-class PerformanceDataCustomResponse(Response):
-    pass
+class ReturnsCalculator(BaseModel):
+    sip: Optional[str] = None
 
 
-class RiskStatisticsCustomResponse(Response):
-    pass
+class AssetAllocation(BaseModel):
+    large_cap_percent: Optional[float]
+    mid_cap_percent: Optional[float]
+    small_cap_percent: Optional[float]
+    others_cap_percentage: Optional[float]
 
 
-class TrailingReturnCustomResponse(Response):
-    pass
+class TopHolding(BaseModel):
+    holding_name: Optional[str]
+    weight: float
 
 
-class HistoricalDataCustomResponse(Response):
-    pass
+class TopSector(BaseModel):
+    sector_name: Optional[str]
+    weight:  Optional[float]
 
 
-class AnnualReturnObject(BaseModel):
-    year: int
-    fund_return: float = None
+class NavHistory(BaseModel):
+    data: Optional[List[Dict[str, Any]]]
+    
+
+# here not use response because we do not require key data that'why we donot inherit form response
+class MutualFundDashboardResponse(BaseModel):
+    status: bool
+    message: str
+    status_code: Optional[int] = 200
+    fund_history_nav: Optional[NavHistory] = None
+    fund_overview: Optional[FundOverview] = None
+    fund_risk_statistics: Optional[FundRiskStatistics] = None
+    returns_calculator: Optional[ReturnsCalculator] = None
+    asset_allocation: Optional[AssetAllocation] = None
+    top_holdings: Optional[List[TopHolding]] = None
+    top_sectors: Optional[List[TopSector]] = None
 
 
-class AnnualReturnResponseData(BaseModel):
-    fund_id: int
-    annual_returns: List[AnnualReturnObject]
-
-
-class RiskStatisticsObject(BaseModel):
-
-    period: str = None
-    alpha: float = None
-    beta: float = None
-    mean_annual_return: float = None
-    r_squared: float = None
-    standard_deviation: float = None
-    sharpe_ratio: float = None
-    treynor_ratio: float = None
-
-
-class RiskStatisticsResponseData(BaseModel):
-    fund_id: int
-    risk_statistics: List[RiskStatisticsObject]
-
-
-class TrailingReturnObject(BaseModel):
-    metric: str = None
-    fund_return: float = None
-    benchmark_return: float = None
-
-
-class TrailingReturnResponseData(BaseModel):
-    fund_id: int
-    trailing_return: List[TrailingReturnObject]
-
-
-class HistoricalDataObject(BaseModel):
-    date: datetime = None
-    open: float = None
-    high: float = None
-    low: float = None
-    close: float = None
-    adj_close: float = None
-    volume: int = None
-
-
-class HistoricalDataResponseData(BaseModel):
-    fund_id: int
-    historical_data: List[HistoricalDataObject]
+class MutualFundFilterResponse(Response):
+    data: List[Dict[str, Any]]
+    page: int
+    total_pages: int
+    total_data: int
+    

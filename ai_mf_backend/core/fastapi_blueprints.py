@@ -37,6 +37,9 @@ from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
 from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
     router as amfi_parser_router_v1,
 )
+from ai_mf_backend.core.v1.api.mf_data.display_mf_each import(
+    router as display_mf_each_router_v1,
+)
 
 # Display Mutual Fund Data
 from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import(
@@ -115,16 +118,10 @@ connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(saving_response_router_v1)
 connect_router.include_router(questionnaire_user_response_display_v1)
 
-connect_router.include_router(amfi_parser_router_v1)
-
-connect_router.include_router(display_mf_data_by_filters_router_v1)
-connect_router.include_router(display_all_mf_column_router_v1)
-connect_router.include_router(display_each_router_v1)
-connect_router.include_router(display_mf_data_filter_option_router_v1)
-connect_router.include_router(mutual_fund_recommendations_router_v1)
-
-connect_router.include_router(mutual_fund_category_router_v1)
 connect_router.include_router(display_high_return_mutual_funds_router_v1)
+
+connect_router.include_router(display_mf_each_router_v1)
+
 
 
 connect_router.include_router(blog_data_router_v1)

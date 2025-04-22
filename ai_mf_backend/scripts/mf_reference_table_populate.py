@@ -24,31 +24,17 @@ from ai_mf_backend.models.v1.database.mf_additional import *
 
 # Define mapping using string identifiers (enum names)
 TABLE_MARKER_MAPPING = {
-    MFSchemeMasterInDetails:["status","schemecode"],
-    MFSchemeMaster: ["schemecode","scheme_name"],
+    MFSchemeMasterInDetails:["status","schemecode","sip","s_name"],
     MFAMCMaster: ["setup_date"],
     MFSchemeClassMaster: ["asset_type","classcode"],
     MFSchemeAUM:["total"],
-    MFCAGRReturn: ["schemecode", "_1yrret", "_3yearret", "_5yearret"],
+    MFCAGRReturn: ["_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],
-    # "Incept_date","primary_fund","classcode"
-    # "TYPE_MST": ["type_code", "type"],
-    # "SCHEME_MASTER": ["color"],
-    # "MF_RATIOS": ["sd_Y","beta_y","treynor_y","jalpha_y","sortino_y"],
-    # "SCHEME_LOAD": ["EXITLOAD"],
-    # "MF_PORTFOLIO": ["schemecode","ASECT_CODE", "holdpercentage","rating","invenddate"],
-    # "ASECT_MST": ["asect_code", "as_name"],
-    # "SCHEME_EQ_DETAILS": ["MCAP"],
-    # "COMPANY_MCAP": ["mcap"],
-    # "AVG_MATURITY": ["avg mat num", "avg_mat_days"],
-    # "EXPENSE_RATIO": ["expratio"],
-    # "MF_SIP": ["schemecode"],
-    # "MF_RETURN": ["_1yrret", "_3yearet", "_5yearret"],
-    # #"MF_Absolute_Return":["5yearret"],
-    # #"SCHEME_ISIN_MASTER": ["scheme_code", "isin"],
-    # "NAV_HIST": ["navrs"],
-    # "CURRENT_NAV": ["navrs"],
-    # #"MF_LOAD_TYPE_MASTER":[""]
+    MFRatios1Year: ["sd_y","beta_y","treynor_y","jalpha_y","sortino_y","sharpe_y"],
+    MFPortfolio: ["compname", "sect_name", "holdpercentage","fincode"],
+    MFCompanyMcap:[ "mode"],
+    MFNSEAssetValueLatest:["navrs_current"],
+    MFNetAssetValueHistorical:["navrs_historical"]
 }
 
 def truncate_table(model):
@@ -70,9 +56,7 @@ def populate_reference_table():
                 model_fields = [field.name for field in model._meta.fields]
 
                 for field in fields:
-                    if field not in model_fields:
-                        logger.warning(f"WARNING: Field '{field}' not found in model '{model_name}'. Skipping...")
-                        continue
+                    
 
                     MFReferenceTable.objects.update_or_create(
                         table_name=model_name,  
