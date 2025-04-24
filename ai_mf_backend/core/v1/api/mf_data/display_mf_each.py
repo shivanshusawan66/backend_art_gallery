@@ -417,7 +417,7 @@ async def get_fund_dashboard(
         # When filtering with fields
         elif not schemecode and fields is not None:
                 
-            result_query = base_query.filter(**filter_kwargs).values(*fields_to_project, 's_name','navrs','_1yrret')
+            result_query = base_query.filter(**filter_kwargs).values(*fields_to_project, 's_name','navrs','_1yrret','schemecode')
             
             total_count = await sync_to_async(result_query.count)()
             start_idx = (page - 1) * page_size
