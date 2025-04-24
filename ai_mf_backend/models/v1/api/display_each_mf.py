@@ -63,6 +63,9 @@ class AbsoluteAndAnnualisedReturn(BaseModel):
     annualised_3_yr_return : Optional[float]
     annualised_5yr_return : Optional[float]
 
+class FundCategoryandSubcategory(BaseModel):
+    fund_category: Optional[str]
+    fund_subcategory: Optional[str]
 
 class NavHistory(BaseModel):
     data: Optional[List[Dict[str, Any]]]
@@ -73,7 +76,7 @@ class MutualFundDashboardResponse(BaseModel):
     status: bool
     message: str
     status_code: Optional[int] = 200
-    fund_history_nav: Optional[NavHistory] = None
+    fund_category_subcategory : Optional[FundCategoryandSubcategory] = None
     fund_overview: Optional[FundOverview] = None
     fund_risk_statistics: Optional[FundRiskStatistics] = None
     returns_calculator: Optional[ReturnsCalculator] = None
@@ -83,6 +86,7 @@ class MutualFundDashboardResponse(BaseModel):
     fund_manager_details: Optional[List[FundManagerDetails]] = None
     fund_description: Optional[FundDescriptionDetails] = None
     absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
+    fund_history_nav: Optional[NavHistory] = None
 
 
 
