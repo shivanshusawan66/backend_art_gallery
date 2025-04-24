@@ -1,7 +1,6 @@
 import logging
 
 from celery import chain
-from sklearn.preprocessing import normalize
 from django.db import transaction
 
 from ai_mf_backend.core import celery_app
@@ -73,7 +72,7 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
     try:
         with transaction.atomic():
             Markers = MarkerWeightsPerMutualFund.objects.filter(scheme_code=scheme_code)
-            sections = Section.objects.all()
+            sections = Section.objects.all().order_by('id')
 
             embedding_array = []
             for section in sections:
@@ -83,21 +82,23 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
                         final_section_weight += marker.weight
                     else:
                         continue
-                embedding_array.append(final_section_weight)
-
-            normalized = normalize([embedding_array], norm='l2')[0]
+                
+                if final_section_weight:
+                    embedding_array.append(final_section_weight)
+                else:
+                    embedding_array.append(0.001)
 
             section_weight_for_mutual_fund = SectionWeightsPerMutualFund.objects.filter(
                 scheme_code=scheme_code,
             ).first()
 
             if section_weight_for_mutual_fund:
-                section_weight_for_mutual_fund.embedding = normalized.tolist()
+                section_weight_for_mutual_fund.embedding = embedding_array
                 section_weight_for_mutual_fund.save()
             else:
                 section_weight_for_mutual_fund = SectionWeightsPerMutualFund(
                     scheme_code=scheme_code, 
-                    embedding = normalized.tolist()
+                    embedding = embedding_array
                 )
                 logger.info(f"section weight saved for scheme : {scheme_code}")
                 section_weight_for_mutual_fund.save()

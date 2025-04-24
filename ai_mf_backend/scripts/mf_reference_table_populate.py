@@ -59,7 +59,6 @@ def populate_reference_table():
         with transaction.atomic():
             for model, fields in TABLE_MARKER_MAPPING.items():
                 model_name = model.__name__  
-
                 for field in fields:
                     MFReferenceTable.objects.update_or_create(
                         table_name=model_name,  

@@ -1,7 +1,6 @@
 import logging
 
 from celery import chain
-from sklearn.preprocessing import normalize
 from django.db import transaction
 
 from ai_mf_backend.core import celery_app
@@ -67,7 +66,7 @@ def assign_final_section_weights(self, user_id: int):
     try:
         with transaction.atomic():
             questions = QuestionWeightsPerUser.objects.filter(user_id_id=user_id)
-            sections = Section.objects.all()
+            sections = Section.objects.all().order_by('id')
             embedding_array = []
             for section in sections:
                 final_section_weight = 0
@@ -76,21 +75,22 @@ def assign_final_section_weights(self, user_id: int):
                         final_section_weight += question.weight
                     else:
                         continue
-                embedding_array.append(final_section_weight)
-            
-            normalized = normalize([embedding_array], norm='l2')[0]
+                if final_section_weight:
+                    embedding_array.append(final_section_weight)
+                else:
+                    embedding_array.append(0.001)
 
             section_weight_for_user = SectionWeightsPerUser.objects.filter(
                 user_id_id=user_id
             ).first()
 
             if section_weight_for_user:
-                section_weight_for_user.embedding = normalized.tolist()
+                section_weight_for_user.embedding = embedding_array
                 section_weight_for_user.save()
             else:
                 section_weight_for_user = SectionWeightsPerUser(
                     user_id_id=user_id,
-                    embedding = normalized.tolist(),
+                    embedding = embedding_array,
                 )
             logger.info(f"section weight saved {user_id}")
             section_weight_for_user.save()

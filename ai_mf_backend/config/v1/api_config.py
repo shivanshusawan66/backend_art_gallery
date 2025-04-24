@@ -120,8 +120,6 @@ class DjangoAppConfig(AppConfig):
         from ai_mf_backend.utils.v1.mf_embeddings.initial_weights import (
             assign_initial_section_and_marker_weights,
         )
-    
 
         # asyncio.run(assign_initial_section_and_question_weights())
         # asyncio.run(assign_initial_section_and_marker_weights())
-    
