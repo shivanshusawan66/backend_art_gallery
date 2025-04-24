@@ -24,35 +24,35 @@ async def get_high_return_funds(
                 "schemecode": 44234,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(Q-IDCW)-Direct Plan",
                 "nav": 10.345,
-                "ytd_return": 126.760563380282,
+                "_1yrret": 126.760563380282,
                 "asset_type": "Hybrid"
             },
             {
                 "schemecode": 44234,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(Q-IDCW)-Direct Plan",
                 "nav": 10.345,
-                "ytd_return": 126.760563380282,
+                "_1yrret": 126.760563380282,
                 "asset_type": "Hybrid"
             },
             {
                 "schemecode": 44228,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(IDCW)",
                 "nav": 10.345,
-                "ytd_return": 126.415094339623,
+                "_1yrret": 126.415094339623,
                 "asset_type": "Hybrid"
             },
             {
                 "schemecode": 44228,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(IDCW)",
                 "nav": 10.345,
-                "ytd_return": 126.415094339623,
+                "_1yrret": 126.415094339623,
                 "asset_type": "Hybrid"
             },
             {
                 "schemecode": 44229,
                 "s_name": "Nippon India Equity Hybrid Fund-Segregated Portfolio 1-(M-IDCW)",
                 "nav": 10.345,
-                "ytd_return": 126.262626262626,
+                "_1yrret": 126.262626262626,
                 "asset_type": "Hybrid"
             }],
             status_code=200,

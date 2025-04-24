@@ -14,7 +14,6 @@ from django.db.models import OuterRef, Subquery, F
 from ai_mf_backend.core.v1.api import limiter
 from ai_mf_backend.utils.v1.authentication.secrets import jwt_token_checker, login_checker 
 from ai_mf_backend.models.v1.database.user import UserContactInfo
-from ai_mf_backend.models.v1.database.mf_portfolio import RealPortfolio
 from ai_mf_backend.models.v1.api.mf_portfolio_section import Portfolio,PortfolioResponse
 
 router = APIRouter()
@@ -206,7 +205,7 @@ async def get_mf_options_and_details(
             
             # Add to results
             for item in full_results:
-                item["SIP Availabilty with Frequency"] = sip_frequency_map.get(item["schemecode"], {})
+                item["SIP_Availabilty_with_Frequency"] = sip_frequency_map.get(item["schemecode"], {})
 
         response.status_code=200
         return MFOptionandDetailsResponse(

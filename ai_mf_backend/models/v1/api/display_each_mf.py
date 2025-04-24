@@ -42,6 +42,27 @@ class TopSector(BaseModel):
     sector_name: Optional[str]
     weight:  Optional[float]
 
+class FundManagerDetails(BaseModel):
+    initial: Optional[str]
+    fundmanager: Optional[str]
+    qualification: Optional[str]
+    basicdetails: Optional[str]
+    experience: Optional[str]
+    designation: Optional[str]
+    age: Optional[int]
+
+class FundDescriptionDetails(BaseModel):
+    short_description: Optional[str]
+    long_description: Optional[str]
+
+class AbsoluteAndAnnualisedReturn(BaseModel):
+    absolute_1yr_return : Optional[float]
+    absolute_3yr_return : Optional[float]
+    absolute_5yr_return : Optional[float]
+    annualised_1_yr_return : Optional[float]
+    annualised_3_yr_return : Optional[float]
+    annualised_5yr_return : Optional[float]
+
 
 class NavHistory(BaseModel):
     data: Optional[List[Dict[str, Any]]]
@@ -59,6 +80,10 @@ class MutualFundDashboardResponse(BaseModel):
     asset_allocation: Optional[AssetAllocation] = None
     top_holdings: Optional[List[TopHolding]] = None
     top_sectors: Optional[List[TopSector]] = None
+    fund_manager_details: Optional[List[FundManagerDetails]] = None
+    fund_description: Optional[FundDescriptionDetails] = None
+    absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
+
 
 
 class MutualFundFilterResponse(Response):
