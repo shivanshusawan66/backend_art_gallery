@@ -134,13 +134,15 @@ async def get_high_return_funds(
             LIMIT 1)
         """
 
-        base_query = base_query.annotate(
+        similar_schemes = base_query.annotate(
             similarity=RawSQL(raw_sql, (user_embedding_list,))
-        ).order_by("similarity")
+        ).order_by("similarity").values("schemecode", "navrs", "_1yrret", "asset_type", "s_name")[:30]
 
+        similar_schemes_list = await sync_to_async(lambda: list(similar_schemes))()
 
-        result_query = base_query.values("schemecode", "navrs", "_1yrret", "asset_type", "s_name","similarity")
-        full_results = await sync_to_async(lambda: list(result_query))()
+        sorted_results = sorted(similar_schemes_list, key=lambda x: x.get('_1yrret', 0) or 0, reverse=True)
+
+        full_results = sorted_results
 
         total_count = len(full_results)
         total_pages = (total_count + page_size - 1) // page_size

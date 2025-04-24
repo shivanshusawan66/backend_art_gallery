@@ -4,8 +4,16 @@ from ai_mf_backend.models.v1.api import Response
 class MFCategoryOptionResponse(Response):
     pass
 
-class MFDataCategorySubcategoryWise(Response):
-    data: Optional[List[Dict[str, Any]]] = None
-
 class MFSubCategoryOptionResponse(Response):
    pass
+
+class MFDataCategorySubcategoryWise(Response):
+    page: int
+    total_pages: int
+    total_data: int
+    data: Optional[List[Dict[str, Any]]] = None
+    fund_category: str = None
+    fund_subcategory: str = None
+
+
+
