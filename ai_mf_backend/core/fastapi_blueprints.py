@@ -43,13 +43,18 @@ from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import(
     router as display_high_return_mutual_funds_router_v1
 )
 # MF DATA
-from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import (
-    router as display_high_return_mutual_funds_router_v1,
+from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
+    router as display_mf_recommendations_mutual_funds_router_v1,
 )
 
 from ai_mf_backend.core.v1.api.mf_data.display_mf_each import (
     router as display_mf_each_router_v1,
 )
+
+from ai_mf_backend.core.v1.api.mf_portfolio.mf_portfolio_section import (
+    router as mf_portfolio_section_router_v1,
+)
+
 
 # Blog Data Routers
 from ai_mf_backend.core.v1.api.blog.blog_data import (
@@ -97,10 +102,10 @@ connect_router.include_router(questionnaire_user_response_display_v1)
 
 connect_router.include_router(display_high_return_mutual_funds_router_v1)
 connect_router.include_router(mf_category_wise_data_router_v1)
-
+connect_router.include_router(display_mf_recommendations_mutual_funds_router_v1)
 connect_router.include_router(display_mf_each_router_v1)
 
-
+connect_router.include_router(mf_portfolio_section_router_v1)
 
 connect_router.include_router(blog_data_router_v1)
 connect_router.include_router(blog_comment_router_v1)
