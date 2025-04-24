@@ -28,15 +28,19 @@ TABLE_MARKER_MAPPING = {
     MFSchemeMasterInDetails:["status","schemecode","sip","s_name"],
     MFAMCMaster: ["setup_date"],
     MFSchemeClassMaster: ["asset_type","classcode", "category"],
+    MFSchemeIsInMaster: ["LongSchemeDescrip", "ShortSchemeDescrip"],
     MFSchemeAUM:["total"],
     MFCAGRReturn: ["_1yrret", "_3yearret", "_5yearret"],
     MFSchemeRGESS: ["schemename"],
     MFRatios1Year: ["sd_y","beta_y","treynor_y","jalpha_y","sortino_y","sharpe_y"],
     MFPortfolio: ["compname", "sect_name", "holdpercentage","fincode"],
     MFCompanyMcap:[ "mode"],
-    MFNSEAssetValueLatest:["navrs_current"],
+    MFNSEAssetValueLatest:["navrs", "navrs_current"],
     MFNetAssetValueHistorical:["navrs_historical"],
     MFFundManagerMaster: ["initial", "fundmanager", "qualification", "basicdetails", "experience", "designation", "age"],
+    MFAbsoluteReturn: ["_1yrret_absolute", "_3yearret_absolute", "_5yearret_absolute"],
+    MFAnnualizedReturn: ["_1yrret_annualised", "_3yearret_annualised", "_5yearret_annualised"],
+    MFSystematicInvestmentPlan:["frequency"],
 }
 
 def truncate_table(model):
@@ -56,7 +60,6 @@ def populate_reference_table():
             for model, fields in TABLE_MARKER_MAPPING.items():
                 model_name = model.__name__  
                 for field in fields:
-
                     MFReferenceTable.objects.update_or_create(
                         table_name=model_name,  
                         marker_name=field,

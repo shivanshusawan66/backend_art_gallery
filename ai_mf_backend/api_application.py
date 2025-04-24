@@ -78,7 +78,7 @@ from ai_mf_backend.models.v1.database.blog import (
 
 from ai_mf_backend.models.v1.database.user_review import UserReview
 
-from ai_mf_backend.models.v1.database.mf_category_wise import MutualFundType
+from ai_mf_backend.models.v1.database.mf_category_wise import MutualFundSubcategory, MutualFundType
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +93,7 @@ application.state.limiter = rate_limiter
 #     logger.info("Starting up the application...")
 #     await process_all_schemes()
 #     logger.info("Application started successfully.")
+
 
 @application.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
@@ -570,6 +571,13 @@ class MutualFundTypeAdmin(admin.ModelAdmin):
     list_display = ("fund_type", "add_date", "update_date")
     search_fields = ("fund_type",)
     ordering = ("fund_type",)
+
+@admin.register(MutualFundSubcategory)
+class MutualFundSubcategoryAdmin(admin.ModelAdmin):
+    list_display = ("fund_type_id__fund_type", "fund_subcategory", "add_date", "update_date")
+    search_fields = ("fund_type_id__fund_type", "subcategory",)
+    list_filter    = ("fund_type_id",) 
+    ordering = ("fund_type_id__fund_type",)
     
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()

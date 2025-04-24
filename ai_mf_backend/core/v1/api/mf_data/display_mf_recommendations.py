@@ -168,4 +168,4 @@ async def get_high_return_funds(
             total_data=0,
             data=[],
             status_code=400,
-        ) 
+        )

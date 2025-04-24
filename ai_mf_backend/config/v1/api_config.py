@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, List
+from typing import ClassVar, Dict, Optional, List
 
 # from pydantic import field_validator
 from django.apps import AppConfig
@@ -40,6 +40,10 @@ class APIConfig(BaseSettingsWrapper):
 
     FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
 
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
+
     DEFAULT_ALL_MF_DISPLAY_COLUMNS: Optional[List[str]] = [
         "fund_id",
         "scheme_name",
@@ -49,12 +53,36 @@ class APIConfig(BaseSettingsWrapper):
         "min_investment",
         "category",
     ]
+    
+    MUTUAL_FUND_DASHBOARD_COLOUMNS: list[str] = [
+    "jalpha_y",
+    "beta_y",
+    "_1yrret",
+    "treynor_y",
+    "sd_y",
+    "sharpe_y",
+    "_5yearret",
+    "_3yearret",
+    "s_name",
+    "sip",
+    ]
 
-    # Default page size and validation constants
-    DEFAULT_PAGE: Optional[int] = 1
-    DEFAULT_PAGE_SIZE: Optional[int] = 10
-    MAX_PAGE_SIZE: Optional[int] = 100
-
+    COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] =  {
+            "Fund Risk": ["jalpha_y", "beta_y", "_1yrret", "treynor_y", "sd_y", "sharpe_y", "status"],
+            "Fund Overview": [ "_5yearret","_3yearret","navrs_current"],
+            "Return Calculator": ["sip"],
+            "Asset Allocation": ["compname", "sect_name", "holdpercentage", "mode"],
+            "Historical Nav & Returns": ["navrs_historical"],
+            "Fund Description": ["LongSchemeDescrip", "ShortSchemeDescrip"],
+            "Returns": ["_1yrret_absolute", "_3yearret_absolute", "_5yearret_absolute", "_1yrret_annualised", "_3yearret_annualised", "_5yearret_annualised"],
+            "Extra":["asset_type","mode","category"],
+        }
+        
+    FILTER_FIELD_MAPPING: ClassVar[Dict[str, List[str]]] = {       
+    "return":  ["_5yearret","_3yearret","_1yrret"],
+    "risk": ["sd_y", "beta_y", "sharpe_y","treynor_y","jalpha_y"],  
+    "investment_type":["sip"],
+    }
 
     BLOG_DATA_COLUMNS: list[str] = [
         "id",
