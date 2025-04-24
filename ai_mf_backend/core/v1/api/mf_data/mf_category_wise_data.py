@@ -1,6 +1,6 @@
 from fastapi import Response
 from django.apps import apps
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, F
 
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.v1.api import limiter
@@ -211,9 +211,12 @@ async def fund_data_category_subcategory_wise(
                     classcode=OuterRef("classcode")
                 ).values("category")[:1]
             ))
+
+
+        filtered_query = base_query.filter(**filter_kwargs).order_by(F("_1yrret").desc(nulls_last=True))
         
-        filtered_query = base_query.filter(**filter_kwargs)
         result_query = filtered_query.values("schemecode", "s_name", "_1yrret", "navrs")    
+
         full_results = await sync_to_async(lambda: list(result_query))()
 
         total_count = len(full_results)

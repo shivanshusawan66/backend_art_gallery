@@ -1,22 +1,24 @@
 import logging
-import warnings
-from fastapi import APIRouter, Query, Response, status, Request
-from typing import List, Optional
+from fastapi import APIRouter, Query, Response, Request
+from typing import Optional
 from asgiref.sync import sync_to_async
-from django.db.models import OuterRef, Subquery, F, Sum
+from django.db.models import OuterRef, Subquery, Sum
 from django.apps import apps
 from itertools import chain
+
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 from ai_mf_backend.core.v1.api import limiter
 from asgiref.sync import sync_to_async
+
 from ai_mf_backend.models.v1.database.mf_master_data import *
 from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
 from ai_mf_backend.models.v1.database.mf_additional import *
 from ai_mf_backend.models.v1.database.mf_category_wise import(MutualFundSubcategory,MutualFundType)
 from ai_mf_backend.utils.v1.api_projection.valid_fields import process_fields
+
 from ai_mf_backend.models.v1.api.display_each_mf import (
-    AbsoluteAndAnnualisedReturn, FundDescriptionDetails, FundManagerDetails, FundOverview, FundRiskStatistics, ReturnsCalculator, AssetAllocation,
+    AbsoluteAndAnnualisedReturn, FundCategoryandSubcategory, FundDescriptionDetails, FundManagerDetails, FundOverview, FundRiskStatistics, ReturnsCalculator, AssetAllocation,
     TopHolding, TopSector, MutualFundDashboardResponse, MutualFundFilterResponse,
     NavHistory
 )
@@ -286,6 +288,19 @@ async def get_fund_dashboard(
                 )
                 )()
 
+            fund_managers = []
+            for manager in manager_data:
+                fund_manager = FundManagerDetails(
+                    initial=manager.get("initial"),
+                    fundmanager=manager.get("fundmanager"),
+                    qualification=manager.get("qualification"),
+                    basicdetails=manager.get("basicdetails"),
+                    experience=manager.get("experience"),
+                    designation=manager.get("designation"),
+                    age=manager.get("age")
+                )
+                fund_managers.append(fund_manager)
+
             sector_model = marker_to_models["sect_name"]
             sector_holding = await sync_to_async(lambda: list(
                 sector_model.objects.filter(schemecode=schemecode).values("sect_name").annotate(total_weight=Sum("holdpercentage"))
@@ -355,9 +370,9 @@ async def get_fund_dashboard(
                 status=True,
                 message="Success",
                 status_code=response.status_code,
-                fund_history_nav=NavHistory(
-                    data=nav_history_data,  
-                    
+                fund_category_subcategory = FundCategoryandSubcategory(
+                    fund_category=result.get("asset_type"),
+                    fund_subcategory=result.get("category"),
                 ),
                 fund_overview=FundOverview(
                     net_assets_value=result.get("navrs"),
@@ -377,7 +392,7 @@ async def get_fund_dashboard(
                 top_holdings=top_holdings,
                 top_sectors=top_sectors,
 
-                fund_manager_details=manager_data,
+                fund_manager_details=fund_managers,
 
                 fund_description = FundDescriptionDetails(
                     short_description = result.get("ShortSchemeDescrip"),
@@ -392,6 +407,10 @@ async def get_fund_dashboard(
                     annualised_3_yr_return = result.get("_3yearret_annualised"),
                     annualised_5yr_return = result.get("_5yearret_annualised"),
                 ) ,
+                fund_history_nav=NavHistory(
+                    data=nav_history_data,  
+                    
+                ),
 
             )
 
