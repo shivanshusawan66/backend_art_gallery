@@ -215,7 +215,7 @@ async def mf_portfolio_section(
             .filter(user_id=user_id)
             .annotate(
                 scheme_name=Subquery(scheme_name_sq),
-                current_fund_nav=Subquery(latest_nav_sq),
+                latest_fund_nav=Subquery(latest_nav_sq),
             )
         )
 
@@ -234,7 +234,7 @@ async def mf_portfolio_section(
                 quantity=p.quantity,
                 frequency=p.frequency,
                 investment_type=p.investment_type,
-                current_fund_nav=p.current_fund_nav,
+                current_fund_nav=p.latest_fund_nav,
             )
             for p in portfolio_rows
         ]
@@ -328,7 +328,7 @@ async def add_mf_portfolio_item(
             instances.append(PortfolioModel(
                 user_id=user_instance,
                 scheme_code=investment.scheme_code,
-                orig_fund_nav=investment.current_fund_nav,
+                current_fund_nav=investment.current_fund_nav,
                 investment_date=investment.investment_date,
                 investment_type=investment.investment_type,
                 frequency=investment.frequency,

@@ -108,7 +108,7 @@ async def get_high_return_funds(
 
         if "navrs_current" in marker_to_models:
             base_query = base_query.annotate(
-                navrs=Subquery(
+                nav=Subquery(
                     marker_to_models["navrs_current"].objects.filter(
                         schemecode=OuterRef("schemecode")
                     ).values("navrs")[:1]
