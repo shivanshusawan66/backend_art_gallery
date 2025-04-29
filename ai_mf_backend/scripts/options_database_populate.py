@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 import django
-from datetime import datetime
 from django.db import connection, transaction
 
 sys.path.append(rf"{os.getcwd()}")
@@ -10,11 +9,12 @@ sys.path.append(rf"{os.getcwd()}")
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
-)  # Use your project’s settings path
+)  
 
-# Set up Django after setting environment variables
+
 django.setup()
 logger = logging.getLogger(__name__)
+
 
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus, Occupation
 from ai_mf_backend.models.v1.database.financial_details import (
@@ -26,8 +26,10 @@ from ai_mf_backend.models.v1.database.mf_category_wise import (
     MutualFundType,
     MutualFundSubcategory
 )
-
-# function to populate the Gender,MartialStatus,Occupation,AnnualIncome,MonthlySavingCapacity,InvestmentAmountPerYear, MutualFundCategory
+from ai_mf_backend.models.v1.database.mf_filter_parameters import (
+    MFFilterColors,
+    MFFilterParameters
+)
 
 def reset_pk_sequence(model):
     """Reset the primary key sequence for the given model (PostgreSQL only)."""
@@ -46,6 +48,8 @@ def populate_user_profile_data():
         InvestmentAmountPerYear.objects.all().delete()
         MutualFundSubcategory.objects.all().delete()
         MutualFundType.objects.all().delete()
+        MFFilterParameters.objects.all().delete()
+        MFFilterColors.objects.all().delete()
         logger.info("Existing data cleared successfully.")
 
         # Reset primary keys
@@ -57,6 +61,8 @@ def populate_user_profile_data():
         reset_pk_sequence(InvestmentAmountPerYear)
         reset_pk_sequence(MutualFundSubcategory)
         reset_pk_sequence(MutualFundType)
+        reset_pk_sequence(MFFilterParameters)
+        reset_pk_sequence(MFFilterColors)
         logger.info("Primary key sequences reset.")
 
     genders = ["Male", "Female", "Other"]
@@ -148,6 +154,21 @@ def populate_user_profile_data():
     ],
     }
 
+    mf_parameters = [
+    "jalpha_y",
+    "beta_y",
+    "_1yrret",
+    "treynor_y",
+    "sd_y",
+    "sharpe_y",
+    "_5yearret",
+    "_3yearret",
+    ]
+
+    mf_colors = [
+        "Blue", "Brown", "High", "Low", "Low to Moderate", "Moderate", "Moderately High", "Very High",
+    ]
+
 
     with transaction.atomic():
         for gender in genders:
@@ -192,10 +213,14 @@ def populate_user_profile_data():
                     fund_type_id=fund_type
                 )
                 print(f"Created Mutual Fund Subcategory:{subcategory} under {fund_type_name}")
-
-            
-            
-
+        
+        for mf_parameter in mf_parameters:
+            MFFilterParameters.objects.create(parameter_name=mf_parameter)
+            print(f"Created Mutual Fund Parameter:{mf_parameter}")
+        
+        for mf_color in mf_colors:
+            MFFilterColors.objects.create(color_name=mf_color)
+            print(f"Created Mutual Fund Color:{mf_color}")
 
     print("Option Population script completed successfully.")
 
