@@ -136,7 +136,7 @@ async def get_high_return_funds(
 
         similar_schemes = base_query.annotate(
             similarity=RawSQL(raw_sql, (user_embedding_list,))
-        ).order_by("similarity").values("schemecode", "navrs", "_1yrret", "asset_type", "s_name")[:30]
+        ).order_by("similarity").values("schemecode", "nav", "_1yrret", "asset_type", "s_name")[:30]
 
         similar_schemes_list = await sync_to_async(lambda: list(similar_schemes))()
 

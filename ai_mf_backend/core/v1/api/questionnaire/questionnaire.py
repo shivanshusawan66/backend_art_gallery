@@ -476,6 +476,7 @@ async def get_section_completion_status(
                     completion_rate=completion_rate,
                 )
             )
+            section_completion_status.sort(key=lambda s: s.section_id)
 
         return SectionCompletionStatusResponse(
             status=True,
