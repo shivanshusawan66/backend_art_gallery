@@ -117,7 +117,9 @@ class UserResponse(SoftDeleteModel):
         verbose_name_plural = "User Response"
 
     def __str__(self):
-        return f"Response by {self.user_id} for {self.question_id.question}"
+        user_str = self.user_id if self.user_id else "Unknown User"
+        question_str = self.question_id.question if self.question_id else "Unknown Question"
+        return f"Response by {user_str} for {question_str}"
 
 
 
