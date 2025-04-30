@@ -1,5 +1,7 @@
 import logging
-from typing import List
+from typing import List, Optional, Union
+
+from fastapi import Response
 
 from asgiref.sync import sync_to_async
 
@@ -30,6 +32,7 @@ from ai_mf_backend.models.v1.api.questionnaire import (
     SectionQuestionsResponse,
     SectionRequest,
     SectionsResponse,
+    TotalCompletionStatusMobileResponse,
     VisibilityCondition,
     VisibilityDecisions,
     SectionCompletionStatus,
@@ -495,24 +498,40 @@ async def get_section_completion_status(
     status_code=200,
 )
 async def get_total_completion_status(
-    user_id: int = Query(..., description="User ID")
-) -> TotalCompletionStatusResponse:
+    response: Response,
+    user_id: int = Query(..., description="User ID"),
+    is_mobile: Optional[bool] = Query(default=False, description="Is mobile?"),
+) -> Union[TotalCompletionStatusResponse, TotalCompletionStatusMobileResponse]:
     try:
 
         section_status_response = await get_section_completion_status(user_id)
 
         if not section_status_response.status or not section_status_response.data:
-            status_code = 400 if not section_status_response.status else 500
-            return TotalCompletionStatusResponse(
-                status=False,
-                message="Failed to fetch section completion data.",
-                total_completion_rate=0.0,
-                banner_status=True,
-                banner_message="Complete your profile for better Mutual Fund recommendations",
-                status_code=status_code,
-            )
+            response.status_code = 400
+            if is_mobile:   
+                return TotalCompletionStatusMobileResponse(
+                    status=False,
+                    message="Failed to fetch section completion data.",
+                    data={
+                        "total_completion_rate": 0.0,
+                        "banner_status": True,
+                        "banner_message": "Complete your profile for better Mutual Fund recommendations"
 
-
+                    },
+                    status_code=response.status_code,
+                )
+            
+            else:
+                return TotalCompletionStatusResponse(
+                    status=False,
+                    message="Failed to fetch section completion data.",
+                    total_completion_rate=0.0,
+                    banner_status=True,
+                    banner_message="Complete your profile for better Mutual Fund recommendations",
+                    status_code=response.status_code,
+                )
+        
+            
         total_answered = sum(
             section.answered_questions for section in section_status_response.data
         )
@@ -526,33 +545,75 @@ async def get_total_completion_status(
             overall_completion_rate = (total_answered / total_questions) * 100
 
         if overall_completion_rate == 100:
-            return TotalCompletionStatusResponse(
-                status=True,
-                message="Successfully fetched total completion status.",
-                total_completion_rate=int(overall_completion_rate),
-                banner_status=False,
-                banner_message="",
-                status_code=200,
-            )
+            if is_mobile:
+                response.status_code = 200
+                return TotalCompletionStatusMobileResponse(
+                    status=True,
+                    message="Successfully fetched total completion status.",
+                    data={
+                        "total_completion_rate": int(overall_completion_rate),
+                        "banner_status": False,
+                        "banner_message": "",
+                    },
+                    status_code=response.status_code,
+                )
+            else:
+                response.status_code = 200
+                return TotalCompletionStatusResponse(
+                    status=True,
+                    message="Successfully fetched total completion status.",
+                    total_completion_rate=int(overall_completion_rate),
+                    banner_status=False,
+                    banner_message="",
+                    status_code=response.status_code,
+                )
         else:
-            return TotalCompletionStatusResponse(
-                status=True,
-                message="Successfully fetched total completion status.",
-                total_completion_rate=int(overall_completion_rate),
-                banner_status=True,
-                banner_message="Complete your profile for better Mutual Fund recommendations",
-                status_code=200,
-            )
+            if is_mobile:
+                response.status_code = 200
+                return TotalCompletionStatusMobileResponse(
+                    status=True,
+                    message="Successfully fetched total completion status.",
+                    data={
+                        "total_completion_rate": int(overall_completion_rate),
+                        "banner_status": True,
+                        "banner_message": "Complete your profile for better Mutual Fund recommendations",
+                    },
+                    status_code=response.status_code,
+                )
+            
+            else:
+                response.status_code = 200
+                return TotalCompletionStatusResponse(
+                    status=True,
+                    message="Successfully fetched total completion status.",
+                    total_completion_rate=int(overall_completion_rate),
+                    banner_status=True,
+                    banner_message="Complete your profile for better Mutual Fund recommendations",
+                    status_code=200,
+                )
 
     except Exception as e:
         logger.error(
             f"Unexpected error while fetching total completion status: {str(e)}"
         )
-        return TotalCompletionStatusResponse(
-            status=False,
-            message="An unexpected error occurred.",
-            total_completion_rate=0.0,
-            banner_status=True,
-            banner_message="",
-            status_code=500,
-        )
+        response.status_code = 400
+        if is_mobile:
+            return TotalCompletionStatusMobileResponse(
+                status=False,
+                message="An unexpected error occurred.",
+                data={
+                    "total_completion_rate": 0.0,
+                    "banner_status": True,
+                    "banner_message": "",
+                },
+                status_code=response.status_code,
+            )
+        else:
+            return TotalCompletionStatusResponse(
+                status=False,
+                message="An unexpected error occurred.",
+                total_completion_rate=0.0,
+                banner_status=True,
+                banner_message="",
+                status_code=response.status_code,
+            )
