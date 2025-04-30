@@ -68,3 +68,6 @@ class TotalCompletionStatusResponse(Response):
     total_completion_rate: int
     banner_status:bool
     banner_message:str
+
+class TotalCompletionStatusMobileResponse(Response):
+    data : Optional[Dict] = None
