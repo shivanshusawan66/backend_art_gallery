@@ -12,11 +12,12 @@ router=APIRouter()
 logger=logging.getLogger(__name__)
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.get(
     "/get_user_review",
     response_model=UserReviewResponse,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_user_review(
     request: Request,
     response: Response

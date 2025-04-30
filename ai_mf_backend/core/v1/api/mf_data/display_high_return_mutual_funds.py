@@ -15,8 +15,8 @@ from ai_mf_backend.core.v1.api import limiter
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_high_return_funds", response_model=HighReturnMutualFundsResponse)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_high_return_funds(
     request: Request,
     response: Response,

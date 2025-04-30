@@ -23,12 +23,13 @@ from ai_mf_backend.config.v1.api_config import api_config
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.get(
     "/get_user_questionnaire_response",
     response_model=UserQuestionnaireResponse,
     dependencies=[Depends(login_checker)],
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_user_questionnaire_responses(
     request: Request,
     response: Response,

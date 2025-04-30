@@ -2,7 +2,7 @@ import logging
 
 from asgiref.sync import sync_to_async
 
-from fastapi import APIRouter, status, Response, Depends
+from fastapi import APIRouter, Request, status, Response, Depends
 
 from django.core.exceptions import ValidationError
 
@@ -27,19 +27,20 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.post(
     "/submit_questionnaire_response",
     dependencies=[Depends(login_checker)],
     response_model=SubmitQuestionnaireResponse,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def submit_questionnaire_response(
-    request: SubmitQuestionnaireRequest, response: Response
+    request:Request ,body: SubmitQuestionnaireRequest, response: Response
 ):
     try:
-        user_id = request.user_id
-        section_id = request.section_id
-        responses = request.responses
+        user_id = body.user_id
+        section_id = body.section_id
+        responses = body.responses
 
         if user_id is None:
             response_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -93,7 +94,7 @@ async def submit_questionnaire_response(
             return SubmitQuestionnaireResponse(
                 status=False,
                 message="The responses array cannot be empty. Provide at least one question-response pair.",
-                data={"user_id": request.user_id},
+                data={"user_id": body.user_id},
                 status_code=response_status_code,
             )
 

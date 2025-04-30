@@ -27,8 +27,8 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_fund_dashboard/")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_fund_dashboard(
     request: Request,
     response: Response,
