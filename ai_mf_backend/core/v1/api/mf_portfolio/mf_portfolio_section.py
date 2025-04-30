@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date,datetime
 import logging
 from typing import Optional
 
@@ -57,9 +57,12 @@ async def get_mf_options_and_details(
     fund_name: Optional[str] = Query(
         default=None, description="Search mutual fund name"
     ),
+    investment_date: Optional[date] = Query(
+        default=None, description="Investment date in YYYY-MM-DD format"
+    ),
 ):
     try:
-        marker_list = ["status", "s_name", "navrs", "frequency", "sip"]
+        marker_list = ["status", "s_name", "navrs_current", "navrs_historical","frequency", "sip"]
 
         refs = await sync_to_async(
             lambda: list(MFReferenceTable.objects.filter(marker_name__in=marker_list))
@@ -85,17 +88,33 @@ async def get_mf_options_and_details(
 
         if fund_name:
             base_query = base_query.filter(s_name__icontains=fund_name)
-
-        if "navrs" in marker_to_models:
-            base_query = base_query.annotate(
-                navrs=Subquery(
-                    marker_to_models["navrs"]
-                    .objects.filter(
-                        schemecode=OuterRef("schemecode"),
+        
+        if investment_date == datetime.date.today():
+            if "navrs_current" in marker_to_models:
+                base_query = base_query.annotate(
+                    navrs=Subquery(
+                        marker_to_models["navrs_current"]
+                        .objects.filter(
+                            schemecode=OuterRef("schemecode"),
+                            navdate__lte=investment_date,
+                        )
+                        .order_by("-navdate")
+                        .values("navrs")[:1]
                     )
-                    .values("navrs")[:1]
                 )
-            )
+        else:
+            if "navrs_historical" in marker_to_models:
+                base_query = base_query.annotate(
+                    navrs=Subquery(
+                        marker_to_models["navrs_historical"]
+                        .objects.filter(
+                            schemecode=OuterRef("schemecode"),
+                            navdate__lte=investment_date,
+                        )
+                        .order_by("-navdate")
+                        .values("navrs")[:1]
+                    )
+                )
 
         ordered_query = base_query.order_by(F("s_name").asc(nulls_last=True))
         result_query = ordered_query.values("schemecode", "s_name", "navrs")
