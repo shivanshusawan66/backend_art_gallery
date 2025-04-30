@@ -11,3 +11,5 @@ from ai_mf_backend.models.v1.database.mf_additional import *
 from ai_mf_backend.models.v1.database.contact_message import *
 from ai_mf_backend.models.v1.database.mf_embedding_tables import *
 from ai_mf_backend.models.v1.database.mf_category_wise import *
+from ai_mf_backend.models.v1.database.mf_filter_parameters import *
+from ai_mf_backend.models.v1.database.user_portfolio import *

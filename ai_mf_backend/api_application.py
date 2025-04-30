@@ -575,7 +575,7 @@ class MutualFundTypeAdmin(admin.ModelAdmin):
 @admin.register(MutualFundSubcategory)
 class MutualFundSubcategoryAdmin(admin.ModelAdmin):
     list_display = ("fund_type_id__fund_type", "fund_subcategory", "add_date", "update_date")
-    search_fields = ("fund_type_id__fund_type", "subcategory",)
+    search_fields = ("fund_type_id__fund_type", "fund_subcategory",)
     list_filter    = ("fund_type_id",) 
     ordering = ("fund_type_id__fund_type",)
     
