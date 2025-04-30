@@ -38,6 +38,7 @@ from ai_mf_backend.models.v1.api.user_data import (
     UserPersonalFinancialDetailsUpdateResponse,
     UserPersonalDetailsImageUpdateResponse,
 )
+from ai_mf_backend.utils.v1.database.filepath import generate_unique_filename
 from ai_mf_backend.utils.v1.validators.dates import (
     validate_not_future_date,
     validate_reasonable_birth_date,
@@ -302,6 +303,14 @@ async def user_personal_details_image_upload(
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
             image.verify()
+            if image.format not in ["JPEG", "JPG", "PNG"]:
+                response.status_code = 400
+                return UserPersonalDetailsImageUpdateResponse(
+                    status=False,
+                    message="Only JPEG, JPG, and PNG formats are allowed.",
+                    data={},
+                    status_code=400,
+                )
         except (UnidentifiedImageError, Exception) as e:
             response.status_code = 400
             return UserPersonalDetailsImageUpdateResponse(
@@ -319,7 +328,9 @@ async def user_personal_details_image_upload(
 
         if not user_details:
             user_details = UserPersonalDetails(user=user)
-   
+
+        unique_filename = generate_unique_filename(file.filename)
+        content_file.name = unique_filename
         user_details.user_image = content_file
 
         
