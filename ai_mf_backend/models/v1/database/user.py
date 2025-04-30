@@ -143,11 +143,6 @@ class UserPersonalDetails(SoftDeleteModel):
         auto_now=True, validators=[validate_not_future_date]
     )
 
-    def save(self, *args, **kwargs):
-        if self.user_image:
-            unique_filename = generate_unique_filename(self.user_image.name)
-            self.user_image.name = unique_filename
-        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "user_personal_details"
