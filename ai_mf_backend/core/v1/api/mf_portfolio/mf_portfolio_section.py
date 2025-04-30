@@ -1,4 +1,4 @@
-from datetime import date,datetime
+from datetime import date
 import logging
 from typing import Optional
 
@@ -27,7 +27,6 @@ from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import (
 )
 
 from ai_mf_backend.models.v1.api.user_portfolio import (
-    Portfolio,
     GetPortfolioResponse,
     DeletePortfolioRequest,
     DeletePortfolioResponse,
@@ -89,7 +88,7 @@ async def get_mf_options_and_details(
         if fund_name:
             base_query = base_query.filter(s_name__icontains=fund_name)
         
-        if investment_date == datetime.date.today():
+        if investment_date == date.today():
             if "navrs_current" in marker_to_models:
                 base_query = base_query.annotate(
                     navrs=Subquery(
