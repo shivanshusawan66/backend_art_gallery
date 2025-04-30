@@ -28,8 +28,8 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
 
 router = APIRouter()
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_recommendations", response_model=MFRecommendationsResponse ,dependencies=[Depends(login_checker)],)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_high_return_funds(
     request: Request,
     response: Response,
@@ -108,7 +108,7 @@ async def get_high_return_funds(
 
         if "navrs_current" in marker_to_models:
             base_query = base_query.annotate(
-                navrs=Subquery(
+                nav=Subquery(
                     marker_to_models["navrs_current"].objects.filter(
                         schemecode=OuterRef("schemecode")
                     ).values("navrs")[:1]

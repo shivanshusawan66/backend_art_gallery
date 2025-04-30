@@ -173,10 +173,6 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
     if not user_doc:
         raise MalformedJWTRequestException("This user does not exist.")
 
-    user_id = user_doc.user_id
-    can_request, error_message = throttle_otp_requests(user_id)
-    if not can_request:
-        raise MalformedJWTRequestException(error_message)
 
     expiry = float(decoded_payload["expiry"])
     current_time = float(django_timezone.now().timestamp())
