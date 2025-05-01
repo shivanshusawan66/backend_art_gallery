@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_fund_filter/")
-async def get_fund_dashboard(
+async def get_fund_filter(
     request: Request,
     response: Response,
     sort_by: Optional[int] = Query(None, description="MF sorted by given id"),
