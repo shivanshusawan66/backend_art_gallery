@@ -89,7 +89,9 @@ class MutualFundDashboardResponse(BaseModel):
     fund_history_nav: Optional[NavHistory] = None
 
 
-
+class MutualFundDashboardErrorResponse(Response):
+    data:List[Dict[str,Any]]
+    
 class MutualFundFilterResponse(Response):
     data: List[Dict[str, Any]]
     page: int
