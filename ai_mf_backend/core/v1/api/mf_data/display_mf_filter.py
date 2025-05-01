@@ -229,9 +229,9 @@ async def get_fund_filter(
             base_query = base_query.filter(sip='T' if investment_type else 'F')
 
         if fund_category_id is not None and fund_subcategory_id is not None:
-            result_query = base_query.filter(**filter_kwargs).values(*all_fields)
+            result_query = base_query.filter(**filter_kwargs).values(*all_fields,'schemecode')
         elif not fund_category_id and not fund_subcategory_id:
-            result_query = base_query.values(*all_fields)
+            result_query = base_query.values(*all_fields,'schemecode')
         else:
             response.status_code = 404
             return MutualFundFilterResponse(
