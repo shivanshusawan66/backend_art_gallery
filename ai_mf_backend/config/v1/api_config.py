@@ -64,7 +64,8 @@ class APIConfig(BaseSettingsWrapper):
     "_5yearret",
     "_3yearret",
     "s_name",
-    "sip",
+    "navrs",
+    
     ]
 
     COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] =  {

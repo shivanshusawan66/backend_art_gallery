@@ -51,6 +51,9 @@ from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
 from ai_mf_backend.core.v1.api.mf_data.display_mf_each import (
     router as display_mf_each_router_v1,
 )
+from ai_mf_backend.core.v1.api.mf_data.display_mf_filter import(
+    router as display_mf_filter,
+)
 
 from ai_mf_backend.core.v1.api.mf_portfolio.mf_portfolio_section import (
     router as mf_portfolio_section_router_v1,
@@ -112,6 +115,7 @@ connect_router.include_router(mf_category_wise_data_router_v1)
 connect_router.include_router(display_mf_recommendations_mutual_funds_router_v1)
 connect_router.include_router(display_mf_each_router_v1)
 connect_router.include_router(mf_filter_option_parameters_router_v1)
+connect_router.include_router(display_mf_filter)
 
 connect_router.include_router(mf_portfolio_section_router_v1)
 
