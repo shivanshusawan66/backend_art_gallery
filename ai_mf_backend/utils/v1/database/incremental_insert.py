@@ -128,9 +128,6 @@ def perform_bulk_upsert(
             q_obj &= Q(**{field: value})
         queries.append(q_obj)
     
-    if not queries:
-        return {"created": 0, "updated": 0}
-    
     combined_query = queries[0]
     for q in queries[1:]:
         combined_query |= q
