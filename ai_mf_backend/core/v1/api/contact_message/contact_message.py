@@ -76,7 +76,7 @@ async def submit_contact_message(
             raise ValidationError("First name cannot be empty.")
         
         validate_name(body.first_name)
-        if request.last_name:  
+        if body.last_name:  
             validate_name(body.last_name)
         custom_validate_international_phonenumber(body.phone_number)
 
