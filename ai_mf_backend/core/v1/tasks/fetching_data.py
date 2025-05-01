@@ -1,6 +1,6 @@
 import logging
 import requests
-from typing import Dict, Any,Type
+from typing import Dict, Any,Type,Union,List,Tuple
 from django.db.models import Model
 from celery.exceptions import MaxRetriesExceededError
 from requests.exceptions import RequestException
@@ -17,6 +17,7 @@ def fetch_and_store_api_data(
     api_url: str,
     params: Dict[str, Any],
     model_name: Type[Model],
+    primary_key_fields: Union[List[str], Tuple[str, ...]], 
     batch_size: int = 1000,
 ) -> Dict[str, Any]:
     print("entered fetch and store api data")
@@ -37,7 +38,7 @@ def fetch_and_store_api_data(
             raise ValueError(f"Expected 'Table' to be a list, got {type(data)}")
 
         return process_and_store_data(
-            data=data, model_class=model_name, batch_size=batch_size
+            data=data, model_class=model_name,primary_key_fields=primary_key_fields, batch_size=batch_size
         )
 
     except RequestException as e:
@@ -57,6 +58,11 @@ def fetch_and_store_api_data(
 @celery_app.task
 def run_all_apis():
     for config in FetchApiConfig:
+        api_url, params, model_cls, batch_size, primary_keys = config.value
         fetch_and_store_api_data.delay(
-            config.url, config.params, config.model, config.batch_size
+            api_url=api_url,
+            params=params,
+            model_name=model_cls,
+            batch_size=batch_size,
+            primary_key_fields=primary_keys,
         )
