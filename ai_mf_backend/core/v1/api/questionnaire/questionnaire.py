@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 @router.get(
     "/sections",
     deprecated=True,
+    tags=["Deprecated"],
     response_model=SectionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,

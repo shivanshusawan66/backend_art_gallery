@@ -192,6 +192,10 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+application.add_exception_handler(
+    RequestValidationError, request_validation_exception_handler
+)
 application.add_exception_handler(
     RateLimitExceeded, rate_limit_handler
 )

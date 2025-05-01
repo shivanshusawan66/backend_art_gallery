@@ -181,6 +181,7 @@ async def forgot_password(request: Request,body: ForgotPasswordRequest, response
 @router.post(
     "/change_password",
     deprecated=True,
+    tags=["Deprecated"],
     response_model=ChangePasswordResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
