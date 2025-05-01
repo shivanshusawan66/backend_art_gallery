@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
@@ -40,17 +40,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/password_user_auth",
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def user_authentication_password(
-    request: UserAuthenticationPasswordRequest, response: Response
+    request: Request ,body: UserAuthenticationPasswordRequest, response: Response
 ):
-    email = request.email
-    mobile_no = request.mobile_no
-    password = request.password
+    email = body.email
+    mobile_no = body.mobile_no
+    password = body.password
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set status code in the response
@@ -141,8 +141,8 @@ async def user_authentication_password(
 
         user_logs = UserLogs(
             user=user_doc,
-            ip_details=request.ip_details,
-            device_type=request.device_type,
+            ip_details=body.ip_details,
+            device_type=body.device_type,
             last_access=timezone.now(),
             action="signup",
         )
@@ -182,7 +182,7 @@ async def user_authentication_password(
                         timezone.now()
                         + timedelta(hours=api_config.OTP_EXPIRATION_DEFAULT_HOURS)
                     ).timestamp()  # Fixed to 5 hours
-                    if not request.remember_me
+                    if not body.remember_me
                     else (
                         timezone.now()
                         + timedelta(days=api_config.OTP_EXPIRATION_REMEMBER_DAYS)
@@ -197,8 +197,8 @@ async def user_authentication_password(
 
             user_logs = UserLogs(
                 user=user_doc,
-                ip_details=request.ip_details,
-                device_type=request.device_type,
+                ip_details=body.ip_details,
+                device_type=body.device_type,
                 last_access=timezone.now(),
                 action="login",
             )
@@ -258,8 +258,8 @@ async def user_authentication_password(
 
         user_logs = UserLogs(
             user=user_doc,
-            ip_details=request.ip_details,
-            device_type=request.device_type,
+            ip_details=body.ip_details,
+            device_type=body.device_type,
             last_access=timezone.now(),
             action="signup",
         )
@@ -291,16 +291,16 @@ async def user_authentication_password(
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/otp_user_auth",
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def user_authentication_otp(
-    request: UserAuthenticationOTPRequest, response: Response
+    request: Request,body: UserAuthenticationOTPRequest, response: Response
 ):
-    email = request.email
-    mobile_no = request.mobile_no
+    email = body.email
+    mobile_no = body.mobile_no
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set status code in the header

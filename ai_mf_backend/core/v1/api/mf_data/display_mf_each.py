@@ -20,57 +20,21 @@ from ai_mf_backend.utils.v1.api_projection.valid_fields import process_fields
 from ai_mf_backend.models.v1.api.display_each_mf import (
     AbsoluteAndAnnualisedReturn, FundCategoryandSubcategory, FundDescriptionDetails, FundManagerDetails, FundOverview, FundRiskStatistics, ReturnsCalculator, AssetAllocation,
     TopHolding, TopSector, MutualFundDashboardResponse, MutualFundFilterResponse,
-    NavHistory
+    NavHistory,MutualFundDashboardErrorResponse
 )
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_fund_dashboard/")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_fund_dashboard(
     request: Request,
     response: Response,
-    fields: Optional[str] = Query(default=None, description="Comma-separated list of fields to include"),
     schemecode: Optional[int] = Query(default=None, description="data on the basis of schemecode"),
-    fund_category_id: Optional[int] = Query(default=None),
-    fund_subcategory_id: Optional[int] = Query(default=None),
-    page: Optional[int] = Query(1, gt=0),
-    page_size: Optional[int] = Query(api_config.DEFAULT_PAGE_SIZE, ge=1, le=api_config.MAX_PAGE_SIZE),
 ):
-    try:
-      
-        # for displaying filters 
-        filter_kwargs = {}
-
-        if fund_category_id:
-            filter_kwargs["asset_type"] = await sync_to_async(
-                lambda: MutualFundType.objects.filter(id=fund_category_id)
-                .values_list("fund_type", flat=True)
-                .first()
-            )()
-
-        if fund_subcategory_id:
-            filter_kwargs["category"] = await sync_to_async(
-                lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id)
-                .values_list("fund_subcategory", flat=True)
-                .first()
-            )()
-   
-
-        all_fields = api_config.MUTUAL_FUND_DASHBOARD_COLOUMNS
-        
-        selected_fields = []
-        if fields is not None:
-            filter_types = [ft.strip() for ft in fields.split(",")]
-            for ft in filter_types:
-                if ft in api_config.FILTER_FIELD_MAPPING:
-                    selected_fields.extend(api_config.FILTER_FIELD_MAPPING[ft])
-
-
-        validated_fields = process_fields(",".join(selected_fields), all_fields)
-        fields_to_project = validated_fields
+    try:    
         
         all_markers = list(set(chain.from_iterable(api_config.COMPONENT_MARKER_MAP.values())))
         refs = await sync_to_async(lambda: list(MFReferenceTable.objects.filter(marker_name__in=all_markers)))()
@@ -253,7 +217,7 @@ async def get_fund_dashboard(
 
             
         # When schemecode is provided, return detailed dashboard
-        if schemecode is not None and not fields:
+        if schemecode is not None :
             result = await sync_to_async(
                 lambda: base_query.filter(schemecode=schemecode).values(*all_markers).first()
             )()
@@ -413,49 +377,21 @@ async def get_fund_dashboard(
                 ),
 
             )
-
-        # When filtering with fields
-        elif not schemecode and fields is not None:
-                
-            result_query = base_query.filter(**filter_kwargs).values(*fields_to_project, 's_name','navrs','_1yrret','schemecode')
-            
-            total_count = await sync_to_async(result_query.count)()
-            start_idx = (page - 1) * page_size
-            end_idx = start_idx + page_size
-            paginated_results = await sync_to_async(lambda: list(result_query[start_idx:end_idx]))()
-            total_page = (total_count + page_size - 1) // page_size
-
-            response.status_code = 200
-            return MutualFundFilterResponse(
-                status=True,
-                message="Successfully filtered the mf data",
-                data=paginated_results,
-                page=page,
-                total_pages=total_page,
-                total_data=total_count,
-                status_code=response.status_code ,
-            )
         else:
             response.status_code = 404  
-            return MutualFundFilterResponse(
+            return MutualFundDashboardErrorResponse(
                 status=False,
-                message="No data found",
+                message="Please Provide schemecode",
                 data=[],
-                page=0,
-                total_pages=0,
-                total_data=0,
                 status_code=response.status_code
             )
 
     except Exception as e:
         response.status_code = 400
         logger.error(f"Error processing request: {str(e)}")
-        return MutualFundFilterResponse(
+        return MutualFundDashboardErrorResponse(
             status=False,
             message=f"Error occurred: {str(e)}",
             data=[],
-            page=0,
-            total_pages=0,
-            total_data=0,
             status_code=response.status_code,
         )

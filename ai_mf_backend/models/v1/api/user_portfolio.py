@@ -6,7 +6,17 @@ from datetime import datetime
 from ai_mf_backend.models.v1.api import Response
 
 
-class Portfolio(BaseModel):
+class InsertPortfolio(BaseModel):
+    scheme_code: int
+    fund_name: Optional[str] = None
+    investment_date: datetime
+    invested_amount: float
+    quantity: float
+    current_fund_nav: Optional[float] = None
+    investment_type: str
+    frequency: str
+
+class UpdatePortfolio(BaseModel):
     investment_id: Optional[int] = None
     scheme_code: int
     fund_name: Optional[str] = None
@@ -39,7 +49,7 @@ class AddPortfolioRequest(BaseModel):
     user_id: int
     is_real: int
 
-    investments: List[Portfolio]
+    investments: List[InsertPortfolio]
 
 
 class AddPortfolioResponse(Response):
@@ -50,7 +60,7 @@ class PatchPortfolioRequest(BaseModel):
     user_id: int
     is_real: int
 
-    investments: List[Portfolio]
+    investments: List[UpdatePortfolio]
 
 
 class PatchPortfolioResponse(Response):

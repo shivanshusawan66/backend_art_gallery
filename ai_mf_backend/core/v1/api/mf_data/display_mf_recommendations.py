@@ -28,8 +28,8 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
 
 router = APIRouter()
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_recommendations", response_model=MFRecommendationsResponse ,dependencies=[Depends(login_checker)],)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_high_return_funds(
     request: Request,
     response: Response,

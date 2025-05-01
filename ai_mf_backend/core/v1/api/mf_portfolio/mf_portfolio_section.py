@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 import logging
 from typing import Optional
 
@@ -26,7 +26,6 @@ from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import (
 )
 
 from ai_mf_backend.models.v1.api.user_portfolio import (
-    Portfolio,
     GetPortfolioResponse,
     DeletePortfolioRequest,
     DeletePortfolioResponse,
@@ -44,20 +43,24 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.get(
     "/get_mf_options_and_details",
     response_model=MFOptionandDetailsResponse,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_options_and_details(
     request: Request,
     response: Response,
     fund_name: Optional[str] = Query(
         default=None, description="Search mutual fund name"
     ),
+    investment_date: Optional[date] = Query(
+        default=None, description="Investment date in YYYY-MM-DD format"
+    ),
 ):
     try:
-        marker_list = ["status", "s_name", "navrs", "frequency", "sip"]
+        marker_list = ["status", "s_name", "navrs_current", "navrs_historical","frequency", "sip"]
 
         refs = await sync_to_async(
             lambda: list(MFReferenceTable.objects.filter(marker_name__in=marker_list))
@@ -83,17 +86,33 @@ async def get_mf_options_and_details(
 
         if fund_name:
             base_query = base_query.filter(s_name__icontains=fund_name)
-
-        if "navrs" in marker_to_models:
-            base_query = base_query.annotate(
-                navrs=Subquery(
-                    marker_to_models["navrs"]
-                    .objects.filter(
-                        schemecode=OuterRef("schemecode"),
+        
+        if investment_date == date.today():
+            if "navrs_current" in marker_to_models:
+                base_query = base_query.annotate(
+                    navrs=Subquery(
+                        marker_to_models["navrs_current"]
+                        .objects.filter(
+                            schemecode=OuterRef("schemecode"),
+                            navdate__lte=investment_date,
+                        )
+                        .order_by("-navdate")
+                        .values("navrs")[:1]
                     )
-                    .values("navrs")[:1]
                 )
-            )
+        else:
+            if "navrs_historical" in marker_to_models:
+                base_query = base_query.annotate(
+                    navrs=Subquery(
+                        marker_to_models["navrs_historical"]
+                        .objects.filter(
+                            schemecode=OuterRef("schemecode"),
+                            navdate__lte=investment_date,
+                        )
+                        .order_by("-navdate")
+                        .values("navrs")[:1]
+                    )
+                )
 
         ordered_query = base_query.order_by(F("s_name").asc(nulls_last=True))
         result_query = ordered_query.values("schemecode", "s_name", "navrs")
@@ -160,7 +179,6 @@ async def mf_portfolio_section(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
         all_scheme_codes = await sync_to_async(list)(PortfolioModel.objects.filter(user_id=user_id).values_list("scheme_code", flat=True))
-        print(all_scheme_codes)
 
         base_qs = MFSchemeMasterInDetails.objects.filter(schemecode__in=all_scheme_codes)
 
@@ -184,7 +202,6 @@ async def mf_portfolio_section(
         rows = await sync_to_async(list)(
             result_qs.values("schemecode", "asset_type", "category")
         )
-        print(rows)
 
         # now fold into one dict:
         scheme_map = {
@@ -219,7 +236,6 @@ async def mf_portfolio_section(
         )
 
         portfolio_rows = await sync_to_async(list)(qs)
-        print(portfolio_rows)
 
         real_portfolio_docs =  [
             Portfolio(
@@ -257,15 +273,17 @@ async def mf_portfolio_section(
         )
 
     
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.delete(
     "/delete_mf_portfolio_item",
     response_model=DeletePortfolioResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def delete_mf_portfolio_item(
-    request: DeletePortfolioRequest,
+    request: Request,
+    body: DeletePortfolioRequest,
     response: Response,
     Authorization: str = Header(),
 ):
@@ -273,8 +291,8 @@ async def delete_mf_portfolio_item(
         user_instance = await validate_user_id(Authorization=Authorization)
         user_id = user_instance.user_id
 
-        is_real = request.is_real
-        investment_id = request.investment_id
+        is_real = body.is_real
+        investment_id = body.investment_id
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
@@ -302,24 +320,25 @@ async def delete_mf_portfolio_item(
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.post(
     "/add_mf_portfolio_item",
     response_model=AddPortfolioResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def add_mf_portfolio_item(
-    request: AddPortfolioRequest,
+    request:Request,
+    body: AddPortfolioRequest,
     response: Response,
     Authorization: str = Header(),
 ):
     try:
         user_instance = await validate_user_id(Authorization=Authorization)
-        # user_id = user_instance.user_id
 
-        is_real = request.is_real
-        investments = request.investments
+        is_real = body.is_real
+        investments = body.investments
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
         instances = []
@@ -356,24 +375,24 @@ async def add_mf_portfolio_item(
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.patch(
     "/patch_mf_portfolio_item",
     response_model=PatchPortfolioResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def patch_mf_portfolio_item(
-    request: PatchPortfolioRequest,
+    request: Request,
+    body: PatchPortfolioRequest,
     response: Response,
     Authorization: str = Header(),
 ):
     try:
         user_instance = await validate_user_id(Authorization=Authorization)
-        #user_id = user_instance.user_id
 
-        is_real = request.is_real
-        investments = request.investments
+        is_real = body.is_real
+        investments = body.investments
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
