@@ -119,11 +119,9 @@ class UserPersonalDetails(SoftDeleteModel):
         UserContactInfo, on_delete=models.PROTECT, null=True, blank=True
     )
     name = models.CharField(
-        max_length=100, null=True, blank=True, validators=[validate_name]
+        max_length=100,validators=[validate_name]
     )
     date_of_birth = models.DateField(
-        null=True,
-        blank=True,
         validators=[validate_reasonable_birth_date, validate_not_future_date],
     )
     gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, blank=True)
