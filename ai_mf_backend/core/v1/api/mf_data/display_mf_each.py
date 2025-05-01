@@ -1,26 +1,39 @@
 import logging
-from fastapi import APIRouter, Query, Response, Request
-from typing import Optional
-from asgiref.sync import sync_to_async
-from django.db.models import OuterRef, Subquery, Sum
-from django.apps import apps
 from itertools import chain
 
-from ai_mf_backend.config.v1.api_config import api_config
-from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
-from ai_mf_backend.core.v1.api import limiter
+from typing import Optional
 from asgiref.sync import sync_to_async
+from fastapi import APIRouter, Query, Response, Request
 
+from django.db.models import OuterRef, Subquery, Sum
+from django.apps import apps
+
+from ai_mf_backend.core.v1.api import limiter
+from ai_mf_backend.config.v1.api_config import api_config
+
+from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 from ai_mf_backend.models.v1.database.mf_master_data import *
 from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
 from ai_mf_backend.models.v1.database.mf_additional import *
-from ai_mf_backend.models.v1.database.mf_category_wise import(MutualFundSubcategory,MutualFundType)
-from ai_mf_backend.utils.v1.api_projection.valid_fields import process_fields
 
-from ai_mf_backend.models.v1.api.display_each_mf import (
-    AbsoluteAndAnnualisedReturn, FundCategoryandSubcategory, FundDescriptionDetails, FundManagerDetails, FundOverview, FundRiskStatistics, ReturnsCalculator, AssetAllocation,
-    TopHolding, TopSector, MutualFundDashboardResponse, MutualFundFilterResponse,
-    NavHistory,MutualFundDashboardErrorResponse
+
+from ai_mf_backend.models.v1.api.display_each_mf import(
+    AbsoluteAndAnnualisedReturn,
+    FundCategoryandSubcategory,
+    FundDescriptionDetails,
+    FundManagerDetails, 
+    FundOverview, 
+    FundRiskStatistics, 
+    MutualFundDashboardMobileResponse, 
+    MutualFundDashboardPayload, 
+    ReturnsCalculator, 
+    AssetAllocation,
+    TopHolding, 
+    TopSector, 
+    MutualFundDashboardResponse, 
+    MutualFundFilterResponse,
+    NavHistory,
+    MutualFundDashboardErrorResponse
 )
 
 router = APIRouter()
@@ -32,6 +45,7 @@ logger = logging.getLogger(__name__)
 async def get_fund_dashboard(
     request: Request,
     response: Response,
+    is_mobile: Optional[bool] = Query(default=False, description="Is mobile?"),
     schemecode: Optional[int] = Query(default=None, description="data on the basis of schemecode"),
 ):
     try:    
@@ -330,53 +344,97 @@ async def get_fund_dashboard(
                     )
      
             response.status_code = 200
-            return MutualFundDashboardResponse(
-                status=True,
-                message="Success",
-                status_code=response.status_code,
-                fund_category_subcategory = FundCategoryandSubcategory(
-                    fund_category=result.get("asset_type"),
-                    fund_subcategory=result.get("category"),
-                ),
-                fund_overview=FundOverview(
-                    net_assets_value=result.get("navrs"),
-                    three_year_return=result.get("_3yearret"),
-                    five_year_return=result.get("_5yearret"),
-                ),
-                fund_risk_statistics=FundRiskStatistics(
-                    one_year_return=result.get("_1yrret"),
-                    sharpe_ratio=result.get("sharpe_y"),
-                    std_dev=result.get("sd_y"),
-                    beta=result.get("beta_y"),
-                    jalpha=result.get("jalpha_y"),
-                    treynor=result.get("treynor_y"),
-                ),
-                returns_calculator=ReturnsCalculator(sip=result.get("sip")),
-                asset_allocation=asset_allocation,
-                top_holdings=top_holdings,
-                top_sectors=top_sectors,
+            if is_mobile:
+                return MutualFundDashboardMobileResponse(
+                    status=True,
+                    message="Success",
+                    status_code=response.status_code,
+                    data = MutualFundDashboardPayload(
+                        fund_category_subcategory = FundCategoryandSubcategory(
+                            fund_category=result.get("asset_type"),
+                            fund_subcategory=result.get("category"),
+                        ),
+                        fund_overview=FundOverview(
+                            net_assets_value=result.get("navrs"),
+                            three_year_return=result.get("_3yearret"),
+                            five_year_return=result.get("_5yearret"),
+                        ),
+                        fund_risk_statistics=FundRiskStatistics(
+                            one_year_return=result.get("_1yrret"),
+                            sharpe_ratio=result.get("sharpe_y"),
+                            std_dev=result.get("sd_y"),
+                            beta=result.get("beta_y"),
+                            jalpha=result.get("jalpha_y"),
+                            treynor=result.get("treynor_y"),
+                        ),
+                        returns_calculator=ReturnsCalculator(sip=result.get("sip")),
+                        asset_allocation=asset_allocation,
+                        top_holdings=top_holdings,
+                        top_sectors=top_sectors,
+                        fund_manager_details=fund_managers,
+                        fund_description = FundDescriptionDetails(
+                            short_description = result.get("ShortSchemeDescrip"),
+                            long_description = result.get("LongSchemeDescrip"),
+                        ),
+                        absolute_and_annualised_return = AbsoluteAndAnnualisedReturn(
+                            absolute_1yr_return = result.get("_1yrret_absolute"),
+                            absolute_3yr_return = result.get("_3yearret_absolute"),
+                            absolute_5yr_return = result.get("_5yearret_absolute"),
+                            annualised_1_yr_return = result.get("_1yrret_annualised"),
+                            annualised_3_yr_return = result.get("_3yearret_annualised"),
+                            annualised_5yr_return = result.get("_5yearret_annualised"),
+                        ) ,
+                        fund_history_nav=NavHistory(
+                            data=nav_history_data,                        
+                        ),
+                    )
+                )
+            else:
+                return MutualFundDashboardResponse(
+                    status=True,
+                    message="Success",
+                    status_code=response.status_code,
+                    fund_category_subcategory = FundCategoryandSubcategory(
+                        fund_category=result.get("asset_type"),
+                        fund_subcategory=result.get("category"),
+                    ),
+                    fund_overview=FundOverview(
+                        net_assets_value=result.get("navrs"),
+                        three_year_return=result.get("_3yearret"),
+                        five_year_return=result.get("_5yearret"),
+                    ),
+                    fund_risk_statistics=FundRiskStatistics(
+                        one_year_return=result.get("_1yrret"),
+                        sharpe_ratio=result.get("sharpe_y"),
+                        std_dev=result.get("sd_y"),
+                        beta=result.get("beta_y"),
+                        jalpha=result.get("jalpha_y"),
+                        treynor=result.get("treynor_y"),
+                    ),
+                    returns_calculator=ReturnsCalculator(sip=result.get("sip")),
+                    asset_allocation=asset_allocation,
+                    top_holdings=top_holdings,
+                    top_sectors=top_sectors,
 
-                fund_manager_details=fund_managers,
+                    fund_manager_details=fund_managers,
 
-                fund_description = FundDescriptionDetails(
-                    short_description = result.get("ShortSchemeDescrip"),
-                    long_description = result.get("LongSchemeDescrip"),
-                ),
+                    fund_description = FundDescriptionDetails(
+                        short_description = result.get("ShortSchemeDescrip"),
+                        long_description = result.get("LongSchemeDescrip"),
+                    ),
 
-                absolute_and_annualised_return = AbsoluteAndAnnualisedReturn(
-                    absolute_1yr_return = result.get("_1yrret_absolute"),
-                    absolute_3yr_return = result.get("_3yearret_absolute"),
-                    absolute_5yr_return = result.get("_5yearret_absolute"),
-                    annualised_1_yr_return = result.get("_1yrret_annualised"),
-                    annualised_3_yr_return = result.get("_3yearret_annualised"),
-                    annualised_5yr_return = result.get("_5yearret_annualised"),
-                ) ,
-                fund_history_nav=NavHistory(
-                    data=nav_history_data,  
-                    
-                ),
-
-            )
+                    absolute_and_annualised_return = AbsoluteAndAnnualisedReturn(
+                        absolute_1yr_return = result.get("_1yrret_absolute"),
+                        absolute_3yr_return = result.get("_3yearret_absolute"),
+                        absolute_5yr_return = result.get("_5yearret_absolute"),
+                        annualised_1_yr_return = result.get("_1yrret_annualised"),
+                        annualised_3_yr_return = result.get("_3yearret_annualised"),
+                        annualised_5yr_return = result.get("_5yearret_annualised"),
+                    ) ,
+                    fund_history_nav=NavHistory(
+                        data=nav_history_data,                        
+                    ),
+                )
         else:
             response.status_code = 404  
             return MutualFundDashboardErrorResponse(
