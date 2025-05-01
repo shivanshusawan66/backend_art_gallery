@@ -25,11 +25,11 @@ from ai_mf_backend.utils.v1.validators.blogs import (
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
     "/filter_and_select_blog_data",
     response_model=BlogCardResponse,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def filter_and_select_blog_data(
     request: Request,
     response: Response,

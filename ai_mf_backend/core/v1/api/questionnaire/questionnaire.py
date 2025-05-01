@@ -60,6 +60,7 @@ logger = logging.getLogger(__name__)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
     "/sections",
+    deprecated=True,
     response_model=SectionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
@@ -95,15 +96,17 @@ async def get_all_sections(request: Request, response: Response):
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.post(
     "/section_wise_questions/",
     response_model=SectionQuestionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_section_wise_questions(
-    request: SectionRequest,
+    request:Request,
+    body: SectionRequest,
     response: Response,
     Authorization: str = Header(),
 ):
@@ -239,7 +242,7 @@ async def get_section_wise_questions(
                 dependency_dict[dependent_question_id][
                     base_question_id
                 ] = base_response_id
-            specified_section_id = request.section_id
+            specified_section_id = body.section_id
             if specified_section_id is None:
                 logger.warning("Section ID is required.")
                 response.status_code = 400

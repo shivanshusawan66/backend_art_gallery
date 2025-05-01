@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Request, Response, status
 
 from django.core.exceptions import ValidationError
 from ai_mf_backend.core.v1.api import limiter
@@ -61,35 +61,36 @@ async def get_options_contact_message_fund_category():
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/submit_contact_message",
     response_model=ContactMessageResponse,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def submit_contact_message(
-    request: ContactMessageRequest,
+    request: Request,
+    body: ContactMessageRequest,
     response: Response,
 ):
     try:
-        if not request.first_name.strip():
+        if not body.first_name.strip():
             raise ValidationError("First name cannot be empty.")
         
-        validate_name(request.first_name)
+        validate_name(body.first_name)
         if request.last_name:  
-            validate_name(request.last_name)
-        custom_validate_international_phonenumber(request.phone_number)
+            validate_name(body.last_name)
+        custom_validate_international_phonenumber(body.phone_number)
 
-        category = await sync_to_async(ContactMessageFundCategory.objects.filter(id=request.category_id).first)()
+        category = await sync_to_async(ContactMessageFundCategory.objects.filter(id=body.category_id).first)()
         if not category:
             raise ValidationError("Invalid category ID provided.")
 
         contact_message = ContactMessage(
-        first_name=request.first_name,
-        last_name=request.last_name,
-        email=request.email,
-        phone_number=request.phone_number,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        email=body.email,
+        phone_number=body.phone_number,
         category_id=category,
-        message=request.message,
+        message=body.message,
         )
 
         await sync_to_async(contact_message.full_clean)()

@@ -24,8 +24,8 @@ from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 
 router = APIRouter()
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_options_fund_category", response_model=MFCategoryOptionResponse)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_category_options(
     request: Request,
     response: Response,
@@ -70,9 +70,10 @@ async def get_mf_category_options(
             status_code=response.status_code,
         )
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.get("/mf_options_fund_subcategory",
             response_model = MFSubCategoryOptionResponse)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_subcategory_options(
     request: Request,
     response: Response,
@@ -125,11 +126,11 @@ async def get_mf_subcategory_options(
         )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get(
     "/get_fund_data_category_subcategory_wise",
     response_model=MFDataCategorySubcategoryWise,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def fund_data_category_subcategory_wise(
     request: Request,
     response: Response,

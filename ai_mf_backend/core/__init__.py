@@ -46,6 +46,6 @@ celery_app.conf.timezone = "Asia/Kolkata"
 celery_app.conf.beat_schedule = {
     "run-all-apis-every-day-23-31": {
         "task": "ai_mf_backend.core.v1.tasks.fetching_data.run_all_apis",
-        "schedule": crontab(hour=23, minute=31),
+        "schedule": crontab(hour=23, minute=32),
     }
 }

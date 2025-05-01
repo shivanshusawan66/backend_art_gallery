@@ -96,7 +96,7 @@ application.state.limiter = rate_limiter
 
 
 @application.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
+async def rate_limit_handler(request: Request, exception: RateLimitExceeded):
     api_response = ExceptionHandlerResponse(
         status=False,
         message="Rate limit exceeded. Try again later.",
@@ -193,7 +193,7 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 application.add_exception_handler(
-    RequestValidationError, request_validation_exception_handler
+    RateLimitExceeded, rate_limit_handler
 )
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
