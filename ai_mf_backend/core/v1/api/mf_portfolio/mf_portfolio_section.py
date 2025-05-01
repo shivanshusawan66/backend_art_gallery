@@ -9,13 +9,13 @@ from fastapi import APIRouter, Query, Response, Depends, Request, status, Header
 
 from ai_mf_backend.core.v1.api import limiter
 
-from ai_mf_backend.models.v1.database.mf_master_data import MFSchemeClassMaster, MFSchemeMasterInDetails
-from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
-from ai_mf_backend.utils.v1.authentication.secrets import login_checker
 from ai_mf_backend.utils.v1.authentication.secrets import (
     login_checker,
     validate_user_id,
 )
+
+from ai_mf_backend.models.v1.database.mf_master_data import MFSchemeClassMaster, MFSchemeMasterInDetails
+from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 
 from ai_mf_backend.models.v1.database.user_portfolio import (
     MFRealPortfolio,
@@ -23,7 +23,6 @@ from ai_mf_backend.models.v1.database.user_portfolio import (
 )
 from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import (
     MFNSEAssetValueLatest,
-    MFNetAssetValueHistorical,
 )
 
 from ai_mf_backend.models.v1.api.user_portfolio import (

@@ -13,8 +13,8 @@ from ai_mf_backend.models.v1.database.mf_filter_parameters import MFFilterColors
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_options_filter_parameters", response_model=MFFilterParameterOptionResponse)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_options_filter_parameters(
     request: Request,
     response: Response,
@@ -32,7 +32,7 @@ async def get_mf_options_filter_parameters(
         ]
 
         data = {
-            "fund_categories": {
+            "mf_filter_parameters": {
                 "name": "mf_filter_paramters",
                 "label": "MF Filter Parameters",
                 "options": options,
@@ -59,8 +59,8 @@ async def get_mf_options_filter_parameters(
             status_code=response.status_code,
         )
     
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_options_color", response_model=MFFilterColorOptionResponse)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_options_color(
     request: Request,
     response: Response,
@@ -78,7 +78,7 @@ async def get_mf_options_color(
         ]
 
         data = {
-            "fund_categories": {
+            "mf_filter_colors": {
                 "name": "mf_filter_colors",
                 "label": "MF Filter Colors",
                 "options": options,

@@ -121,6 +121,7 @@ class UserResponse(SoftDeleteModel):
 
 
 
+
 class QuestionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True

@@ -129,6 +129,8 @@ async def get_mf_subcategory_options(
 @router.get(
     "/get_fund_data_category_subcategory_wise",
     response_model=MFDataCategorySubcategoryWise,
+    deprecated=True,
+    tags=["Deprecated"],
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def fund_data_category_subcategory_wise(

@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 @router.get(
     "/sections",
     deprecated=True,
+    tags=["Deprecated"],
     response_model=SectionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
@@ -479,6 +480,7 @@ async def get_section_completion_status(
                     completion_rate=completion_rate,
                 )
             )
+            section_completion_status.sort(key=lambda s: s.section_id)
 
         return SectionCompletionStatusResponse(
             status=True,

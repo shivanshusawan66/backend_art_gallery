@@ -72,7 +72,7 @@ class UserFinancialDetails(SoftDeleteModel):
         "MonthlySavingCapacity", on_delete=models.PROTECT, null=True, blank=True
     )
     investment_amount_per_year = models.ForeignKey(
-        "InvestmentAmountPerYear", on_delete=models.PROTEC, null=True, blank=True
+        "InvestmentAmountPerYear", on_delete=models.PROTECT, null=True, blank=True
     )
     regular_source_of_income = models.BooleanField(
         choices=[(True, "Yes"), (False, "No")], default=None, null=True, blank=True
