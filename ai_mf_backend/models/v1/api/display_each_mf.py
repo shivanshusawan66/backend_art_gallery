@@ -88,6 +88,24 @@ class MutualFundDashboardResponse(BaseModel):
     absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
     fund_history_nav: Optional[NavHistory] = None
 
+class MutualFundDashboardPayload(BaseModel):
+    fund_category_subcategory: Optional[FundCategoryandSubcategory] = None
+    fund_overview: Optional[FundOverview] = None
+    fund_risk_statistics: Optional[FundRiskStatistics] = None
+    returns_calculator: Optional[ReturnsCalculator] = None
+    asset_allocation: Optional[AssetAllocation] = None
+    top_holdings: Optional[List[TopHolding]] = None
+    top_sectors: Optional[List[TopSector]] = None
+    fund_manager_details: Optional[List[FundManagerDetails]] = None
+    fund_description: Optional[FundDescriptionDetails] = None
+    absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
+    fund_history_nav: Optional[NavHistory] = None
+
+class MutualFundDashboardMobileResponse(BaseModel):
+    status: bool
+    message: str
+    status_code: Optional[int] = 200
+    data: MutualFundDashboardPayload
 
 class MutualFundDashboardErrorResponse(Response):
     data:List[Dict[str,Any]]
