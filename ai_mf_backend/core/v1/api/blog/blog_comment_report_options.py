@@ -5,8 +5,9 @@ from ai_mf_backend.models.v1.database.blog import BlogCommentReportType
 
 from asgiref.sync import sync_to_async
 
-router=APIRouter()
+router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.get("/options_comment_report_type", response_model=BlogCategoryOptionResponse)
 async def get_comment_report_type_options():
@@ -16,7 +17,7 @@ async def get_comment_report_type_options():
             {
                 "key": int(report_type.id),
                 "label": report_type.report_type,
-                "value": report_type.report_type.lower()
+                "value": report_type.report_type.lower(),
             }
             for report_type in report_types
         ]
@@ -36,7 +37,7 @@ async def get_comment_report_type_options():
             status=True,
             message="Comment report type options fetched successfully",
             data=data,
-            status_code=200
+            status_code=200,
         )
 
     except Exception as e:
@@ -45,7 +46,5 @@ async def get_comment_report_type_options():
             status=False,
             message=f"Failed to fetch comment report type options: {str(e)}",
             data={},
-            status_code=500
+            status_code=500,
         )
-
-

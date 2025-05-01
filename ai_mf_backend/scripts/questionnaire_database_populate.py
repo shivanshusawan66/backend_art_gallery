@@ -64,15 +64,15 @@ def populate_data(data):
             # Insert Questions and Allowed Responses
             for index, question_info in enumerate(questions_list):
                 question_id = base_question_id + index + 1
-                if section_id==10 and question_id in [1001,1002]:
-                    visibility_status="hide"
+                if section_id == 10 and question_id in [1001, 1002]:
+                    visibility_status = "hide"
                 else:
-                    visibility_status="show"
+                    visibility_status = "show"
                 question = Question.objects.create(
                     id=question_id,
                     section=section,
                     question=question_info["question_text"],
-                    visibility_question=visibility_status
+                    visibility_question=visibility_status,
                 )
 
                 for response_text in question_info["responses"]:

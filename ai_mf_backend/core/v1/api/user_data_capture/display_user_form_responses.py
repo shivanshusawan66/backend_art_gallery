@@ -22,12 +22,13 @@ from ai_mf_backend.config.v1.api_config import api_config
 router = APIRouter()
 from django.core.exceptions import ValidationError
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.get(
     "/get_user_details_response",
     response_model=UserPersonalFinancialDetailsResponsesDisplayResponse,
     dependencies=[Depends(login_checker)],
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_user_personal_financial_details(
     request: Request,
     response: Response,

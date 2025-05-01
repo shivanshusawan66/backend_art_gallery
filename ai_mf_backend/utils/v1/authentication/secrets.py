@@ -173,10 +173,6 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
     if not user_doc:
         raise MalformedJWTRequestException("This user does not exist.")
 
-    user_id = user_doc.user_id
-    can_request, error_message = throttle_otp_requests(user_id)
-    if not can_request:
-        raise MalformedJWTRequestException(error_message)
 
     expiry = float(decoded_payload["expiry"])
     current_time = float(django_timezone.now().timestamp())
@@ -184,3 +180,28 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
         return Authorization
     else:
         raise MalformedJWTRequestException("The provided Auth token has expired")
+
+async def validate_user_id(Authorization: str):
+
+    decoded_payload = jwt_token_checker(jwt_token=Authorization, encode=False)
+    email = decoded_payload.get("email")
+    mobile_number = decoded_payload.get("mobile_number")
+
+    if not any([email, mobile_number]):
+        raise MalformedJWTRequestException(
+            "Invalid JWT token: no email or mobile number found."
+        )
+
+    get_user_by_email_or_mobile = sync_to_async(
+        lambda email, mobile_number: UserContactInfo.objects.filter(
+            email=email if email else None,
+            mobile_number=mobile_number if not email else None,
+        ).first()
+    )
+
+    user = await get_user_by_email_or_mobile(email, mobile_number)
+
+    if not user:
+        raise MalformedJWTRequestException("User not found")
+
+    return user

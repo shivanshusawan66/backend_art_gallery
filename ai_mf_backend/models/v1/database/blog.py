@@ -16,49 +16,35 @@ class BlogCategory(SoftDeleteModel):
     class Meta:
         db_table = "blog_category"
         verbose_name = "Blog Category"
-        verbose_name_plural = "Blog Category"
+        verbose_name_plural = "Blog Categories"
 
     def __str__(self):
         return self.name
-    
+
+
 class BlogData(SoftDeleteModel):
     id = models.AutoField(primary_key=True)
-    user_id  = models.ForeignKey(
+    user_id = models.ForeignKey(
         UserContactInfo,
         on_delete=models.SET_NULL,
         null=True,
         blank=False,
-        db_column='user_id'
+        db_column="user_id",
     )
-    username = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        editable=False
-    )
+    username = models.CharField(max_length=100, null=True, blank=True, editable=False)
     category = models.ForeignKey(
-        BlogCategory,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        BlogCategory, on_delete=models.SET_NULL, null=True, blank=True
     )
     title = models.CharField(max_length=200)
-    blog_description = CKEditor5Field(
-        config_name='extends',
-        blank=False,
-        null=False
-    )
+    blog_description = CKEditor5Field(config_name="extends", blank=False, null=False)
     user_image = models.ImageField(
-        upload_to="user_images/",
-        null=True,
-        blank=True,
-        editable=False
+        upload_to="user_images/", null=True, blank=True, editable=False
     )
     blogcard_image = models.ImageField(
-        upload_to='blogcard_images/',
+        upload_to="blogcard_images/",
         blank=True,
         null=True,
-        validators=[validate_image_size] 
+        validators=[validate_image_size],
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -66,10 +52,10 @@ class BlogData(SoftDeleteModel):
         if self.user_id:
             try:
                 user_details = (
-                UserPersonalDetails.objects.filter(user=self.user_id)
-                .order_by('-add_date') 
-                .first()
-            )
+                    UserPersonalDetails.objects.filter(user=self.user_id)
+                    .order_by("-add_date")
+                    .first()
+                )
             except UserPersonalDetails.DoesNotExist:
                 user_details = None
 
@@ -82,39 +68,27 @@ class BlogData(SoftDeleteModel):
         if self.blogcard_image:
             unique_filename = generate_unique_filename(self.blogcard_image.name)
             self.blogcard_image.name = unique_filename
-        
+
         super().save(*args, **kwargs)
-        
+
     class Meta:
         db_table = "blog_data"
         verbose_name = "Blog Data"
         verbose_name_plural = "Blogs Data"
 
-        
-
     def __str__(self):
         return f"{self.id} - {self.title}"
 
+
 class BlogComment(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
     blog_post = models.ForeignKey(
-        BlogData,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        BlogData, on_delete=models.SET_NULL, null=True, blank=True
     )
     content = models.TextField()
-    username = models.CharField(
-        max_length=150,
-        null=True,
-        blank=True,
-        editable=False
-    )
+    username = models.CharField(max_length=150, null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -135,41 +109,35 @@ class BlogComment(SoftDeleteModel):
     def __str__(self):
         blog_title = self.blog_post.title if self.blog_post else "[Deleted Blog Post]"
         return f"Comment by {self.username} on {blog_title}"
-    
-    
+
+
 class BlogCommentReply(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
     parent_comment = models.ForeignKey(
-        BlogComment,
-        on_delete=models.CASCADE,
-        related_name="replies"
+        BlogComment, on_delete=models.CASCADE, related_name="replies"
     )
     content = models.TextField()
-    username = models.CharField(
-        max_length=150,
-        null=True,
-        blank=True,
-        editable=False
-    )
+    username = models.CharField(max_length=150, null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        
+
         if not self.pk and not self.username and self.user:
             self.username = (
                 UserPersonalDetails.objects.filter(user=self.user)
-                .values_list('name', flat=True)
+                .values_list("name", flat=True)
                 .first()
             ) or "Unknown User"
         super().save(*args, **kwargs)
 
     def __str__(self):
-        parent_comment_content = (self.parent_comment.content[:30] + "...") if self.parent_comment else "[Deleted Comment]"
+        parent_comment_content = (
+            (self.parent_comment.content[:30] + "...")
+            if self.parent_comment
+            else "[Deleted Comment]"
+        )
         return f"Reply by {self.username} on {parent_comment_content}"
 
     class Meta:
@@ -181,11 +149,10 @@ class BlogCommentReply(SoftDeleteModel):
             models.Index(fields=["created_at"]),
         ]
 
+
 class BlogCommentReportType(SoftDeleteModel):
     report_type = models.CharField(
-        max_length=50, 
-        unique=True, 
-        validators=[validate_report_type]  
+        max_length=50, unique=True, validators=[validate_report_type]
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -197,42 +164,45 @@ class BlogCommentReportType(SoftDeleteModel):
 
     def __str__(self):
         return self.report_type
-    
+
 
 class BlogCommentReport(SoftDeleteModel):
-    user=models.ForeignKey(UserContactInfo,on_delete=models.CASCADE)
-    comment=models.ForeignKey(BlogComment,on_delete=models.CASCADE,null=True,related_name="reports")
-    reply=models.ForeignKey(BlogCommentReply,on_delete=models.CASCADE,null=True,related_name="reply_reports")
-    report_type = models.ForeignKey(
-        BlogCommentReportType, on_delete=models.CASCADE  
+    user = models.ForeignKey(UserContactInfo, on_delete=models.CASCADE)
+    comment = models.ForeignKey(
+        BlogComment, on_delete=models.CASCADE, null=True, related_name="reports"
     )
-    reported_at=models.DateTimeField(auto_now_add=True)
-    username=models.CharField(max_length=150,null=True,blank=True,editable=False)
-    def save(self,*args,**kwargs):
+    reply = models.ForeignKey(
+        BlogCommentReply,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="reply_reports",
+    )
+    report_type = models.ForeignKey(BlogCommentReportType, on_delete=models.CASCADE)
+    reported_at = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=150, null=True, blank=True, editable=False)
+
+    def save(self, *args, **kwargs):
         if not self.username and self.user:
-            self.username=(
+            self.username = (
                 UserPersonalDetails.objects.filter(user=self.user)
-                .values_list('name',flat=True)
+                .values_list("name", flat=True)
                 .first()
             ) or "Unknown User"
-        super().save(*args,**kwargs)
-            
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} reported{self.comment} as {self.report_type}"
-    
+
     class Meta:
-        db_table="blog_comment_report"
-        verbose_name="Blog Comment Report"
-        verbose_name_plural="Blog Comment Reports"
-        constraints= [
+        db_table = "blog_comment_report"
+        verbose_name = "Blog Comment Report"
+        verbose_name_plural = "Blog Comment Reports"
+        constraints = [
             models.CheckConstraint(
                 check=(
-                    models.Q(comment__isnull=False, reply__isnull=True)|
-                    models.Q(comment__isnull=True,reply__isnull=False)
+                    models.Q(comment__isnull=False, reply__isnull=True)
+                    | models.Q(comment__isnull=True, reply__isnull=False)
                 ),
-                name='blog_comment_report_comment_or_reply'
+                name="blog_comment_report_comment_or_reply",
             )
         ]
-
-
-

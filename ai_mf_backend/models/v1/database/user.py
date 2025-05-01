@@ -116,7 +116,7 @@ class UserContactInfo(SoftDeleteModel):
 
 class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+        UserContactInfo, on_delete=models.PROTECT, null=True, blank=True
     )
     name = models.CharField(
         max_length=100,validators=[validate_name]
@@ -129,10 +129,10 @@ class UserPersonalDetails(SoftDeleteModel):
         MaritalStatus, on_delete=models.SET_NULL, null=True, blank=True
     )
     user_image = models.ImageField(
-        upload_to='user_images/',
+        upload_to="user_images/",
         blank=True,
         null=True,
-        validators=[validate_image_size]
+        validators=[validate_image_size],
     )
     add_date = models.DateTimeField(
         auto_now_add=True, validators=[validate_not_future_date]
@@ -141,18 +141,15 @@ class UserPersonalDetails(SoftDeleteModel):
         auto_now=True, validators=[validate_not_future_date]
     )
 
-    def save(self, *args, **kwargs):
-        if self.user_image:
-            unique_filename = generate_unique_filename(self.user_image.name)
-            self.user_image.name = unique_filename
-        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "user_personal_details"
+        verbose_name = "User Personal Details"
+        verbose_name_plural = "User Personal Details"
 
     def __str__(self):
         return f"Personal Details for {self.user}"
-    
+
 
 class OTPlogs(SoftDeleteModel):
     user = models.ForeignKey(

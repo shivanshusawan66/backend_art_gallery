@@ -10,7 +10,7 @@ from ai_mf_backend.utils.v1.authentication.validators import (
     custom_validate_international_phonenumber,
 )
 
-from fastapi import Header, APIRouter, Depends, Response
+from fastapi import Header, APIRouter, Depends, Request, Response
 
 from asgiref.sync import sync_to_async
 from typing import Optional
@@ -44,12 +44,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
-async def forgot_password(request: ForgotPasswordRequest, response: Response):
+@limiter.limit(api_config.REQUEST_PER_MIN)
+async def forgot_password(request: Request,body: ForgotPasswordRequest, response: Response):
 
-    email = request.email
-    mobile_no = request.mobile_no
+    email = body.email
+    mobile_no = body.mobile_no
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set status code in the response
@@ -178,15 +178,18 @@ async def forgot_password(request: ForgotPasswordRequest, response: Response):
     )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post(
     "/change_password",
+    deprecated=True,
+    tags=["Deprecated"],
     response_model=ChangePasswordResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def change_password(
-    request: ChangePasswordRequest,
+    request: Request,
+    body: ChangePasswordRequest,
     response: Response,  # Inject FastAPI Response object
     Authorization: str = Header(),  # Expect token in the Authorization header
 ):
@@ -210,8 +213,8 @@ async def change_password(
                 status_code=498,
             )
 
-    old_password = request.old_password
-    new_password = request.new_password
+    old_password = body.old_password
+    new_password = body.new_password
 
     if not new_password:
         response.status_code = 422  # Set status code in the response
@@ -318,7 +321,7 @@ async def change_password(
             )
 
     if password_checker(old_password, user_doc.password):
-        user_doc.password = password_encoder(request.new_password)
+        user_doc.password = password_encoder(body.new_password)
         await sync_to_async(user_doc.save)()
         response.status_code = 200  # Set status code in the response
         return ChangePasswordResponse(

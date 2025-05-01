@@ -23,6 +23,13 @@ from ai_mf_backend.core.v1.api import limiter as rate_limiter
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
+from ai_mf_backend.core.v1.tasks.mf_scoring import (
+            process_all_schemes,
+        )
+from ai_mf_backend.models.v1.database.contact_message import (
+    ContactMessage,
+    ContactMessageFundCategory
+)
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
 )
@@ -59,19 +66,8 @@ from ai_mf_backend.models.v1.database.questions import (
 )
 
 from ai_mf_backend.models.v1.database.user_authentication import UserLogs
-from ai_mf_backend.models.v1.database.mutual_fund import (
-    MutualFund,
-    HistoricalData,
-    PerformanceData,
-    TrailingReturn,
-    AnnualReturn,
-    FundData,
-    RiskStatistics,
-    FundOverview,
-    AMFIMutualFund,
-)
 
-from ai_mf_backend.models.v1.database.blog import(
+from ai_mf_backend.models.v1.database.blog import (
     BlogCategory,
     BlogData,
     BlogComment,
@@ -79,6 +75,10 @@ from ai_mf_backend.models.v1.database.blog import(
     BlogCommentReport,
     BlogCommentReportType,
 )
+
+from ai_mf_backend.models.v1.database.user_review import UserReview
+
+from ai_mf_backend.models.v1.database.mf_category_wise import MutualFundSubcategory, MutualFundType
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +88,15 @@ application = FastAPI(title=api_config.PROJECT_NAME)
 application.state.limiter = rate_limiter
 
 
+# @application.on_event("startup")
+# async def startup_event():
+#     logger.info("Starting up the application...")
+#     await process_all_schemes()
+#     logger.info("Application started successfully.")
+
+
 @application.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(_request: Request, exception: RateLimitExceeded):
+async def rate_limit_handler(request: Request, exception: RateLimitExceeded):
     api_response = ExceptionHandlerResponse(
         status=False,
         message="Rate limit exceeded. Try again later.",
@@ -185,8 +192,12 @@ if api_config.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
 application.add_exception_handler(
     RequestValidationError, request_validation_exception_handler
+)
+application.add_exception_handler(
+    RateLimitExceeded, rate_limit_handler
 )
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
@@ -216,6 +227,7 @@ class OccupationAdmin(admin.ModelAdmin):
 class AnnualIncomeAdmin(admin.ModelAdmin):
     list_display = ("income_category", "add_date", "update_date")
     search_fields = ("income_category",)
+    list_filter = ("income_category",)
     ordering = ("income_category",)
 
 
@@ -245,8 +257,8 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("name",)
-    list_filter = ("gender", "marital_status")
+    search_fields = ("name", "user__mobile_number",)
+    list_filter = ("gender", "marital_status",)
     ordering = ("name",)
 
     @admin.display(description="User Image Preview")
@@ -254,7 +266,7 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         if obj.user_image:
             return format_html(
                 '<img src="{}" style="max-width:50px; max-height:50px;" />',
-                obj.user_image.url
+                obj.user_image.url,
             )
         return "No Image"
 
@@ -270,7 +282,9 @@ class UserContactInfoAdmin(admin.ModelAdmin):
 class OTPlogsAdmin(admin.ModelAdmin):
     list_display = ("user", "otp", "otp_valid", "add_date", "update_date")
     search_fields = ("user__email", "otp")
+    list_filter = ("otp_valid", "add_date")
     ordering = ("-add_date",)
+    date_hierarchy = "add_date"
 
 
 @admin.register(UserFinancialDetails)
@@ -287,12 +301,15 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user__email",)
+    search_fields = ("user__email","user__mobile_number")
     list_filter = (
         "occupation",
         "income_category",
         "saving_category",
         "investment_amount_per_year",
+        "regular_source_of_income",
+        "lock_in_period_accepted",
+        "investment_style",
     )
     ordering = ("user",)
 
@@ -307,7 +324,7 @@ class SectionAdmin(admin.ModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ("section", "question", "add_date", "update_date")
-    search_fields = ("question",)
+    search_fields = ("question", "section__section")
     list_filter = ("section",)
     ordering = ("section",)
 
@@ -315,8 +332,8 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Allowed_Response)
 class AllowedResponseAdmin(admin.ModelAdmin):
     list_display = ("question", "section", "response", "add_date", "update_date")
-    search_fields = ("response",)
-    list_filter = ("section", "question")
+    search_fields = ("question__question", "response",)
+    list_filter = ("section",)
     ordering = ("question",)
 
 
@@ -330,9 +347,10 @@ class UserResponseAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user_id__email", "question_id__question")
+    search_fields = ("user_id__email","user_id__mobile_number", "question_id__question", "response_id__response")
     list_filter = ("section_id", "question_id")
-    ordering = ("user_id",)
+    ordering = ("-add_date",)
+    date_hierarchy = "add_date"
 
 
 @admin.register(ConditionalQuestion)
@@ -354,79 +372,9 @@ class ConditionalQuestionAdmin(admin.ModelAdmin):
 class UserLogsAdmin(admin.ModelAdmin):
     list_display = ("user", "device_type", "last_access", "action")
     search_fields = ("user__email", "device_type", "action")
-    list_filter = ("action", "device_type")
+    list_filter = ("action", "device_type", "last_access")
     ordering = ("-last_access",)
-
-
-@admin.register(MutualFund)
-class MutualFundAdmin(admin.ModelAdmin):
-    list_display = ("scheme_name", "symbol", "net_asset_value", "date")
-    search_fields = ("scheme_name", "symbol")
-    list_filter = ("date",)
-
-
-@admin.register(HistoricalData)
-class HistoricalDataAdmin(admin.ModelAdmin):
-    list_display = ("fund", "date", "open", "close", "volume")
-    list_filter = ("fund", "date")
-    date_hierarchy = "date"
-
-
-@admin.register(PerformanceData)
-class PerformanceDataAdmin(admin.ModelAdmin):
-    list_display = (
-        "fund",
-        "morningstar_return_rating",
-        "ytd_return",
-        "average_return_5y",
-    )
-    list_filter = ("morningstar_return_rating",)
-
-
-@admin.register(TrailingReturn)
-class TrailingReturnAdmin(admin.ModelAdmin):
-    list_display = ("fund", "metric", "fund_return", "benchmark_return")
-    list_filter = ("metric", "fund")
-
-
-@admin.register(AnnualReturn)
-class AnnualReturnAdmin(admin.ModelAdmin):
-    list_display = ("fund", "year", "fund_return", "category_return")
-    list_filter = ("year", "fund")
-
-
-@admin.register(FundData)
-class FundDataAdmin(admin.ModelAdmin):
-    list_display = ("fund", "min_initial_investment", "min_subsequent_investment")
-
-
-@admin.register(RiskStatistics)
-class RiskStatisticsAdmin(admin.ModelAdmin):
-    list_display = ("fund", "period", "alpha", "beta", "sharpe_ratio")
-    list_filter = ("period", "fund")
-
-
-@admin.register(FundOverview)
-class FundOverviewAdmin(admin.ModelAdmin):
-    list_display = (
-        "fund",
-        "category",
-        "fund_family",
-        "net_assets",
-        "ytd_return",
-        "yield_value",
-        "morningstar_rating",
-        "inception_date",
-    )
-    search_fields = ("fund__scheme_name", "category", "fund_family")
-    list_filter = ("category", "fund_family")
-
-
-@admin.register(AMFIMutualFund)
-class AMFIMutualFundAdmin(admin.ModelAdmin):
-    list_display = ("scheme_name", "q_param", "created_at", "updated_at")
-    search_fields = ("scheme_name", "q_param")
-    list_filter = ("created_at", "updated_at")
+    date_hierarchy = "last_access"
 
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
@@ -434,45 +382,46 @@ class BlogCategoryAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     ordering = ("name",)
 
+
 @admin.register(BlogData)
 class BlogDataAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user_id",
-        "username", 
-        "category", 
-        "title", 
-        "blog_description",
-        "created_at",
-        "blogcard_image_preview"
-    )
-    search_fields = ("id", "title", "username", "category__name")
-    list_filter = ("category", "created_at")
-    readonly_fields = ("username", "created_at")
-    fields = (
-        "user_id",
         "username",
         "category",
         "title",
         "blog_description",
-        "blogcard_image",
         "created_at",
+        "blogcard_image_preview",
     )
+    search_fields = ("id", "title", "username","user_id__mobile_number", "category__name", "blog_description")
+    list_filter = ("category", "created_at")
+    readonly_fields = ("username", "created_at")
+    date_hierarchy = "created_at"
 
-    @admin.display(description="Blog Image Preview")  
+    @admin.display(description="Blog Image Preview")
     def blogcard_image_preview(self, obj):
         if obj.blogcard_image:
             return format_html(
                 '<img src="{}" style="max-width:50px; max-height:50px;" />',
-                obj.blogcard_image.url
+                obj.blogcard_image.url,
             )
         return "No Image"
-    
+
+
 @admin.register(BlogComment)
 class BlogCommentAdmin(admin.ModelAdmin):
-    list_display = ("username", "blog_post", "comment_preview", "created_at", "updated_at", "deleted")
+    list_display = (
+        "username",
+        "blog_post",
+        "comment_preview",
+        "created_at",
+        "updated_at",
+        "deleted",
+    )
     search_fields = ("username", "content")
-    list_filter = ("created_at", "updated_at", "deleted") 
+    list_filter = ("created_at", "updated_at", "deleted")
     readonly_fields = ("username", "created_at", "updated_at")
 
     def get_queryset(self, request):
@@ -482,11 +431,19 @@ class BlogCommentAdmin(admin.ModelAdmin):
         if obj.content:
             return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
         return ""
+
     comment_preview.short_description = "Comment"
+
 
 @admin.register(BlogCommentReply)
 class BlogCommentReplyAdmin(admin.ModelAdmin):
-    list_display = ("username", "reply_content", "parent_comment_preview", "created_at", "deleted")
+    list_display = (
+        "username",
+        "reply_content",
+        "parent_comment_preview",
+        "created_at",
+        "deleted",
+    )
     search_fields = ("username", "content", "parent_comment__content")
     list_filter = ("created_at", "deleted")
     readonly_fields = ("username", "created_at")
@@ -495,11 +452,25 @@ class BlogCommentReplyAdmin(admin.ModelAdmin):
         return super().get_queryset(request).filter(deleted=False)
 
     def reply_content(self, obj):
-        return obj.content[:50] + "..." if obj.content and len(obj.content) > 50 else obj.content
+        return (
+            obj.content[:50] + "..."
+            if obj.content and len(obj.content) > 50
+            else obj.content
+        )
+
     reply_content.short_description = "Reply Content"
 
     def parent_comment_preview(self, obj):
-        return obj.parent_comment.content[:50] + "..." if obj.parent_comment and len(obj.parent_comment.content) > 50 else (obj.parent_comment.content if obj.parent_comment else "[Deleted Comment]")
+        return (
+            obj.parent_comment.content[:50] + "..."
+            if obj.parent_comment and len(obj.parent_comment.content) > 50
+            else (
+                obj.parent_comment.content
+                if obj.parent_comment
+                else "[Deleted Comment]"
+            )
+        )
+
     parent_comment_preview.short_description = "Parent Comment"
 
 
@@ -509,26 +480,108 @@ class BlogCommentReportTypeAdmin(admin.ModelAdmin):
     search_fields = ("report_type",)
     ordering = ("add_date",)
 
+
 @admin.register(BlogCommentReport)
 class BlogCommentReportAdmin(admin.ModelAdmin):
-    list_display = ("username", "comment_content", "reply_content", "report_type", "reported_at", "deleted")
+    list_display = (
+        "username",
+        "comment_content",
+        "reply_content",
+        "report_type",
+        "reported_at",
+        "deleted",
+    )
     search_fields = ("username", "report_type", "comment__content", "reply__content")
     list_filter = ("report_type", "reported_at", "deleted")
     readonly_fields = ("username", "reported_at")
-    list_per_page = 20  
+    list_per_page = 20
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset if request.user.is_superuser else queryset.filter(deleted=False)
 
     def comment_content(self, obj):
-        return (obj.comment.content[:50] + "...") if obj.comment and hasattr(obj.comment, "content") else "-"
+        return (
+            (obj.comment.content[:50] + "...")
+            if obj.comment and hasattr(obj.comment, "content")
+            else "-"
+        )
 
     def reply_content(self, obj):
-        return (obj.reply.content[:50] + "...") if obj.reply and hasattr(obj.reply, "content") else "-"
+        return (
+            (obj.reply.content[:50] + "...")
+            if obj.reply and hasattr(obj.reply, "content")
+            else "-"
+        )
 
     comment_content.short_description = "Comment"
     reply_content.short_description = "Reply"
+
+
+@admin.register(UserReview)
+class UserReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'username',
+        'designation',
+        'review_title',
+        'review_body',
+        'number_of_stars',
+        'location',
+        'user_image_preview',
+        'add_date',
+        'deleted',
+    )
+    list_filter = ('number_of_stars' ,'designation', 'location', 'add_date')
+    search_fields = ('username', 'review_title', 'review_body', 'designation', 'location')
+    date_hierarchy = "add_date"
+
+    @admin.display(description="User Image Preview")
+    def user_image_preview(self, obj):
+        if obj.user_image:
+            return format_html(
+                '<img src="{}" style="max-width:50px; max-height:50px;" />',
+                obj.user_image.url
+            )
+        return "No Image"
+
+@admin.register(ContactMessageFundCategory)
+class ContactMessageFundCategoryrAdmin(admin.ModelAdmin):
+    list_display = ("fund_type", "add_date", "update_date")
+    search_fields = ("fund_type",)
+    ordering = ("fund_type",)
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        'first_name', 
+        'last_name', 
+        'email', 
+        'phone_number', 
+        'category_id__fund_type', 
+        'created_at'
+    )
+    search_fields = (
+        'first_name', 
+        'last_name', 
+        'email', 
+        'phone_number',
+        'message'
+    )
+    list_filter = ('category_id', 'created_at')
+
+@admin.register(MutualFundType)
+class MutualFundTypeAdmin(admin.ModelAdmin):
+    list_display = ("fund_type", "add_date", "update_date")
+    search_fields = ("fund_type",)
+    ordering = ("fund_type",)
+
+@admin.register(MutualFundSubcategory)
+class MutualFundSubcategoryAdmin(admin.ModelAdmin):
+    list_display = ("fund_type_id__fund_type", "fund_subcategory", "add_date", "update_date")
+    search_fields = ("fund_type_id__fund_type", "fund_subcategory",)
+    list_filter    = ("fund_type_id",) 
+    ordering = ("fund_type_id__fund_type",)
     
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()
@@ -544,8 +597,9 @@ application.mount(
 application.mount(
     "/media",
     StaticFiles(directory=os.path.abspath("./ai_mf_backend/utils/v1/mediafiles")),
-    name="media"
+    name="media",
 )
+
 
 @application.post("/health-check")
 def health_check():

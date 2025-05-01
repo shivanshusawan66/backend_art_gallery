@@ -1,27 +1,29 @@
-from fastapi import APIRouter,Response,status
+from fastapi import APIRouter, Response, status
 from ai_mf_backend.models.v1.database.financial_details import (
     Occupation,
     AnnualIncome,
     MonthlySavingCapacity,
     InvestmentAmountPerYear,
 )
-#basically to import questions from questions table for current holding status
+
+# basically to import questions from questions table for current holding status
 from ai_mf_backend.models.v1.database.questions import (
     Question,
     Section,
-    Allowed_Response,  
+    Allowed_Response,
 )
 from ai_mf_backend.models.v1.database.user import Gender, MaritalStatus
-from ai_mf_backend.models.v1.api.user_data import UserProfileQuestionResponse,UserProfileOptionResponse
+from ai_mf_backend.models.v1.api.user_data import (
+    UserProfileQuestionResponse,
+    UserProfileOptionResponse,
+)
 from asgiref.sync import sync_to_async
 
 router = APIRouter()
 
 
 # Function to fetch options for personal details
-@router.get("/options_user_personal_details/",
-            response_model=UserProfileOptionResponse
-)
+@router.get("/options_user_personal_details", response_model=UserProfileOptionResponse)
 async def get_personal_options():
     try:
         # Fetching gender and marital status options asynchronously
@@ -30,7 +32,11 @@ async def get_personal_options():
 
         # Formatting the fetched data to match the structure you want
         gender_options = [
-            {"key": str(gender.id), "label": gender.gender, "value": gender.gender.lower()}
+            {
+                "key": str(gender.id),
+                "label": gender.gender,
+                "value": gender.gender.lower(),
+            }
             for gender in genders
         ]
         marital_status_options = [
@@ -41,7 +47,7 @@ async def get_personal_options():
             }
             for status in marital_statuses
         ]
-    
+
         data = {
             "genders": {
                 "name": "gender",
@@ -57,30 +63,30 @@ async def get_personal_options():
                 "options": marital_status_options,
                 "type": "dropdown",
                 "default": (
-                    [marital_status_options[0]["key"]] if marital_status_options else []),
+                    [marital_status_options[0]["key"]] if marital_status_options else []
+                ),
                 "required": False,
-                },
-            }
-    
+            },
+        }
+
         return UserProfileOptionResponse(
-                status=True,
-                message="Options fetched successfully",
-                data=data,
-                status_code=200
-            )
+            status=True,
+            message="Options fetched successfully",
+            data=data,
+            status_code=200,
+        )
 
     except Exception as e:
         return UserProfileOptionResponse(
             status=False,
             message=f"Failed to fetch options: {str(e)}",
             data={},
-            status_code=500
+            status_code=500,
         )
 
 
-
-@router.get("/options_user_financial_details/",
-            response_model=UserProfileOptionResponse
+@router.get(
+    "/options_user_financial_details", response_model=UserProfileOptionResponse
 )
 async def get_financial_options():
     try:
@@ -127,76 +133,78 @@ async def get_financial_options():
             }
             for investment in investment_amounts_per_year
         ]
-        
+
         data = {
-        "occupations": {
-            "name": "occupation",
-            "label": "Occupation",
-            "options": occupation_options,
-            "type": "dropdown",
-            "default": [occupation_options[0]["key"]] if occupation_options else [],
-            "required": False,
-        },
-        "annual_incomes": {
-            "name": "annual_income",
-            "label": "Annual Income",
-            "options": annual_income_options,
-            "type": "dropdown",
-            "default": (
-                [annual_income_options[0]["key"]] if annual_income_options else []
-            ),
-            "required": False,
-        },
-        "monthly_saving_capacities": {
-            "name": "monthly_saving_capacity",
-            "label": "Monthly Saving Capacity",
-            "options": monthly_saving_capacity_options,
-            "type": "dropdown",
-            "default": (
-                [monthly_saving_capacity_options[0]["key"]]
-                if monthly_saving_capacity_options
-                else []
-            ),
-            "required": False,
-        },
-        "investment_amounts_per_year": {
-            "name": "investment_amount_per_year",
-            "label": "Investment Amount Per Year",
-            "options": investment_amount_per_year_options,
-            "type": "dropdown",
-            "default": (
-                [investment_amount_per_year_options[0]["key"]]
-                if investment_amount_per_year_options
-                else []
-            ),
-            "required": False,     
-          },
+            "occupations": {
+                "name": "occupation",
+                "label": "Occupation",
+                "options": occupation_options,
+                "type": "dropdown",
+                "default": [occupation_options[0]["key"]] if occupation_options else [],
+                "required": False,
+            },
+            "annual_incomes": {
+                "name": "annual_income",
+                "label": "Annual Income",
+                "options": annual_income_options,
+                "type": "dropdown",
+                "default": (
+                    [annual_income_options[0]["key"]] if annual_income_options else []
+                ),
+                "required": False,
+            },
+            "monthly_saving_capacities": {
+                "name": "monthly_saving_capacity",
+                "label": "Monthly Saving Capacity",
+                "options": monthly_saving_capacity_options,
+                "type": "dropdown",
+                "default": (
+                    [monthly_saving_capacity_options[0]["key"]]
+                    if monthly_saving_capacity_options
+                    else []
+                ),
+                "required": False,
+            },
+            "investment_amounts_per_year": {
+                "name": "investment_amount_per_year",
+                "label": "Investment Amount Per Year",
+                "options": investment_amount_per_year_options,
+                "type": "dropdown",
+                "default": (
+                    [investment_amount_per_year_options[0]["key"]]
+                    if investment_amount_per_year_options
+                    else []
+                ),
+                "required": False,
+            },
         }
 
         return UserProfileOptionResponse(
             status=True,
             message="Financial options fetched successfully",
             data=data,
-            status_code=200
+            status_code=200,
         )
-    
+
     except Exception as e:
         return UserProfileOptionResponse(
             status=False,
             message=f"Failed to fetch financial options: {str(e)}",
             data={},
-            status_code=500
+            status_code=500,
         )
 
 
-@router.get("/options_user_questions_details", response_model=UserProfileQuestionResponse)
+@router.get(
+    "/options_user_questions_details", response_model=UserProfileQuestionResponse
+)
 async def get_current_holding_options(response: Response):
     try:
         specified_section_id = 10
         question_ids = [1001, 1002]
         question_labels = {
-        1001: "Current Holding in Shares",
-        1002: "Current Holding in Mutual Funds",
+            1001: "Current Holding in Shares",
+            1002: "Current Holding in Mutual Funds",
         }
 
         current_section = await sync_to_async(
@@ -211,7 +219,9 @@ async def get_current_holding_options(response: Response):
         for question in questions:
             options = await sync_to_async(
                 lambda: list(
-                    Allowed_Response.objects.filter(question=question).values("id", "response")
+                    Allowed_Response.objects.filter(question=question).values(
+                        "id", "response"
+                    )
                 )
             )()
 
@@ -221,7 +231,7 @@ async def get_current_holding_options(response: Response):
                 "label": question_labels.get(question.pk, question.question),
                 "options": [
                     {
-                        "key": option["id"],                         
+                        "key": option["id"],
                         "label": option["response"],
                     }
                     for option in options
@@ -230,19 +240,19 @@ async def get_current_holding_options(response: Response):
                 "type": "dropdown",
             }
             question_data_list.append(question_data)
-        
+
         response.status_code = status.HTTP_200_OK
         return UserProfileQuestionResponse(
             status=True,
             message="Successfully fetched option for questions",
             status_code=status.HTTP_200_OK,
             section_id=10,
-            data=question_data_list
+            data=question_data_list,
         )
     except Exception as e:
         return UserProfileQuestionResponse(
             status=False,
             message=f"Error fetching section questions: {str(e)}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            data=[]
+            data=[],
         )

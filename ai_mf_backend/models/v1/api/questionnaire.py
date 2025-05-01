@@ -62,6 +62,12 @@ class SectionCompletionStatusResponse(Response):
     data: Optional[List[SectionCompletionStatus]] = None
     pass
 
+
 class TotalCompletionStatusResponse(Response):
     data: Optional[Dict] = None
     total_completion_rate: int
+    banner_status:bool
+    banner_message:str
+
+class TotalCompletionStatusMobileResponse(Response):
+    data : Optional[Dict] = None

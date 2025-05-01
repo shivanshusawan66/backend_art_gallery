@@ -1,11 +1,10 @@
 import asyncio
-from typing import Optional, List
+from typing import ClassVar, Dict, Optional, List
 
 # from pydantic import field_validator
 from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
-
 
 class APIConfig(BaseSettingsWrapper):
     """
@@ -39,6 +38,12 @@ class APIConfig(BaseSettingsWrapper):
     OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
     OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
 
+    FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
+
+    DEFAULT_PAGE: Optional[int] = 1
+    DEFAULT_PAGE_SIZE: Optional[int] = 10
+    MAX_PAGE_SIZE: Optional[int] = 100
+
     DEFAULT_ALL_MF_DISPLAY_COLUMNS: Optional[List[str]] = [
         "fund_id",
         "scheme_name",
@@ -48,33 +53,39 @@ class APIConfig(BaseSettingsWrapper):
         "min_investment",
         "category",
     ]
-
-    # Default page size and validation constants
-    DEFAULT_PAGE: Optional[int] = 1
-    DEFAULT_PAGE_SIZE: Optional[int] = 10
-    MAX_PAGE_SIZE: Optional[int] = 100
-
-    MUTUAL_FUND_OVERVIEW_COLOUMNS: list[str] = [
-        "id",
-        "scheme_name",
-        "q_param",
-        "net_asset_value",
-        "symbol",
+    
+    MUTUAL_FUND_DASHBOARD_COLOUMNS: list[str] = [
+    "jalpha_y",
+    "beta_y",
+    "_1yrret",
+    "treynor_y",
+    "sd_y",
+    "sharpe_y",
+    "_5yearret",
+    "_3yearret",
+    "s_name",
+    "navrs",
+    
     ]
 
-    MUTUAL_FUND_PERFORMANCE_COLOUMNS: list[str] = [
-        "fund_id",
-        "ytd_return",
-        "average_return_5y",
-        "number_of_years_up",
-        "number_of_years_down",
-        "best_1y_total_return",
-        "worst_1y_total_return",
-        "best_3y_total_return",
-        "worst_3y_total_return",
-    ]
+    COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] =  {
+            "Fund Risk": ["jalpha_y", "beta_y", "_1yrret", "treynor_y", "sd_y", "sharpe_y", "status"],
+            "Fund Overview": [ "_5yearret","_3yearret","navrs_current"],
+            "Return Calculator": ["sip"],
+            "Asset Allocation": ["compname", "sect_name", "holdpercentage", "mode"],
+            "Historical Nav & Returns": ["navrs_historical"],
+            "Fund Description": ["LongSchemeDescrip", "ShortSchemeDescrip"],
+            "Returns": ["_1yrret_absolute", "_3yearret_absolute", "_5yearret_absolute", "_1yrret_annualised", "_3yearret_annualised", "_5yearret_annualised"],
+            "Extra":["asset_type","mode","category"],
+        }
+        
+    FILTER_FIELD_MAPPING: ClassVar[Dict[str, List[str]]] = {       
+    "return":  ["_5yearret","_3yearret","_1yrret"],
+    "risk": ["sd_y", "beta_y", "sharpe_y","treynor_y","jalpha_y"],  
+    "investment_type":["sip"],
+    }
 
-    BLOG_DATA_COLUMNS: list[str]= [
+    BLOG_DATA_COLUMNS: list[str] = [
         "id",
         "user_id",
         "username",
@@ -104,11 +115,12 @@ class DjangoAppConfig(AppConfig):
     name = api_config.PROJECT_NAME
 
     def ready(self):
-        from ai_mf_backend.utils.v1.constants import refresh_constants
         from ai_mf_backend.utils.v1.user_embeddings.initial_weights import (
             assign_initial_section_and_question_weights,
         )
+        from ai_mf_backend.utils.v1.mf_embeddings.initial_weights import (
+            assign_initial_section_and_marker_weights,
+        )
 
-        # Run the asynchronous refresh_constants during startup
-        # asyncio.run(refresh_constants())
         # asyncio.run(assign_initial_section_and_question_weights())
+        # asyncio.run(assign_initial_section_and_marker_weights())

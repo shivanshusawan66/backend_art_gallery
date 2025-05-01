@@ -1,8 +1,7 @@
 from django.db import models
+from pgvector.django import VectorField
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database import SoftDeleteModel
-
-from ai_mf_backend.utils.v1.constants import refresh_constants
 
 
 class Section(SoftDeleteModel):
@@ -19,20 +18,17 @@ class Section(SoftDeleteModel):
     def __str__(self):
         return self.section
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class Question(SoftDeleteModel):
     section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False 
     )
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     initial_question_weight = models.FloatField(default=0.0)
-    visibility_question=models.CharField(max_length=50)
+    visibility_question = models.CharField(max_length=50)
 
     class Meta:
         db_table = "question"
@@ -42,17 +38,13 @@ class Question(SoftDeleteModel):
     def __str__(self):
         return self.question
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
-
 
 class Allowed_Response(SoftDeleteModel):
     question = models.ForeignKey(
-        Question, on_delete=models.SET_NULL, null=True, blank=True
+        Question, on_delete=models.PROTECT, null=False, blank=False
     )
     section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False
     )
     response = models.CharField(max_length=500)
     position = models.PositiveIntegerField(default=0.0)
@@ -68,9 +60,6 @@ class Allowed_Response(SoftDeleteModel):
     def __str__(self):
         return self.response
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class ConditionalQuestion(SoftDeleteModel):
@@ -104,23 +93,20 @@ class ConditionalQuestion(SoftDeleteModel):
     def __str__(self):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
 
 
 class UserResponse(SoftDeleteModel):
     user_id = models.ForeignKey(
-        UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
+        UserContactInfo, on_delete=models.PROTECT, null=False, blank=False
     )
     question_id = models.ForeignKey(
-        Question, on_delete=models.SET_NULL, null=True, blank=True
+        Question, on_delete=models.PROTECT, null=False, blank=False
     )
     response_id = models.ForeignKey(
-        Allowed_Response, on_delete=models.SET_NULL, null=True, blank=True
+        Allowed_Response, on_delete=models.PROTECT, null=False, blank=False
     )
     section_id = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
+        Section, on_delete=models.PROTECT, null=False, blank=False
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -133,9 +119,7 @@ class UserResponse(SoftDeleteModel):
     def __str__(self):
         return f"Response by {self.user_id} for {self.question_id.question}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        refresh_constants()
+
 
 
 class QuestionWeightsPerUser(SoftDeleteModel):
@@ -155,7 +139,4 @@ class SectionWeightsPerUser(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.SET_NULL, null=True, blank=True
     )
-    section = models.ForeignKey(
-        Section, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    weight = models.FloatField(default=0.0)
+    embedding = VectorField(dimensions=7)

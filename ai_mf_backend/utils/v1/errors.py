@@ -78,3 +78,11 @@ class AssignWeightException(Exception):
     def __init__(self, message: str = "An error occurred while assigning weights."):
         self.message = message
         super().__init__(self.message)
+
+
+class FetchDataFromApiException(Exception):
+    """Raise if some error occured while fetching data from api"""
+
+    def __init__(self, message: str = "An error occurred while fetching data from api"):
+        self.message = message
+        super().__init__(self.message)

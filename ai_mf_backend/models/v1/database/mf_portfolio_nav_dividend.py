@@ -3,6 +3,7 @@ from django.db import models
 
 # 1.1 PORTFOLIO
 
+
 class MFPortfolio(models.Model):
     id = models.AutoField(primary_key=True)
     schemecode = models.IntegerField()
@@ -12,7 +13,9 @@ class MFPortfolio(models.Model):
     fincode = models.IntegerField(null=True, blank=True)
     ASECT_CODE = models.IntegerField(null=True, blank=True)
     sect_code = models.IntegerField(null=True, blank=True)
-    noshares = models.DecimalField(max_digits=18, decimal_places=0, null=True, blank=True)
+    noshares = models.DecimalField(
+        max_digits=18, decimal_places=0, null=True, blank=True
+    )
     mktval = models.FloatField(null=True, blank=True)
     aum = models.FloatField(null=True, blank=True)
     holdpercentage = models.FloatField(null=True, blank=True)
@@ -27,7 +30,10 @@ class MFPortfolio(models.Model):
         db_table = "mf_portfolio"
         verbose_name = "MF Portfolio"
         verbose_name_plural = "MF Portfolio"
-        unique_together = (('schemecode', 'invdate', 'srno'),)
+        unique_together = (("schemecode", "invdate", "srno"),)
+        indexes = [
+            models.Index(fields=["schemecode", "invdate", "srno"])
+        ]
 
 
 class MFAMCPortfolioAUM(models.Model):
@@ -42,7 +48,11 @@ class MFAMCPortfolioAUM(models.Model):
         db_table = "mf_amc_portfolio_aum"
         verbose_name = "MF AMC Portfolio AUM"
         verbose_name_plural = "MF AMC Portfolio AUMs"
-        unique_together = (('amc_code', 'aumdate'),)
+        unique_together = (("amc_code", "aumdate"),)
+        indexes = [
+            models.Index(fields=["amc_code", "aumdate"])
+        ]
+
 
 class MFSchemePortfolioAUM(models.Model):
     id = models.AutoField(primary_key=True)
@@ -57,7 +67,11 @@ class MFSchemePortfolioAUM(models.Model):
         db_table = "mf_scheme_portfolio_aum"
         verbose_name = "MF Scheme Portfolio AUM"
         verbose_name_plural = "MF Scheme Portfolio AUMs"
-        unique_together = (('schemecode', 'monthend'),)
+        unique_together = (("schemecode", "monthend"),)
+        indexes = [
+            models.Index(fields=["schemecode", "monthend"])
+        ]
+
 
 class MFAMCAUM(models.Model):
     id = models.AutoField(primary_key=True)
@@ -71,7 +85,11 @@ class MFAMCAUM(models.Model):
         db_table = "mf_amc_aum"
         verbose_name = "MF AMC AUM"
         verbose_name_plural = "MF AMC AUMs"
-        unique_together = (('amc_code', 'aumdate'),)
+        unique_together = (("amc_code", "aumdate"),)
+        indexes = [
+            models.Index(fields=["amc_code", "aumdate"])
+        ]
+
 
 class MFSchemeAUM(models.Model):
     id = models.AutoField(primary_key=True)
@@ -87,7 +105,11 @@ class MFSchemeAUM(models.Model):
         db_table = "mf_scheme_aum"
         verbose_name = "MF Scheme AUM"
         verbose_name_plural = "MF Scheme AUMs"
-        unique_together = (('schemecode', 'date'),)
+        unique_together = (("schemecode", "date"),)
+        indexes = [
+            models.Index(fields=["schemecode", "date"])
+        ]
+
 
 class MFPortfolioInOut(models.Model):
     id = models.AutoField(primary_key=True)
@@ -105,7 +127,11 @@ class MFPortfolioInOut(models.Model):
         db_table = "mf_portfolio_inout"
         verbose_name = "MF Portfolio InOut"
         verbose_name_plural = "MF Portfolio InOuts"
-        unique_together = (('fincode', 'invdate', 'mode'),)
+        unique_together = (("fincode", "invdate", "mode"),)
+        indexes = [
+            models.Index(fields=["fincode", "invdate", "mode"])
+        ]
+
 
 class MFAverageSchemeAUM(models.Model):
     id = models.AutoField(primary_key=True)
@@ -121,10 +147,14 @@ class MFAverageSchemeAUM(models.Model):
         db_table = "mf_average_scheme_aum"
         verbose_name = "MF Average Scheme AUM"
         verbose_name_plural = "MF Average Scheme AUMs"
-        unique_together = (('schemecode', 'date'),)
+        unique_together = (("schemecode", "date"),)
+        indexes = [
+            models.Index(fields=["schemecode", "date"])
+        ]
 
 
 # 1.2 NET ASSET VALUE
+
 
 class MFNSEAssetValueLatest(models.Model):
     id = models.AutoField(primary_key=True)
@@ -145,10 +175,14 @@ class MFNSEAssetValueLatest(models.Model):
         db_table = "mf_nse_asset_value_latest"
         verbose_name = "MF NSE Asset Value Latest"
         verbose_name_plural = "MF NSE Asset Value Latest"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
+
 
 class MFNetAssetValueHistorical(models.Model):
     id = models.AutoField(primary_key=True)
-    schemecode = models.IntegerField(null=True,blank=True)
+    schemecode = models.IntegerField(null=True, blank=True)
     navdate = models.DateTimeField(null=True, blank=True)
     navrs = models.FloatField(null=True, blank=True)
     repurprice = models.FloatField(null=True, blank=True)
@@ -162,7 +196,11 @@ class MFNetAssetValueHistorical(models.Model):
         db_table = "mf_net_asset_value_historical"
         verbose_name = "MF Net Asset Value Historical"
         verbose_name_plural = "MF Net Asset Value Historical"
-        unique_together = (('schemecode', 'navdate'),)
+        unique_together = (("schemecode", "navdate"),)
+        indexes = [
+            models.Index(fields=["schemecode", "navdate"])
+        ]
+
 
 class MFNetAssetValueHighLow(models.Model):
     id = models.AutoField(primary_key=True)
@@ -210,14 +248,17 @@ class MFNetAssetValueHighLow(models.Model):
     flag = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
-
     class Meta:
         db_table = "mf_net_asset_value_high_low"
         verbose_name = "MF Net Asset Value High Low"
         verbose_name_plural = "MF Net Asset Value High Low"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 
 # 1.3 RETURNS
+
 
 class MFReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -267,6 +308,10 @@ class MFReturn(models.Model):
         db_table = "mf_return"
         verbose_name = "MF Return"
         verbose_name_plural = "MF Returns"
+        indexes = [
+            models.Index(fields=["schemecode", "c_date"])
+        ]
+
 
 class MFAbsoluteReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -316,6 +361,10 @@ class MFAbsoluteReturn(models.Model):
         db_table = "mf_absolute_return"
         verbose_name = "MF Absolute Return"
         verbose_name_plural = "MF Absolute Returns"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
+
 
 class MFAnnualizedReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -365,6 +414,9 @@ class MFAnnualizedReturn(models.Model):
         db_table = "mf_annualized_return"
         verbose_name = "MF Annualized Return"
         verbose_name_plural = "MF Annualized Returns"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
 
 class MFCAGRReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -414,6 +466,10 @@ class MFCAGRReturn(models.Model):
         db_table = "mf_cagr_return"
         verbose_name = "MF CAGR Return"
         verbose_name_plural = "MF CAGR Returns"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
+
 
 class MFCategoryWiseReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -476,7 +532,11 @@ class MFCategoryWiseReturn(models.Model):
         db_table = "mf_category_wise_return"
         verbose_name = "MF Category Wise Return"
         verbose_name_plural = "MF Category Wise Returns"
-        unique_together = (('classcode', 'opt_code'),)
+        unique_together = (("classcode", "opt_code"),)
+        indexes = [
+            models.Index(fields=["classcode", "opt_code"])
+        ]
+
 
 class MFBenchmarkIndicesAbsoluteReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -540,6 +600,10 @@ class MFBenchmarkIndicesAbsoluteReturn(models.Model):
         db_table = "mf_benchmark_indices_absolute_return"
         verbose_name = "MF Benchmark Indices Absolute Return"
         verbose_name_plural = "MF Benchmark Indices Absolute Returns"
+        indexes = [
+            models.Index(fields=["index_code"])
+        ]
+
 
 class MFBenchmarkIndicesAnnualisedReturn(models.Model):
     id = models.AutoField(primary_key=True)
@@ -603,9 +667,13 @@ class MFBenchmarkIndicesAnnualisedReturn(models.Model):
         db_table = "mf_benchmark_indices_annualised_return"
         verbose_name = "MF Benchmark Indices Annualised Return"
         verbose_name_plural = "MF Benchmark Indices Annualised Returns"
+        indexes = [
+            models.Index(fields=["index_code"])
+        ]
 
 
 # 1.4 RATIOS
+
 
 class MFRatios1Year(models.Model):
     id = models.AutoField(primary_key=True)
@@ -616,7 +684,7 @@ class MFRatios1Year(models.Model):
     avg_x = models.FloatField(null=True, blank=True)
     avg_y = models.FloatField(null=True, blank=True)
     sd_x = models.FloatField(null=True, blank=True)
-    sd_y = models.FloatField(null=True, blank=True)  
+    sd_y = models.FloatField(null=True, blank=True)
     semisd_x = models.FloatField(null=True, blank=True)
     semisd_y = models.FloatField(null=True, blank=True)
     beta_x = models.FloatField(null=True, blank=True)
@@ -641,7 +709,11 @@ class MFRatios1Year(models.Model):
     class Meta:
         db_table = "mf_ratios_1_year"
         verbose_name = "MF Ratios 1 Year"
-        verbose_name_plural = "MF Ratios 1 Year"
+        verbose_name_plural = "MF Ratios 1 Year"   
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
+
 
 class MFRatiosDefaultBenchmark1Year(models.Model):
     id = models.AutoField(primary_key=True)
@@ -657,21 +729,21 @@ class MFRatiosDefaultBenchmark1Year(models.Model):
     semisdii = models.FloatField(null=True, blank=True)
     beta = models.FloatField(null=True, blank=True)
     correlation = models.FloatField(null=True, blank=True)
-    beta_corelation = models.FloatField(null=True, blank=True)  
+    beta_corelation = models.FloatField(null=True, blank=True)
     covariance = models.FloatField(null=True, blank=True)
     treynor = models.FloatField(null=True, blank=True)
     fama = models.FloatField(null=True, blank=True)
     sharpe = models.FloatField(null=True, blank=True)
     alpha = models.FloatField(null=True, blank=True)
     sortino = models.FloatField(null=True, blank=True)
-    sortinoii = models.FloatField(null=True, blank=True)  
+    sortinoii = models.FloatField(null=True, blank=True)
     ret_improper = models.FloatField(null=True, blank=True)
     ret_selectivity = models.FloatField(null=True, blank=True)
     down_probability = models.FloatField(null=True, blank=True)
     rsquared = models.FloatField(null=True, blank=True)
     trackingError = models.FloatField(null=True, blank=True)
-    down_risk = models.FloatField(null=True, blank=True)  
-    sd_annualised = models.FloatField(null=True, blank=True)  
+    down_risk = models.FloatField(null=True, blank=True)
+    sd_annualised = models.FloatField(null=True, blank=True)
     informationRatio = models.FloatField(null=True, blank=True)
     flag = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -680,10 +752,14 @@ class MFRatiosDefaultBenchmark1Year(models.Model):
         db_table = "mf_ratios_default_benchmark_1_year"
         verbose_name = "MF Ratios Default Benchmark 1 Year"
         verbose_name_plural = "MF Ratios Default Benchmark 1 Year"
+        indexes = [
+            models.Index(fields=["schemecode"])
+        ]
+
 
 class MFRatios3Year(models.Model):
     id = models.AutoField(primary_key=True)
-    SCHEMECODE = models.IntegerField()  
+    SCHEMECODE = models.IntegerField()
     RatioDate = models.DateField(null=True, blank=True)
     Average_Nav = models.FloatField(null=True, blank=True)
     SD_Nav = models.FloatField(null=True, blank=True)
@@ -711,7 +787,7 @@ class MFRatios3Year(models.Model):
     MaxRet = models.FloatField(null=True, blank=True)
     MinRet = models.FloatField(null=True, blank=True)
     RFR = models.FloatField(null=True, blank=True)
-    PriceIndex = models.IntegerField(null=True, blank=True) 
+    PriceIndex = models.IntegerField(null=True, blank=True)
     PriceIndexName = models.CharField(max_length=255, null=True, blank=True)
     Flag = models.CharField(max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -720,9 +796,13 @@ class MFRatios3Year(models.Model):
         db_table = "mf_ratios_3_year"
         verbose_name = "MF Ratios 3 Year"
         verbose_name_plural = "MF Ratios 3 Year"
+        indexes = [
+            models.Index(fields=["SCHEMECODE"])
+        ]
 
 
 # 1.5 DIVIDEND
+
 
 class MFDividendDetails(models.Model):
     id = models.AutoField(primary_key=True)
@@ -744,4 +824,7 @@ class MFDividendDetails(models.Model):
         db_table = "mf_dividend_details"
         verbose_name = "MF Dividend Detail"
         verbose_name_plural = "MF Dividend Details"
-        unique_together = (('schemecode', 'recorddate'),)
+        unique_together = (("schemecode", "recorddate"),)
+        indexes = [
+            models.Index(fields=["schemecode", "recorddate"])
+        ]

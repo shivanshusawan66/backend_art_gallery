@@ -10,6 +10,7 @@ from ai_mf_backend.core.v1.api.authentication.forget_password import (
 from ai_mf_backend.core.v1.api.authentication.otp_verification import (
     router as otp_verification_router_v1,
 )
+
 # User Data Capture Routers
 from ai_mf_backend.core.v1.api.user_data_capture.id_options import (
     router as id_options_router_v1,
@@ -32,62 +33,68 @@ from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
     router as questionnaire_user_response_display_v1,
 )
 
-# AMFI Parsers Routers
-from ai_mf_backend.core.v1.api.amfi_parsers.amfi_parser import (
-    router as amfi_parser_router_v1,
+
+from ai_mf_backend.core.v1.api.mf_data.display_mf_each import(
+    router as display_mf_each_router_v1,
 )
 
-# Display Mutual Fund Data Routers
-from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data_by_filters import (
-    router as display_mf_data_by_filters_router_v1,
-)
-from ai_mf_backend.core.v1.api.display_mf_data.display_all_mf_columns import (
-    router as display_all_mf_column_router_v1,
-)
-from ai_mf_backend.core.v1.api.display_mf_data.display_each import (
-    router as display_each_router_v1,
-)
-from ai_mf_backend.core.v1.api.display_mf_data.display_mf_data_filter_option import (
-    router as display_mf_data_filter_option_router_v1,
-)
-from ai_mf_backend.core.v1.api.display_mf_data.display_recommendations import (
-    router as mutual_fund_recommendations_router_v1,
+# Display Mutual Fund Data
+from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import(
+    router as display_high_return_mutual_funds_router_v1
 )
 
-# Mutual Fund Category Routers
-from ai_mf_backend.core.v1.api.mutual_fund_category.mutual_fund_category import (
-    router as mutual_fund_category_router_v1,
+# MF DATA
+from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
+    router as display_mf_recommendations_mutual_funds_router_v1,
 )
 
-# Blog Data
+from ai_mf_backend.core.v1.api.mf_data.display_mf_each import (
+    router as display_mf_each_router_v1,
+)
+from ai_mf_backend.core.v1.api.mf_data.display_mf_filter import(
+    router as display_mf_filter_router_v1,
+)
+
+from ai_mf_backend.core.v1.api.mf_portfolio.mf_portfolio_section import (
+    router as mf_portfolio_section_router_v1,
+)
+
+from ai_mf_backend.core.v1.api.mf_data.mf_filter_option_parameters import (
+    router as mf_filter_option_parameters_router_v1,   
+)
+from ai_mf_backend.core.v1.api.mf_data.mf_category_wise_data import (
+    router as mf_category_wise_data_router_v1,
+)
+
+
+# Blog Data Routers
 from ai_mf_backend.core.v1.api.blog.blog_data import (
     router as blog_data_router_v1,
 )
-from ai_mf_backend.core.v1.api.blog.blog_options import(
+from ai_mf_backend.core.v1.api.blog.blog_options import (
     router as blog_options_router_v1,
 )
-from ai_mf_backend.core.v1.api.blog.blog_comment import(
+from ai_mf_backend.core.v1.api.blog.blog_comment import (
     router as blog_comment_router_v1,
 )
-from ai_mf_backend.core.v1.api.blog.blog_comment_reply import(
+from ai_mf_backend.core.v1.api.blog.blog_comment_reply import (
     router as blog_comment_reply_router_v1,
 )
-from ai_mf_backend.core.v1.api.blog.blog_comment_report import(
+from ai_mf_backend.core.v1.api.blog.blog_comment_report import (
     router as blog_comment_report_router_v1,
 )
-from ai_mf_backend.core.v1.api.blog.blog_comment_report_options import(
+from ai_mf_backend.core.v1.api.blog.blog_comment_report_options import (
     router as blog_comment_report_options_router_v1,
 )
 
-# Soft Delete Routers
-from ai_mf_backend.core.v1.api.soft_delete.soft_delete import (
-    router as soft_delete_router_v1,
+# User Review Routers
+from ai_mf_backend.core.v1.api.user_review.user_review import (
+    router as user_review_router_v1,
+)
+from ai_mf_backend.core.v1.api.contact_message.contact_message import (
+    router as contact_message_router_v1,
 )
 
-# YF Data Pull Routers
-from ai_mf_backend.core.v1.api.yf_data_pull.yf_data_pull import (
-    router as yf_data_pull_router_v1,
-)
 
 # Router Inclusions
 connect_router.include_router(authentication_router_v1)
@@ -102,15 +109,14 @@ connect_router.include_router(questionnaire_router_v1)
 connect_router.include_router(saving_response_router_v1)
 connect_router.include_router(questionnaire_user_response_display_v1)
 
-connect_router.include_router(amfi_parser_router_v1)
+connect_router.include_router(display_high_return_mutual_funds_router_v1)
+connect_router.include_router(display_mf_recommendations_mutual_funds_router_v1)
+connect_router.include_router(display_mf_each_router_v1)
+connect_router.include_router(mf_filter_option_parameters_router_v1)
+connect_router.include_router(display_mf_filter_router_v1)
+connect_router.include_router(mf_category_wise_data_router_v1)
 
-connect_router.include_router(display_mf_data_by_filters_router_v1)
-connect_router.include_router(display_all_mf_column_router_v1)
-connect_router.include_router(display_each_router_v1)
-connect_router.include_router(display_mf_data_filter_option_router_v1)
-connect_router.include_router(mutual_fund_recommendations_router_v1)
-
-connect_router.include_router(mutual_fund_category_router_v1)
+connect_router.include_router(mf_portfolio_section_router_v1)
 
 connect_router.include_router(blog_data_router_v1)
 connect_router.include_router(blog_comment_router_v1)
@@ -119,6 +125,6 @@ connect_router.include_router(blog_comment_reply_router_v1)
 connect_router.include_router(blog_comment_report_router_v1)
 connect_router.include_router(blog_comment_report_options_router_v1)
 
-connect_router.include_router(soft_delete_router_v1)
+connect_router.include_router(user_review_router_v1)
 
-connect_router.include_router(yf_data_pull_router_v1)
+connect_router.include_router(contact_message_router_v1)

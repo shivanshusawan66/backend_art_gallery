@@ -5,12 +5,13 @@ from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import check_password
 
 from ai_mf_backend.utils.v1.authentication.validators import (
     custom_validate_international_phonenumber,
 )
 
-from fastapi import APIRouter, Header, Response
+from fastapi import APIRouter, Header, Request, Response
 
 from asgiref.sync import sync_to_async
 
@@ -43,18 +44,20 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
+
 @router.post(
     "/otp_verification", response_model=OTPVerificationResponse, status_code=200
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def otp_verification(
-    request: OTPVerificationRequest,
+    request: Request,
+    body: OTPVerificationRequest,
     response: Response,  # Use FastAPI Response object
     Authorization: str = Header(),  # Expect token in the Authorization header
 ) -> OTPVerificationResponse:
 
-    otp_sent = request.otp
-    remember_me = request.remember_me
+    otp_sent = body.otp
+    remember_me = body.remember_me
 
     if not Authorization:
         response.status_code = 422
@@ -130,7 +133,7 @@ async def otp_verification(
             status_code=422,
         )
 
-    if payload["token_type"] == "forgot_password" and not request.password:
+    if payload["token_type"] == "forgot_password" and not body.password:
         response.status_code = 422  # Set response status code
         return OTPVerificationResponse(
             status=False,
@@ -139,9 +142,9 @@ async def otp_verification(
             status_code=422,
         )
 
-    if request.password:
+    if body.password:
         try:
-            _ = validate_password(password=request.password)
+            _ = validate_password(password=body.password)
         except ValidationError as error_response:
             response.status_code = 422  # Set response status code
             return OTPVerificationResponse(
@@ -254,9 +257,21 @@ async def otp_verification(
             )
 
     elif payload["token_type"] == "forgot_password":
+        new_password_plain = body.password
+
+        if user_doc.password and check_password(new_password_plain, user_doc.password):
+            response.status_code = 400
+            return OTPVerificationResponse(
+                status=False,
+                message="New password must be different from current password",
+                data={},
+                status_code=400,
+            )
+
+        new_password_hashed = password_encoder(new_password_plain)
         password_added = True if not user_doc.password else False
         user_doc.is_verified = True
-        user_doc.password = password_encoder(request.password)
+        user_doc.password = new_password_hashed
         await sync_to_async(user_doc.save)()
         return OTPVerificationResponse(
             status=True,
@@ -280,14 +295,16 @@ async def otp_verification(
     )
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def resend_otp(
-    request: ResendOTPRequest, response: Response
+    request: Request,
+    body: ResendOTPRequest, 
+    response: Response
 ) -> ResendOTPResponse:
 
-    email = request.email
-    mobile_no = request.mobile_no
+    email = body.email
+    mobile_no = body.mobile_no
 
     if not any([email, mobile_no]):
         response.status_code = 400  # Set response status code
@@ -345,7 +362,7 @@ async def resend_otp(
         return ResendOTPResponse(
             status=False,
             message="This user does not exist.",
-            data={"credentials": request.email or request.mobile_no},
+            data={"credentials": body.email or body.mobile_no},
             status_code=404,
         )
 
