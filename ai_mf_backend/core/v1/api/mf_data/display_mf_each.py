@@ -27,8 +27,8 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_fund_dashboard/")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_fund_dashboard(
     request: Request,
     response: Response,
@@ -381,7 +381,7 @@ async def get_fund_dashboard(
             response.status_code = 404  
             return MutualFundDashboardErrorResponse(
                 status=False,
-                message="No data found",
+                message="Please Provide schemecode",
                 data=[],
                 status_code=response.status_code
             )

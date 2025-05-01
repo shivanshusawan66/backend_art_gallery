@@ -18,8 +18,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@limiter.limit(api_config.REQUEST_PER_MIN)
 @router.get("/mf_fund_filter/")
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_fund_filter(
     request: Request,
     response: Response,
@@ -34,12 +34,12 @@ async def get_fund_filter(
     try:
         filter_kwargs = {}
 
-        if fund_category_id:
+        if fund_category_id is not None:
             filter_kwargs["asset_type"] = await sync_to_async(
                 lambda: MutualFundType.objects.filter(id=fund_category_id).values_list("fund_type", flat=True).first()
             )()
 
-        if fund_subcategory_id:
+        if fund_subcategory_id is not None:
             filter_kwargs["category"] = await sync_to_async(
                 lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id).values_list("fund_subcategory", flat=True).first()
             )()
@@ -66,6 +66,7 @@ async def get_fund_filter(
             risk_type = await sync_to_async(
                 lambda: MFFilterColors.objects.filter(id=risk).values_list("color_name", flat=True).first()
             )()
+            filter_kwargs["color"] = risk_type
             if not risk_type:
                 response.status_code = 400
                 return MutualFundFilterResponse(
@@ -218,21 +219,18 @@ async def get_fund_filter(
                 )
             )
 
-    
-        if order_field:
-            base_query = base_query.order_by(order_field)
-
-        if risk_type:
-            base_query = base_query.filter(color=risk_type)
-
         if investment_type is not None:
-            base_query = base_query.filter(sip='T' if investment_type else 'F')
+            filter_kwargs['sip'] = sip='T' if investment_type else 'F'
 
-        if fund_category_id is not None and fund_subcategory_id is not None:
-            result_query = base_query.filter(**filter_kwargs).values(*all_fields,'schemecode')
-        elif not fund_category_id and not fund_subcategory_id:
-            result_query = base_query.values(*all_fields,'schemecode')
-        else:
+        result_query = base_query.filter(**filter_kwargs).values(*all_fields,'schemecode').order_by(order_field)
+
+        total_count = await sync_to_async(result_query.count)()
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated = await sync_to_async(lambda: list(result_query[start_idx:end_idx]))()
+        total_pages = (total_count + page_size - 1) // page_size
+
+        if not paginated:
             response.status_code = 404
             return MutualFundFilterResponse(
                 status=False,
@@ -243,13 +241,6 @@ async def get_fund_filter(
                 total_data=0,
                 status_code=404
             )
-
-
-        total_count = await sync_to_async(result_query.count)()
-        start_idx = (page - 1) * page_size
-        end_idx = start_idx + page_size
-        paginated = await sync_to_async(lambda: list(result_query[start_idx:end_idx]))()
-        total_pages = (total_count + page_size - 1) // page_size
 
         response.status_code = 200
         return MutualFundFilterResponse(
