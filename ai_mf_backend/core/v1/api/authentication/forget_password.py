@@ -46,7 +46,9 @@ router = APIRouter()
 
 @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
 @limiter.limit(api_config.REQUEST_PER_MIN)
-async def forgot_password(request: Request,body: ForgotPasswordRequest, response: Response):
+async def forgot_password(
+    request: Request, body: ForgotPasswordRequest, response: Response
+):
 
     email = body.email
     mobile_no = body.mobile_no

@@ -1,5 +1,6 @@
 from ai_mf_backend.models.v1.api import Response
-from typing import List, Dict, Any ,Optional
+from typing import List, Dict, Any, Optional
+
 
 class MFRecommendationsResponse(Response):
     page: Optional[int] = None

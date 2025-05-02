@@ -29,22 +29,18 @@ def assign_final_marker_weights(self, scheme_code: int):
             for response in mf_responses:
                 option_id = int(response.option_id.id)
 
-                derived_option = MFMarkerOptions.objects.filter(
-                    pk=option_id
-                ).first()
+                derived_option = MFMarkerOptions.objects.filter(pk=option_id).first()
 
-                option_score = (
-                    derived_option.option_weight * derived_option.position
+                option_score = derived_option.option_weight * derived_option.position
+                Marker = MFMarker.objects.filter(marker=response.marker_id).first()
+
+                marker_weight_for_mutual_fund = (
+                    MarkerWeightsPerMutualFund.objects.filter(
+                        scheme_code=scheme_code,
+                        marker=response.marker_id,
+                        section=response.section_id,
+                    ).first()
                 )
-                Marker = MFMarker.objects.filter(
-                    marker=response.marker_id
-                ).first()
-
-                marker_weight_for_mutual_fund = MarkerWeightsPerMutualFund.objects.filter(
-                    scheme_code=scheme_code,
-                    marker=response.marker_id,
-                    section=response.section_id,
-                ).first()
 
                 if marker_weight_for_mutual_fund:
                     marker_weight_for_mutual_fund.weight = (
@@ -61,7 +57,9 @@ def assign_final_marker_weights(self, scheme_code: int):
                 logger.info(f"marker weight saved {scheme_code}")
                 marker_weight_for_mutual_fund.save()
     except Exception as e:
-        logger.error(f"Error assigning final marker weights for scheme {scheme_code}: {e}")
+        logger.error(
+            f"Error assigning final marker weights for scheme {scheme_code}: {e}"
+        )
         raise AssignWeightException(
             f"Error assigning final marker weights for scheme {scheme_code}: {e}"
         )
@@ -72,7 +70,7 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
     try:
         with transaction.atomic():
             Markers = MarkerWeightsPerMutualFund.objects.filter(scheme_code=scheme_code)
-            sections = Section.objects.all().order_by('id')
+            sections = Section.objects.all().order_by("id")
 
             embedding_array = []
             for section in sections:
@@ -82,7 +80,7 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
                         final_section_weight += marker.weight
                     else:
                         continue
-                
+
                 if final_section_weight:
                     embedding_array.append(final_section_weight)
                 else:
@@ -97,43 +95,48 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
                 section_weight_for_mutual_fund.save()
             else:
                 section_weight_for_mutual_fund = SectionWeightsPerMutualFund(
-                    scheme_code=scheme_code, 
-                    embedding = embedding_array
+                    scheme_code=scheme_code, embedding=embedding_array
                 )
                 logger.info(f"section weight saved for scheme : {scheme_code}")
                 section_weight_for_mutual_fund.save()
     except Exception as e:
-        logger.error(f"Error assigning final section weights for scheme {scheme_code}: {e}")
+        logger.error(
+            f"Error assigning final section weights for scheme {scheme_code}: {e}"
+        )
         raise AssignWeightException(
             f"Error assigning final section weights for scheme {scheme_code}: {e}"
         )
 
 
-async def assign_user_weights_chain(scheme_codes: list): 
+async def assign_user_weights_chain(scheme_codes: list):
     failed_schemes = []
     for scheme_code in scheme_codes:
-        try: 
+        try:
             logger.info(f"Assigning weights for scheme code: {scheme_code}")
-            task_chain = chain( 
-                assign_final_marker_weights.si(scheme_code), 
-                assign_final_section_weights_for_mutual_funds.si(scheme_code), 
-            ) 
-            task_chain.apply_async() 
-        except Exception as e: 
+            task_chain = chain(
+                assign_final_marker_weights.si(scheme_code),
+                assign_final_section_weights_for_mutual_funds.si(scheme_code),
+            )
+            task_chain.apply_async()
+        except Exception as e:
             error_msg = f"Error assigning weights for scheme code {scheme_code}: {e}"
-            logger.error(error_msg) 
+            logger.error(error_msg)
             failed_schemes.append(scheme_code)
-    
+
     if failed_schemes:
         error_message = f"Failed to assign weights for scheme codes: {failed_schemes}"
         logger.error(error_message)
         raise AssignWeightException(error_message)
-            
+
     return f"Successfully initiated weight assignment for {len(scheme_codes) - len(failed_schemes)} out of {len(scheme_codes)} scheme codes"
 
 
 async def process_all_schemes():
-    active_scheme_codes = await sync_to_async(list)(MFSchemeMasterInDetails.objects.filter(status="Active").values_list("schemecode", flat=True))
+    active_scheme_codes = await sync_to_async(list)(
+        MFSchemeMasterInDetails.objects.filter(status="Active").values_list(
+            "schemecode", flat=True
+        )
+    )
     try:
         result = await assign_user_weights_chain(active_scheme_codes)
         logger.info(result)

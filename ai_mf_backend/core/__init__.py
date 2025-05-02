@@ -40,7 +40,7 @@ celery_app.conf.task_serializer = "pickle"
 celery_app.conf.result_serializer = "pickle"
 
 celery_app.conf.enable_utc = False
-celery_app.conf.timezone = "Asia/Kolkata" 
+celery_app.conf.timezone = "Asia/Kolkata"
 
 
 celery_app.conf.beat_schedule = {

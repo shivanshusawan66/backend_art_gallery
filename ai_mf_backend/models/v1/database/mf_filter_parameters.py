@@ -5,6 +5,7 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 logger = logging.getLogger(__name__)
 
+
 class MFFilterParameters(SoftDeleteModel):
     parameter_name = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -17,6 +18,7 @@ class MFFilterParameters(SoftDeleteModel):
 
     def __str__(self):
         return self.parameter_name
+
 
 class MFFilterColors(SoftDeleteModel):
     color_name = models.CharField(max_length=50, unique=True)

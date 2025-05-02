@@ -5,6 +5,7 @@ from ai_mf_backend.models.v1.database import SoftDeleteModel
 
 logger = logging.getLogger(__name__)
 
+
 class MutualFundType(SoftDeleteModel):
     fund_type = models.CharField(max_length=50, unique=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -17,6 +18,7 @@ class MutualFundType(SoftDeleteModel):
 
     def __str__(self):
         return self.fund_type
+
 
 class MutualFundSubcategory(SoftDeleteModel):
     fund_type_id = models.ForeignKey(

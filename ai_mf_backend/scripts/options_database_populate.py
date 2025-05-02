@@ -9,7 +9,7 @@ sys.path.append(rf"{os.getcwd()}")
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "ai_mf_backend.config.v1.django_settings"
-)  
+)
 
 
 django.setup()
@@ -24,12 +24,13 @@ from ai_mf_backend.models.v1.database.financial_details import (
 )
 from ai_mf_backend.models.v1.database.mf_category_wise import (
     MutualFundType,
-    MutualFundSubcategory
+    MutualFundSubcategory,
 )
 from ai_mf_backend.models.v1.database.mf_filter_parameters import (
     MFFilterColors,
-    MFFilterParameters
+    MFFilterParameters,
 )
+
 
 def reset_pk_sequence(model):
     """Reset the primary key sequence for the given model (PostgreSQL only)."""
@@ -37,6 +38,7 @@ def reset_pk_sequence(model):
     sequence_sql = f"ALTER SEQUENCE {table_name}_id_seq RESTART WITH 1"
     with connection.cursor() as cursor:
         cursor.execute(sequence_sql)
+
 
 def populate_user_profile_data():
     with transaction.atomic():
@@ -89,86 +91,88 @@ def populate_user_profile_data():
         "Other",
     ]
 
-    mutual_fund_subcategories  = {
-    "Commodity":[
-      "FoFs",
-      "FoFs (Domestic)",
-      "ETFs"
-    ],
-    "Debt":[
-      "Long Duration",
-      "Liquid",
-      "Debt -Interval Funds",
-      "Credit Risk Fund",
-      "Short Duration",
-      "Medium to Long Duration",
-      "Sector Funds",
-      "Medium Duration",
-      "ETFs",
-      "Overnight Fund",
-      "Money Market",
-      "Low Duration",
-      "Corporate Bond",
-      "Dynamic Bond",
-      "Ultra Short Duration",
-      "Banking and PSU Fund",
-      "Fixed Maturity Plans",
-      "Floating Rate",
-      "Gilt"
-    ],
-    "Equity":  [
-      "Mid Cap Fund",
-      "Index Funds",
-      "Focused Fund",
-      "Contra",
-      "Dividend Yield",
-      "Large Cap Fund",
-      "Thematic Fund",
-      "Sector Funds",
-      "Value Fund",
-      "ETFs",
-      "Equity Linked Savings Scheme",
-      "Flexi Cap Fund",
-      "Small cap Fund",
-      "Large & Mid Cap",
-      "Multi Cap Fund"
-    ],
-    "Hybrid":  [
-      "Dynamic Asset Allocation",
-      "Multi Asset Allocation",
-      "Aggressive Hybrid Fund",
-      "Balanced Advantage",
-      "Real Estate",
-      "Capital Protection Funds",
-      "Arbitrage Fund",
-      "Equity Savings",
-      "Conservative Hybrid Fund",
-      "Balanced Hybrid Fund"
-    ],
-    "Other":  [
-      "Solution Oriented - Retirement Fund",
-      "FoFs (Domestic)",
-      "FoFs (Overseas)",
-      "ETFs - Other",
-      "Solution Oriented - Children's Fund"
-    ],
+    mutual_fund_subcategories = {
+        "Commodity": ["FoFs", "FoFs (Domestic)", "ETFs"],
+        "Debt": [
+            "Long Duration",
+            "Liquid",
+            "Debt -Interval Funds",
+            "Credit Risk Fund",
+            "Short Duration",
+            "Medium to Long Duration",
+            "Sector Funds",
+            "Medium Duration",
+            "ETFs",
+            "Overnight Fund",
+            "Money Market",
+            "Low Duration",
+            "Corporate Bond",
+            "Dynamic Bond",
+            "Ultra Short Duration",
+            "Banking and PSU Fund",
+            "Fixed Maturity Plans",
+            "Floating Rate",
+            "Gilt",
+        ],
+        "Equity": [
+            "Mid Cap Fund",
+            "Index Funds",
+            "Focused Fund",
+            "Contra",
+            "Dividend Yield",
+            "Large Cap Fund",
+            "Thematic Fund",
+            "Sector Funds",
+            "Value Fund",
+            "ETFs",
+            "Equity Linked Savings Scheme",
+            "Flexi Cap Fund",
+            "Small cap Fund",
+            "Large & Mid Cap",
+            "Multi Cap Fund",
+        ],
+        "Hybrid": [
+            "Dynamic Asset Allocation",
+            "Multi Asset Allocation",
+            "Aggressive Hybrid Fund",
+            "Balanced Advantage",
+            "Real Estate",
+            "Capital Protection Funds",
+            "Arbitrage Fund",
+            "Equity Savings",
+            "Conservative Hybrid Fund",
+            "Balanced Hybrid Fund",
+        ],
+        "Other": [
+            "Solution Oriented - Retirement Fund",
+            "FoFs (Domestic)",
+            "FoFs (Overseas)",
+            "ETFs - Other",
+            "Solution Oriented - Children's Fund",
+        ],
     }
 
     mf_parameters = [
-    "jalpha_y",
-    "beta_y",
-    "_1yrret",
-    "treynor_y",
-    "sd_y",
-    "sharpe_y",
-    "_5yearret",
-    "_3yearret",
+        "jalpha_y",
+        "beta_y",
+        "_1yrret",
+        "treynor_y",
+        "sd_y",
+        "sharpe_y",
+        "_5yearret",
+        "_3yearret",
     ]
 
     mf_colors = [
-        "Blue", "Brown", "High", "Low", "Low to Moderate", "Moderate", "Moderately High", "Very High",
+        "Blue",
+        "Brown",
+        "High",
+        "Low",
+        "Low to Moderate",
+        "Moderate",
+        "Moderately High",
+        "Very High",
     ]
-
 
     with transaction.atomic():
         for gender in genders:
@@ -199,25 +203,28 @@ def populate_user_profile_data():
         for category in mutual_fund_type:
             MutualFundType.objects.create(fund_type=category)
             print(f"Created Mutual Fund Category:{category} ")
-            
+
         for fund_type_name, subcategories in mutual_fund_subcategories.items():
             try:
                 fund_type = MutualFundType.objects.get(fund_type=fund_type_name)
             except MutualFundType.DoesNotExist:
-                print(f"Fund type '{fund_type_name}' not found. Skipping its subcategories.")
+                print(
+                    f"Fund type '{fund_type_name}' not found. Skipping its subcategories."
+                )
                 continue
 
             for subcategory in subcategories:
                 MutualFundSubcategory.objects.create(
-                    fund_subcategory=subcategory,
-                    fund_type_id=fund_type
+                    fund_subcategory=subcategory, fund_type_id=fund_type
                 )
-                print(f"Created Mutual Fund Subcategory:{subcategory} under {fund_type_name}")
-        
+                print(
+                    f"Created Mutual Fund Subcategory:{subcategory} under {fund_type_name}"
+                )
+
         for mf_parameter in mf_parameters:
             MFFilterParameters.objects.create(parameter_name=mf_parameter)
             print(f"Created Mutual Fund Parameter:{mf_parameter}")
-        
+
         for mf_color in mf_colors:
             MFFilterColors.objects.create(color_name=mf_color)
             print(f"Created Mutual Fund Color:{mf_color}")

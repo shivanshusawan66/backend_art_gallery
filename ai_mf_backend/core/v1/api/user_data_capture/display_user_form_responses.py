@@ -84,7 +84,11 @@ async def get_user_personal_financial_details(
             )
 
         # Ensure required fields exist before constructing the Pydantic model
-        if not user_personal or not user_personal.name or not user_personal.date_of_birth:
+        if (
+            not user_personal
+            or not user_personal.name
+            or not user_personal.date_of_birth
+        ):
             response.status_code = 404
             return UserPersonalFinancialDetailsResponsesDisplayResponse(
                 status=False,
@@ -98,33 +102,34 @@ async def get_user_personal_financial_details(
             data = UserPersonalFinancialFormData(
                 name=user_personal.name,
                 user_profile_image=(
-                    user_personal.user_image.name
-                    if user_personal.user_image else None
+                    user_personal.user_image.name if user_personal.user_image else None
                 ),
                 date_of_birth=user_personal.date_of_birth,
-                gender=(
-                    user_personal.gender.gender
-                    if user_personal.gender else None
-                ),
+                gender=(user_personal.gender.gender if user_personal.gender else None),
                 marital_status=(
                     user_personal.marital_status.marital_status
-                    if user_personal.marital_status else None
+                    if user_personal.marital_status
+                    else None
                 ),
                 occupation=(
                     user_financial.occupation.occupation
-                    if user_financial and user_financial.occupation else None
+                    if user_financial and user_financial.occupation
+                    else None
                 ),
                 annual_income=(
                     user_financial.income_category.income_category
-                    if user_financial and user_financial.income_category else None
+                    if user_financial and user_financial.income_category
+                    else None
                 ),
                 monthly_saving_capacity=(
                     user_financial.saving_category.saving_category
-                    if user_financial and user_financial.saving_category else None
+                    if user_financial and user_financial.saving_category
+                    else None
                 ),
                 investment_amount_per_year=(
                     user_financial.investment_amount_per_year.investment_amount_per_year
-                    if user_financial and user_financial.investment_amount_per_year else None
+                    if user_financial and user_financial.investment_amount_per_year
+                    else None
                 ),
                 regular_source_of_income=(
                     user_financial.regular_source_of_income if user_financial else None

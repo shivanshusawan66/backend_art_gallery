@@ -44,7 +44,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-
 @router.post(
     "/otp_verification", response_model=OTPVerificationResponse, status_code=200
 )
@@ -298,9 +297,7 @@ async def otp_verification(
 @router.post("/resend_otp", response_model=ResendOTPResponse, status_code=200)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def resend_otp(
-    request: Request,
-    body: ResendOTPRequest, 
-    response: Response
+    request: Request, body: ResendOTPRequest, response: Response
 ) -> ResendOTPResponse:
 
     email = body.email

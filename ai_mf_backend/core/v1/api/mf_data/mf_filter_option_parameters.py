@@ -5,22 +5,31 @@ from ai_mf_backend.core.v1.api import limiter
 
 from fastapi import APIRouter, Request, Response
 from asgiref.sync import sync_to_async
-from ai_mf_backend.models.v1.api.mf_filter_parameters import MFFilterColorOptionResponse, MFFilterParameterOptionResponse
-from ai_mf_backend.models.v1.database.mf_filter_parameters import MFFilterColors, MFFilterParameters
-
+from ai_mf_backend.models.v1.api.mf_filter_parameters import (
+    MFFilterColorOptionResponse,
+    MFFilterParameterOptionResponse,
+)
+from ai_mf_backend.models.v1.database.mf_filter_parameters import (
+    MFFilterColors,
+    MFFilterParameters,
+)
 
 
 router = APIRouter()
 
 
-@router.get("/mf_options_filter_parameters", response_model=MFFilterParameterOptionResponse)
+@router.get(
+    "/mf_options_filter_parameters", response_model=MFFilterParameterOptionResponse
+)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_options_filter_parameters(
     request: Request,
     response: Response,
 ):
     try:
-        mf_filter_parameters = await sync_to_async(list)(MFFilterParameters.objects.all())
+        mf_filter_parameters = await sync_to_async(list)(
+            MFFilterParameters.objects.all()
+        )
 
         options = [
             {
@@ -58,7 +67,8 @@ async def get_mf_options_filter_parameters(
             data={},
             status_code=response.status_code,
         )
-    
+
+
 @router.get("/mf_options_color", response_model=MFFilterColorOptionResponse)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_options_color(
@@ -103,4 +113,4 @@ async def get_mf_options_color(
             message=f"Failed to fetch mutual fund filter color options: {str(e)}",
             data={},
             status_code=response.status_code,
-        )   
+        )

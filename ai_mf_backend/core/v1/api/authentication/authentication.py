@@ -46,7 +46,7 @@ router = APIRouter()
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def user_authentication_password(
-    request: Request ,body: UserAuthenticationPasswordRequest, response: Response
+    request: Request, body: UserAuthenticationPasswordRequest, response: Response
 ):
     email = body.email
     mobile_no = body.mobile_no
@@ -297,7 +297,7 @@ async def user_authentication_password(
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def user_authentication_otp(
-    request: Request,body: UserAuthenticationOTPRequest, response: Response
+    request: Request, body: UserAuthenticationOTPRequest, response: Response
 ):
     email = body.email
     mobile_no = body.mobile_no

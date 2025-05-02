@@ -24,11 +24,11 @@ from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.fastapi_blueprints import connect_router as connect_router_v1
 
 from ai_mf_backend.core.v1.tasks.mf_scoring import (
-            process_all_schemes,
-        )
+    process_all_schemes,
+)
 from ai_mf_backend.models.v1.database.contact_message import (
     ContactMessage,
-    ContactMessageFundCategory
+    ContactMessageFundCategory,
 )
 from ai_mf_backend.models.v1.database.user_authentication import (
     UserLogs,
@@ -78,7 +78,10 @@ from ai_mf_backend.models.v1.database.blog import (
 
 from ai_mf_backend.models.v1.database.user_review import UserReview
 
-from ai_mf_backend.models.v1.database.mf_category_wise import MutualFundSubcategory, MutualFundType
+from ai_mf_backend.models.v1.database.mf_category_wise import (
+    MutualFundSubcategory,
+    MutualFundType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -164,9 +167,14 @@ async def request_validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
     )
 
+
 @application.middleware("http")
 async def enforce_json_content_type(request: Request, call_next):
-    if request.method in ("POST", "PUT", "PATCH"):  # Only check for methods that typically have a body
+    if request.method in (
+        "POST",
+        "PUT",
+        "PATCH",
+    ):  # Only check for methods that typically have a body
         content_type = request.headers.get("Content-Type")
         if content_type != "application/json":
             return JSONResponse(
@@ -211,9 +219,7 @@ if api_config.BACKEND_CORS_ORIGINS:
 application.add_exception_handler(
     RequestValidationError, request_validation_exception_handler
 )
-application.add_exception_handler(
-    RateLimitExceeded, rate_limit_handler
-)
+application.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 application.include_router(connect_router_v1, prefix=api_config.API_VER_STR_V1)
 
 
@@ -272,8 +278,14 @@ class UserPersonalDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("name", "user__mobile_number",)
-    list_filter = ("gender", "marital_status",)
+    search_fields = (
+        "name",
+        "user__mobile_number",
+    )
+    list_filter = (
+        "gender",
+        "marital_status",
+    )
     ordering = ("name",)
 
     @admin.display(description="User Image Preview")
@@ -316,7 +328,7 @@ class UserFinancialDetailsAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user__email","user__mobile_number")
+    search_fields = ("user__email", "user__mobile_number")
     list_filter = (
         "occupation",
         "income_category",
@@ -347,7 +359,10 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Allowed_Response)
 class AllowedResponseAdmin(admin.ModelAdmin):
     list_display = ("question", "section", "response", "add_date", "update_date")
-    search_fields = ("question__question", "response",)
+    search_fields = (
+        "question__question",
+        "response",
+    )
     list_filter = ("section",)
     ordering = ("question",)
 
@@ -362,7 +377,12 @@ class UserResponseAdmin(admin.ModelAdmin):
         "add_date",
         "update_date",
     )
-    search_fields = ("user_id__email","user_id__mobile_number", "question_id__question", "response_id__response")
+    search_fields = (
+        "user_id__email",
+        "user_id__mobile_number",
+        "question_id__question",
+        "response_id__response",
+    )
     list_filter = ("section_id", "question_id")
     ordering = ("-add_date",)
     date_hierarchy = "add_date"
@@ -391,6 +411,7 @@ class UserLogsAdmin(admin.ModelAdmin):
     ordering = ("-last_access",)
     date_hierarchy = "last_access"
 
+
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "add_date", "update_date")
@@ -410,7 +431,14 @@ class BlogDataAdmin(admin.ModelAdmin):
         "created_at",
         "blogcard_image_preview",
     )
-    search_fields = ("id", "title", "username","user_id__mobile_number", "category__name", "blog_description")
+    search_fields = (
+        "id",
+        "title",
+        "username",
+        "user_id__mobile_number",
+        "category__name",
+        "blog_description",
+    )
     list_filter = ("category", "created_at")
     readonly_fields = ("username", "created_at")
     date_hierarchy = "created_at"
@@ -536,19 +564,25 @@ class BlogCommentReportAdmin(admin.ModelAdmin):
 @admin.register(UserReview)
 class UserReviewAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'username',
-        'designation',
-        'review_title',
-        'review_body',
-        'number_of_stars',
-        'location',
-        'user_image_preview',
-        'add_date',
-        'deleted',
+        "id",
+        "username",
+        "designation",
+        "review_title",
+        "review_body",
+        "number_of_stars",
+        "location",
+        "user_image_preview",
+        "add_date",
+        "deleted",
     )
-    list_filter = ('number_of_stars' ,'designation', 'location', 'add_date')
-    search_fields = ('username', 'review_title', 'review_body', 'designation', 'location')
+    list_filter = ("number_of_stars", "designation", "location", "add_date")
+    search_fields = (
+        "username",
+        "review_title",
+        "review_body",
+        "designation",
+        "location",
+    )
     date_hierarchy = "add_date"
 
     @admin.display(description="User Image Preview")
@@ -556,9 +590,10 @@ class UserReviewAdmin(admin.ModelAdmin):
         if obj.user_image:
             return format_html(
                 '<img src="{}" style="max-width:50px; max-height:50px;" />',
-                obj.user_image.url
+                obj.user_image.url,
             )
         return "No Image"
+
 
 @admin.register(ContactMessageFundCategory)
 class ContactMessageFundCategoryrAdmin(admin.ModelAdmin):
@@ -566,24 +601,20 @@ class ContactMessageFundCategoryrAdmin(admin.ModelAdmin):
     search_fields = ("fund_type",)
     ordering = ("fund_type",)
 
+
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = (
-        'first_name', 
-        'last_name', 
-        'email', 
-        'phone_number', 
-        'category_id__fund_type', 
-        'created_at'
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "category_id__fund_type",
+        "created_at",
     )
-    search_fields = (
-        'first_name', 
-        'last_name', 
-        'email', 
-        'phone_number',
-        'message'
-    )
-    list_filter = ('category_id', 'created_at')
+    search_fields = ("first_name", "last_name", "email", "phone_number", "message")
+    list_filter = ("category_id", "created_at")
+
 
 @admin.register(MutualFundType)
 class MutualFundTypeAdmin(admin.ModelAdmin):
@@ -591,13 +622,23 @@ class MutualFundTypeAdmin(admin.ModelAdmin):
     search_fields = ("fund_type",)
     ordering = ("fund_type",)
 
+
 @admin.register(MutualFundSubcategory)
 class MutualFundSubcategoryAdmin(admin.ModelAdmin):
-    list_display = ("fund_type_id__fund_type", "fund_subcategory", "add_date", "update_date")
-    search_fields = ("fund_type_id__fund_type", "fund_subcategory",)
-    list_filter    = ("fund_type_id",) 
+    list_display = (
+        "fund_type_id__fund_type",
+        "fund_subcategory",
+        "add_date",
+        "update_date",
+    )
+    search_fields = (
+        "fund_type_id__fund_type",
+        "fund_subcategory",
+    )
+    list_filter = ("fund_type_id",)
     ordering = ("fund_type_id__fund_type",)
-    
+
+
 # https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 django_application = get_asgi_application()
 

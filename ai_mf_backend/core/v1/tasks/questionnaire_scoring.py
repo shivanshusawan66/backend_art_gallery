@@ -66,7 +66,7 @@ def assign_final_section_weights(self, user_id: int):
     try:
         with transaction.atomic():
             questions = QuestionWeightsPerUser.objects.filter(user_id_id=user_id)
-            sections = Section.objects.all().order_by('id')
+            sections = Section.objects.all().order_by("id")
             embedding_array = []
             for section in sections:
                 final_section_weight = 0
@@ -90,7 +90,7 @@ def assign_final_section_weights(self, user_id: int):
             else:
                 section_weight_for_user = SectionWeightsPerUser(
                     user_id_id=user_id,
-                    embedding = embedding_array,
+                    embedding=embedding_array,
                 )
             logger.info(f"section weight saved {user_id}")
             section_weight_for_user.save()

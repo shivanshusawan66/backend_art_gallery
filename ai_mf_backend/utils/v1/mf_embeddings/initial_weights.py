@@ -25,9 +25,7 @@ async def assign_initial_section_and_marker_weights():
 
             if not total_markers:
                 logger.warning(f"No markers found in Section ID {section.id}")
-                raise AssignWeightException(
-                    f"No markers found in Section {section.id}"
-                )
+                raise AssignWeightException(f"No markers found in Section {section.id}")
 
             weight_per_marker = 1 / total_markers
 

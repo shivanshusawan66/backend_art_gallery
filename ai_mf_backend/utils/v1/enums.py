@@ -5,6 +5,7 @@ from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import *
 from ai_mf_backend.models.v1.database.mf_additional import *
 from ai_mf_backend.config.v1.api_config import api_config
 
+
 class APIConstants(Enum):
     SUCCESS = "SUCCESS"
     ERROR = "ERROR"
@@ -30,9 +31,9 @@ class FetchApiConfig(Enum):
         },
         MFTypeMaster,
         1000,
-        ["amc_code"]
+        ["amc_code"],
     )
-    DATA2=(
+    DATA2 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Amc_keypersons",
@@ -43,11 +44,10 @@ class FetchApiConfig(Enum):
         },
         MFAMCKeyPerson,
         1000,
-        ["amc_code","srno"]
-
+        ["amc_code", "srno"],
     )
-    DATA3=(
-          "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA3 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Scheme_master",
             "date": date_str,
@@ -57,10 +57,10 @@ class FetchApiConfig(Enum):
         },
         MFSchemeMaster,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
-    DATA4=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA4 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Scheme_details",
             "date": date_str,
@@ -70,10 +70,10 @@ class FetchApiConfig(Enum):
         },
         MFSchemeMasterInDetails,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
-    DATA5=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA5 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Scheme_rtcode",
             "date": date_str,
@@ -83,10 +83,10 @@ class FetchApiConfig(Enum):
         },
         MFSchemeRTCode,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
-    DATA6=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA6 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "schemeisinmaster",
             "date": date_str,
@@ -96,10 +96,10 @@ class FetchApiConfig(Enum):
         },
         MFSchemeIsInMaster,
         1000,
-        ["ISIN"]
+        ["ISIN"],
     )
-    DATA7=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA7 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Type_mst",
             "date": date_str,
@@ -109,10 +109,10 @@ class FetchApiConfig(Enum):
         },
         MFTypeMaster,
         1000,
-        ["type_code"]
+        ["type_code"],
     )
-    DATA8=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA8 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Option_mst",
             "date": date_str,
@@ -122,10 +122,10 @@ class FetchApiConfig(Enum):
         },
         MFOptionMaster,
         1000,
-        ["opt_code"]
+        ["opt_code"],
     )
-    DATA9=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA9 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Sclass_mst",
             "date": date_str,
@@ -135,10 +135,10 @@ class FetchApiConfig(Enum):
         },
         MFSchemeClassMaster,
         1000,
-        ["classcode"]
+        ["classcode"],
     )
-    DATA10=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA10 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Rt_mst",
             "date": date_str,
@@ -148,10 +148,10 @@ class FetchApiConfig(Enum):
         },
         MFRegistrarMaster,
         1000,
-        ["rt_code"]
+        ["rt_code"],
     )
-    DATA11=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA11 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Plan_mst",
             "date": date_str,
@@ -161,10 +161,10 @@ class FetchApiConfig(Enum):
         },
         MFPlanMaster,
         1000,
-        ["plan_code"]
+        ["plan_code"],
     )
-    DATA12=(
-         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
+    DATA12 = (
+        "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
             "filename": "Cust_mst",
             "date": date_str,
@@ -174,7 +174,7 @@ class FetchApiConfig(Enum):
         },
         MFCustodianMaster,
         1000,
-        ["cust_code"]
+        ["cust_code"],
     )
     DATA13 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -187,7 +187,7 @@ class FetchApiConfig(Enum):
         },
         MFFundManagerMaster,
         1000,
-        ["id"]
+        ["id"],
     )
     DATA14 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -200,7 +200,7 @@ class FetchApiConfig(Enum):
         },
         MFDividendMaster,
         1000,
-        ["div_code"]
+        ["div_code"],
     )
     DATA15 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -213,7 +213,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeObjective,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA16 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -226,7 +226,7 @@ class FetchApiConfig(Enum):
         },
         MFSystematicInvestmentPlan,
         1000,
-        ["schemecode","frequency"]
+        ["schemecode", "frequency"],
     )
     DATA17 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -239,7 +239,7 @@ class FetchApiConfig(Enum):
         },
         MFSystematicWithdrawalPlan,
         1000,
-        ["schemecode","frequency"]
+        ["schemecode", "frequency"],
     )
     DATA18 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -252,7 +252,7 @@ class FetchApiConfig(Enum):
         },
         MFSystematicTransferPlan,
         1000,
-        ["schemecode","frequency","stpinout"]
+        ["schemecode", "frequency", "stpinout"],
     )
     DATA19 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -265,7 +265,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeIndexMapping,
         1000,
-        ["SCHEMECODE","INDEXCODE"]
+        ["SCHEMECODE", "INDEXCODE"],
     )
     DATA20 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -278,7 +278,7 @@ class FetchApiConfig(Enum):
         },
         MFIndexMaster,
         1000,
-        ["indexcode"]
+        ["indexcode"],
     )
     DATA21 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -291,7 +291,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeEntryExitLoad,
         1000,
-        ["SCHEMECODE","LDATE","LTYPECODE","LSRNO"]
+        ["SCHEMECODE", "LDATE", "LTYPECODE", "LSRNO"],
     )
     DATA22 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -304,7 +304,7 @@ class FetchApiConfig(Enum):
         },
         MFLoadTypeMaster,
         1000,
-        ["ltypecode"]
+        ["ltypecode"],
     )
     DATA23 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -317,7 +317,7 @@ class FetchApiConfig(Enum):
         },
         MFCompanyMaster,
         1000,
-        ["fincode"]
+        ["fincode"],
     )
     DATA24 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -330,7 +330,7 @@ class FetchApiConfig(Enum):
         },
         MFIndustryMaster,
         1000,
-        ["Ind_code"]
+        ["Ind_code"],
     )
     DATA25 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -343,7 +343,7 @@ class FetchApiConfig(Enum):
         },
         MFAssetAllocationMaster,
         1000,
-        ["asect_code"]
+        ["asect_code"],
     )
     DATA26 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -356,9 +356,9 @@ class FetchApiConfig(Enum):
         },
         MFSchemeRGESS,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
-    
+
     DATA27 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
         {
@@ -370,7 +370,7 @@ class FetchApiConfig(Enum):
         },
         MFPortfolio,
         1000,
-        ["schemecode","invdate","srno"]
+        ["schemecode", "invdate", "srno"],
     )
     DATA28 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -383,7 +383,7 @@ class FetchApiConfig(Enum):
         },
         MFAMCPortfolioAUM,
         1000,
-        ["amc_code","aumdate"]
+        ["amc_code", "aumdate"],
     )
     DATA29 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -396,7 +396,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemePortfolioAUM,
         1000,
-        ["schemecode","monthend"]
+        ["schemecode", "monthend"],
     )
     DATA30 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -409,7 +409,7 @@ class FetchApiConfig(Enum):
         },
         MFAMCAUM,
         1000,
-        ["amc_code","aumdate"]
+        ["amc_code", "aumdate"],
     )
     DATA31 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -422,7 +422,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeAUM,
         1000,
-        ["schemecode","date"]
+        ["schemecode", "date"],
     )
     DATA32 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -435,7 +435,7 @@ class FetchApiConfig(Enum):
         },
         MFPortfolioInOut,
         1000,
-        ["fincode","invdate","mode"]
+        ["fincode", "invdate", "mode"],
     )
     DATA33 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -448,7 +448,7 @@ class FetchApiConfig(Enum):
         },
         MFAverageSchemeAUM,
         1000,
-        ["schemecode","date"]
+        ["schemecode", "date"],
     )
     DATA34 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -461,7 +461,7 @@ class FetchApiConfig(Enum):
         },
         MFNSEAssetValueLatest,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA35 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -474,7 +474,7 @@ class FetchApiConfig(Enum):
         },
         MFNetAssetValueHistorical,
         1000,
-        ["schemecode","navdate"]
+        ["schemecode", "navdate"],
     )
     DATA36 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -487,7 +487,7 @@ class FetchApiConfig(Enum):
         },
         MFNetAssetValueHighLow,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA37 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -500,7 +500,7 @@ class FetchApiConfig(Enum):
         },
         MFReturn,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA38 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -513,7 +513,7 @@ class FetchApiConfig(Enum):
         },
         MFAbsoluteReturn,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA39 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -526,7 +526,7 @@ class FetchApiConfig(Enum):
         },
         MFAnnualizedReturn,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA40 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -539,7 +539,7 @@ class FetchApiConfig(Enum):
         },
         MFCAGRReturn,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA41 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -552,7 +552,7 @@ class FetchApiConfig(Enum):
         },
         MFCategoryWiseReturn,
         1000,
-        ["classcode","opt_code"]
+        ["classcode", "opt_code"],
     )
     DATA42 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -565,7 +565,7 @@ class FetchApiConfig(Enum):
         },
         MFBenchmarkIndicesAbsoluteReturn,
         1000,
-        ["index_code"]
+        ["index_code"],
     )
     DATA43 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -578,7 +578,7 @@ class FetchApiConfig(Enum):
         },
         MFBenchmarkIndicesAnnualisedReturn,
         1000,
-        ["index_code"]
+        ["index_code"],
     )
     DATA44 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -591,7 +591,7 @@ class FetchApiConfig(Enum):
         },
         MFRatios1Year,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA45 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -604,7 +604,7 @@ class FetchApiConfig(Enum):
         },
         MFRatiosDefaultBenchmark1Year,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA46 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -617,7 +617,7 @@ class FetchApiConfig(Enum):
         },
         MFRatios3Year,
         1000,
-        ["SCHEMECODE"]
+        ["SCHEMECODE"],
     )
     DATA47 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -630,7 +630,7 @@ class FetchApiConfig(Enum):
         },
         MFDividendDetails,
         1000,
-        ["schemecode","recorddate"]
+        ["schemecode", "recorddate"],
     )
     DATA48 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -643,7 +643,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeMonthWiseExpenseRatio,
         1000,
-        ["schemecode","date"]
+        ["schemecode", "date"],
     )
     DATA49 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -656,7 +656,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeEquityDetails,
         1000,
-        ["SchemeCode"]
+        ["SchemeCode"],
     )
     DATA50 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -669,7 +669,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeFMPYieldDetails,
         1000,
-        ["schemecode"]
+        ["schemecode"],
     )
     DATA51 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -682,7 +682,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeAverageMaturity,
         1000,
-        ["schemecode","date"]
+        ["schemecode", "date"],
     )
     DATA52 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -695,7 +695,7 @@ class FetchApiConfig(Enum):
         },
         MFFaceValueChange,
         1000,
-        ["schemecode","fvdate"]
+        ["schemecode", "fvdate"],
     )
     DATA53 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -708,7 +708,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeNameChange,
         1000,
-        ["Amc_Code","SchemeCode","Effectivedate"]
+        ["Amc_Code", "SchemeCode", "Effectivedate"],
     )
     DATA54 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -721,7 +721,7 @@ class FetchApiConfig(Enum):
         },
         MFFundmanager,
         1000,
-        ["date","schemecode"]
+        ["date", "schemecode"],
     )
     DATA55 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -734,7 +734,7 @@ class FetchApiConfig(Enum):
         },
         MFMergedschemes,
         1000,
-        ["schemecode","mergedwith"]
+        ["schemecode", "mergedwith"],
     )
     DATA56 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -747,7 +747,7 @@ class FetchApiConfig(Enum):
         },
         MFBulkDeals,
         1000,
-        ["fincode","date","clientname","dealtype","volume","price"]
+        ["fincode", "date", "clientname", "dealtype", "volume", "price"],
     )
     DATA57 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -760,7 +760,7 @@ class FetchApiConfig(Enum):
         },
         MFSchemeAssetAllocation,
         1000,
-        ["schemecode","investment"]
+        ["schemecode", "investment"],
     )
     DATA58 = (
         "https://contentapi.accordwebservices.com/RawData/GetRawDataJSON?",
@@ -773,10 +773,8 @@ class FetchApiConfig(Enum):
         },
         MFCompanyMcap,
         1000,
-        ["fincode"]
+        ["fincode"],
     )
-    
-    
 
     @property
     def url(self):

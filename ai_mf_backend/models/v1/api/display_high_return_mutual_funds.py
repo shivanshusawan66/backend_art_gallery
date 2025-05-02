@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 
 
 class HighReturnMutualFundsResponse(BaseModel):
-    status:bool
+    status: bool
     message: str
     page: int
     total_pages: int

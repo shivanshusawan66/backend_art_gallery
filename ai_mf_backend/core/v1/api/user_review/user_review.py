@@ -8,9 +8,8 @@ from ai_mf_backend.models.v1.database.user_review import UserReview
 from ai_mf_backend.models.v1.api.user_review import UserReviewResponse
 
 
-router=APIRouter()
-logger=logging.getLogger(__name__)
-
+router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get(
@@ -18,39 +17,38 @@ logger=logging.getLogger(__name__)
     response_model=UserReviewResponse,
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
-async def get_user_review(
-    request: Request,
-    response: Response
-):
+async def get_user_review(request: Request, response: Response):
     try:
-        user_reviews = await sync_to_async(list)(UserReview.objects.filter(deleted=False).all())
+        user_reviews = await sync_to_async(list)(
+            UserReview.objects.filter(deleted=False).all()
+        )
 
         if not user_reviews:
             return UserReviewResponse(
-                status=False,
-                message="No user reviews found.",
-                data=[],
-                status_code=404
+                status=False, message="No user reviews found.", data=[], status_code=404
             )
-        
-        reviews_data = [{
-            "id": review.id,
-            "username": review.username,
-            "designation": review.designation,
-            "review_title": review.review_title,
-            "review_body": review.review_body,
-            "number_of_stars": review.number_of_stars,
-            "location": review.location,
-            "user_image": review.user_image.name if review.user_image else None,
-        } for review in user_reviews]
-        
+
+        reviews_data = [
+            {
+                "id": review.id,
+                "username": review.username,
+                "designation": review.designation,
+                "review_title": review.review_title,
+                "review_body": review.review_body,
+                "number_of_stars": review.number_of_stars,
+                "location": review.location,
+                "user_image": review.user_image.name if review.user_image else None,
+            }
+            for review in user_reviews
+        ]
+
         return UserReviewResponse(
             status=True,
             message="User reviews fetched successfully",
             data=reviews_data,
-            status_code=200
+            status_code=200,
         )
-    
+
     except Exception as e:
         logger.error(f"Error fetching user reviews: {str(e)}")
         response.status_code = 500
@@ -58,5 +56,5 @@ async def get_user_review(
             status=False,
             message=f"Failed to fetch user reviews: {str(e)}",
             data=None,
-            status_code=500
+            status_code=500,
         )
