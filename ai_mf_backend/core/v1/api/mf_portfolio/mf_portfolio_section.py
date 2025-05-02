@@ -14,7 +14,10 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     validate_user_id,
 )
 
-from ai_mf_backend.models.v1.database.mf_master_data import MFSchemeClassMaster, MFSchemeMasterInDetails
+from ai_mf_backend.models.v1.database.mf_master_data import (
+    MFSchemeClassMaster,
+    MFSchemeMasterInDetails,
+)
 from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 
 from ai_mf_backend.models.v1.database.user_portfolio import (
@@ -34,6 +37,8 @@ from ai_mf_backend.models.v1.api.user_portfolio import (
     PatchPortfolioRequest,
     PatchPortfolioResponse,
     MFOptionandDetailsResponse,
+    UpdatePortfolio,
+
 )
 
 
@@ -41,7 +46,6 @@ from ai_mf_backend.config.v1.api_config import api_config
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
 
 
 @router.get(
@@ -60,7 +64,14 @@ async def get_mf_options_and_details(
     ),
 ):
     try:
-        marker_list = ["status", "s_name", "navrs_current", "navrs_historical","frequency", "sip"]
+        marker_list = [
+            "status",
+            "s_name",
+            "navrs_current",
+            "navrs_historical",
+            "frequency",
+            "sip",
+        ]
 
         refs = await sync_to_async(
             lambda: list(MFReferenceTable.objects.filter(marker_name__in=marker_list))
@@ -86,7 +97,7 @@ async def get_mf_options_and_details(
 
         if fund_name:
             base_query = base_query.filter(s_name__icontains=fund_name)
-        
+
         if investment_date == date.today():
             if "navrs_current" in marker_to_models:
                 base_query = base_query.annotate(
@@ -159,10 +170,13 @@ async def get_mf_options_and_details(
             status_code=response.status_code,
         )
 
+
 @router.get(
     "/mf_portfolio_section",
     response_model=GetPortfolioResponse,
-    dependencies=[Depends(login_checker)],  # assuming login_checker is implemented elsewhere
+    dependencies=[
+        Depends(login_checker)
+    ],  # assuming login_checker is implemented elsewhere
     status_code=200,
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
@@ -178,20 +192,22 @@ async def mf_portfolio_section(
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
-        all_scheme_codes = await sync_to_async(list)(PortfolioModel.objects.filter(user_id=user_id).values_list("scheme_code", flat=True))
-
-        base_qs = MFSchemeMasterInDetails.objects.filter(schemecode__in=all_scheme_codes)
-
-        asset_type_sq = (
-            MFSchemeClassMaster.objects
-            .filter(classcode=OuterRef("classcode"))
-            .values("asset_type")[:1]
+        all_scheme_codes = await sync_to_async(list)(
+            PortfolioModel.objects.filter(user_id=user_id).values_list(
+                "scheme_code", flat=True
+            )
         )
-        category_sq = (
-            MFSchemeClassMaster.objects
-            .filter(classcode=OuterRef("classcode"))
-            .values("category")[:1]
+
+        base_qs = MFSchemeMasterInDetails.objects.filter(
+            schemecode__in=all_scheme_codes
         )
+
+        asset_type_sq = MFSchemeClassMaster.objects.filter(
+            classcode=OuterRef("classcode")
+        ).values("asset_type")[:1]
+        category_sq = MFSchemeClassMaster.objects.filter(
+            classcode=OuterRef("classcode")
+        ).values("category")[:1]
 
         result_qs = base_qs.annotate(
             asset_type=Subquery(asset_type_sq),
@@ -207,43 +223,33 @@ async def mf_portfolio_section(
         scheme_map = {
             rec["schemecode"]: {
                 "asset_type": rec["asset_type"],
-                "category":   rec["category"],
+                "category": rec["category"],
             }
             for rec in rows
         }
 
-        scheme_name_sq = (
-            MFSchemeMasterInDetails.objects
-            .filter(schemecode=OuterRef("scheme_code"))
-            .values("s_name")[:1]
-        )
+        scheme_name_sq = MFSchemeMasterInDetails.objects.filter(
+            schemecode=OuterRef("scheme_code")
+        ).values("s_name")[:1]
 
-        latest_nav_sq = (
-            MFNSEAssetValueLatest.objects
-            .filter(
-                schemecode=OuterRef("scheme_code"),
-            )
-            .values("navrs")[:1]
-        )
+        latest_nav_sq = MFNSEAssetValueLatest.objects.filter(
+            schemecode=OuterRef("scheme_code"),
+        ).values("navrs")[:1]
 
-        qs = (
-            PortfolioModel.objects
-            .filter(user_id=user_id)
-            .annotate(
-                scheme_name=Subquery(scheme_name_sq),
-                latest_fund_nav=Subquery(latest_nav_sq),
-            )
+        qs = PortfolioModel.objects.filter(user_id=user_id).annotate(
+            scheme_name=Subquery(scheme_name_sq),
+            latest_fund_nav=Subquery(latest_nav_sq),
         )
 
         portfolio_rows = await sync_to_async(list)(qs)
 
-        real_portfolio_docs =  [
-            Portfolio(
+        real_portfolio_docs = [
+            UpdatePortfolio(
                 investment_id=p.id,
                 scheme_code=p.scheme_code,
                 fund_name=p.scheme_name,
-                fund_type     = scheme_map.get(p.scheme_code, {}).get('asset_type',None),
-                fund_category = scheme_map.get(p.scheme_code, {}).get('category',None),
+                fund_type=scheme_map.get(p.scheme_code, {}).get("asset_type", None),
+                fund_category=scheme_map.get(p.scheme_code, {}).get("category", None),
                 investment_date=p.investment_date,
                 invested_amount=p.invested_amount,
                 quantity=p.quantity,
@@ -272,7 +278,6 @@ async def mf_portfolio_section(
             status_code=response_status_code,
         )
 
-    
 
 @router.delete(
     "/delete_mf_portfolio_item",
@@ -296,10 +301,9 @@ async def delete_mf_portfolio_item(
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
-        await sync_to_async(lambda: PortfolioModel.objects.filter(
-            user_id=user_id, 
-            id=investment_id
-        ).delete())()
+        await sync_to_async(
+            lambda: PortfolioModel.objects.filter(user_id=user_id, id=investment_id).delete()
+        )()
 
         return DeletePortfolioResponse(
             status=True,
@@ -320,7 +324,6 @@ async def delete_mf_portfolio_item(
         )
 
 
-
 @router.post(
     "/add_mf_portfolio_item",
     response_model=AddPortfolioResponse,
@@ -329,7 +332,7 @@ async def delete_mf_portfolio_item(
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def add_mf_portfolio_item(
-    request:Request,
+    request: Request,
     body: AddPortfolioRequest,
     response: Response,
     Authorization: str = Header(),
@@ -343,19 +346,20 @@ async def add_mf_portfolio_item(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
         instances = []
         for investment in investments:
-            instances.append(PortfolioModel(
-                user_id=user_instance,
-                scheme_code=investment.scheme_code,
-                current_fund_nav=investment.current_fund_nav,
-                investment_date=investment.investment_date,
-                investment_type=investment.investment_type,
-                frequency=investment.frequency,
-                invested_amount=investment.invested_amount,
-                quantity=investment.quantity,
+            instances.append(
+                PortfolioModel(
+                    user_id=user_instance,
+                    scheme_code=investment.scheme_code,
+                    current_fund_nav=investment.current_fund_nav,
+                    investment_date=investment.investment_date,
+                    investment_type=investment.investment_type,
+                    frequency=investment.frequency,
+                    invested_amount=investment.invested_amount,
+                    quantity=investment.quantity,
+                )
             )
-        )
         await sync_to_async(PortfolioModel.objects.bulk_create)(instances)
-
+    
         return AddPortfolioResponse(
             status=True,
             message="Successfully added the data for the given investment id",
@@ -397,23 +401,24 @@ async def patch_mf_portfolio_item(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
         for investment in investments:
-            sync_to_async(lambda: PortfolioModel.objects.filter(
-                id=investment.investment_id,
-                user_id=user_instance,
-            ).update(
-                latest_nav=investment.latest_nav,
-                scheme_code=investment.scheme_code,
-                fund_name=investment.fund_name,
-                fund_type=investment.fund_type,
-                fund_category=investment.fund_category,
-                orig_fund_nav=investment.orig_fund_nav,
-                investment_date=investment.investment_date,
-                investment_type=investment.investment_type,
-                frequency=investment.frequency,
-                invested_amount=investment.invested_amount,
-                quantity=investment.quantity,
-            )
-        )
+            await sync_to_async(
+                lambda: PortfolioModel.objects.filter(
+                    id=investment.investment_id,
+                    user_id=user_instance,
+                ).update(
+                    latest_nav=investment.latest_nav,
+                    scheme_code=investment.scheme_code,
+                    fund_name=investment.fund_name,
+                    fund_type=investment.fund_type,
+                    fund_category=investment.fund_category,
+                    orig_fund_nav=investment.orig_fund_nav,
+                    investment_date=investment.investment_date,
+                    investment_type=investment.investment_type,
+                    frequency=investment.frequency,
+                    invested_amount=investment.invested_amount,
+                    quantity=investment.quantity,
+                )
+            )()
 
         return PatchPortfolioResponse(
             status=True,

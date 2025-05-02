@@ -118,9 +118,7 @@ class UserPersonalDetails(SoftDeleteModel):
     user = models.ForeignKey(
         UserContactInfo, on_delete=models.PROTECT, null=True, blank=True
     )
-    name = models.CharField(
-        max_length=100,validators=[validate_name]
-    )
+    name = models.CharField(max_length=100, validators=[validate_name])
     date_of_birth = models.DateField(
         validators=[validate_reasonable_birth_date, validate_not_future_date],
     )
@@ -140,7 +138,6 @@ class UserPersonalDetails(SoftDeleteModel):
     update_date = models.DateTimeField(
         auto_now=True, validators=[validate_not_future_date]
     )
-
 
     class Meta:
         db_table = "user_personal_details"

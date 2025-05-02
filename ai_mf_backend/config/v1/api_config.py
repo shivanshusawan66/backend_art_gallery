@@ -6,6 +6,7 @@ from django.apps import AppConfig
 
 from ai_mf_backend.config.v1 import BaseSettingsWrapper
 
+
 class APIConfig(BaseSettingsWrapper):
     """
     Configuration class for the API with various API settings
@@ -38,7 +39,7 @@ class APIConfig(BaseSettingsWrapper):
     OTP_EXPIRATION_DEFAULT_HOURS: Optional[int] = 5
     OTP_EXPIRATION_REMEMBER_DAYS: Optional[int] = 365
 
-    FETCH_DATA_API_TOKEN: str ="mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
+    FETCH_DATA_API_TOKEN: str = "mqpxaIXZVPbXLInxGNilXpiP3khnaUjL"
 
     DEFAULT_PAGE: Optional[int] = 1
     DEFAULT_PAGE_SIZE: Optional[int] = 10
@@ -53,36 +54,50 @@ class APIConfig(BaseSettingsWrapper):
         "min_investment",
         "category",
     ]
-    
+
     MUTUAL_FUND_DASHBOARD_COLOUMNS: list[str] = [
-    "jalpha_y",
-    "beta_y",
-    "_1yrret",
-    "treynor_y",
-    "sd_y",
-    "sharpe_y",
-    "_5yearret",
-    "_3yearret",
-    "s_name",
-    "navrs",
-    
+        "jalpha_y",
+        "beta_y",
+        "_1yrret",
+        "treynor_y",
+        "sd_y",
+        "sharpe_y",
+        "_5yearret",
+        "_3yearret",
+        "s_name",
+        "navrs",
     ]
 
-    COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] =  {
-            "Fund Risk": ["jalpha_y", "beta_y", "_1yrret", "treynor_y", "sd_y", "sharpe_y", "status"],
-            "Fund Overview": [ "_5yearret","_3yearret","navrs_current"],
-            "Return Calculator": ["sip"],
-            "Asset Allocation": ["compname", "sect_name", "holdpercentage", "mode"],
-            "Historical Nav & Returns": ["navrs_historical"],
-            "Fund Description": ["LongSchemeDescrip", "ShortSchemeDescrip"],
-            "Returns": ["_1yrret_absolute", "_3yearret_absolute", "_5yearret_absolute", "_1yrret_annualised", "_3yearret_annualised", "_5yearret_annualised"],
-            "Extra":["asset_type","mode","category"],
-        }
-        
-    FILTER_FIELD_MAPPING: ClassVar[Dict[str, List[str]]] = {       
-    "return":  ["_5yearret","_3yearret","_1yrret"],
-    "risk": ["sd_y", "beta_y", "sharpe_y","treynor_y","jalpha_y"],  
-    "investment_type":["sip"],
+    COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] = {
+        "Fund Risk": [
+            "jalpha_y",
+            "beta_y",
+            "_1yrret",
+            "treynor_y",
+            "sd_y",
+            "sharpe_y",
+            "status",
+        ],
+        "Fund Overview": ["_5yearret", "_3yearret", "navrs_current"],
+        "Return Calculator": ["sip"],
+        "Asset Allocation": ["compname", "sect_name", "holdpercentage", "mode"],
+        "Historical Nav & Returns": ["navrs_historical"],
+        "Fund Description": ["LongSchemeDescrip", "ShortSchemeDescrip"],
+        "Returns": [
+            "_1yrret_absolute",
+            "_3yearret_absolute",
+            "_5yearret_absolute",
+            "_1yrret_annualised",
+            "_3yearret_annualised",
+            "_5yearret_annualised",
+        ],
+        "Extra": ["asset_type", "mode", "category"],
+    }
+
+    FILTER_FIELD_MAPPING: ClassVar[Dict[str, List[str]]] = {
+        "return": ["_5yearret", "_3yearret", "_1yrret"],
+        "risk": ["sd_y", "beta_y", "sharpe_y", "treynor_y", "jalpha_y"],
+        "investment_type": ["sip"],
     }
 
     BLOG_DATA_COLUMNS: list[str] = [

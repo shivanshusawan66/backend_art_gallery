@@ -7,8 +7,8 @@ from datetime import date
 # Request model for updating UserFinancialDetails
 class UserPersonalFinancialDetailsUpdateRequest(BaseModel):
     user_id: int
-    name: str 
-    date_of_birth: date 
+    name: str
+    date_of_birth: date
     gender_id: Optional[int] = None
     marital_status_id: Optional[int] = None
     occupation_id: Optional[int] = None
@@ -26,9 +26,9 @@ class UserPersonalFinancialDetailsUpdateResponse(Response):
 
 
 class UserPersonalFinancialFormData(BaseModel):
-    name: str  
+    name: str
     user_profile_image: Optional[str] = None
-    date_of_birth: date 
+    date_of_birth: date
     gender: Optional[str] = None
     marital_status: Optional[str] = None
     occupation: Optional[str] = None

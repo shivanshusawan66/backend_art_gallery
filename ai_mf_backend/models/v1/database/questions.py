@@ -19,10 +19,9 @@ class Section(SoftDeleteModel):
         return self.section
 
 
-
 class Question(SoftDeleteModel):
     section = models.ForeignKey(
-        Section, on_delete=models.PROTECT, null=False, blank=False 
+        Section, on_delete=models.PROTECT, null=False, blank=False
     )
     question = models.CharField(max_length=500)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -61,7 +60,6 @@ class Allowed_Response(SoftDeleteModel):
         return self.response
 
 
-
 class ConditionalQuestion(SoftDeleteModel):
     id = models.AutoField(primary_key=True)
     question = models.ForeignKey(
@@ -94,7 +92,6 @@ class ConditionalQuestion(SoftDeleteModel):
         return f"Conditional visibility for {self.dependent_question.question} based on {self.question.question}"
 
 
-
 class UserResponse(SoftDeleteModel):
     user_id = models.ForeignKey(
         UserContactInfo, on_delete=models.PROTECT, null=False, blank=False
@@ -118,8 +115,6 @@ class UserResponse(SoftDeleteModel):
 
     def __str__(self):
         return f"Response by {self.user_id} for {self.question_id.question}"
-
-
 
 
 class QuestionWeightsPerUser(SoftDeleteModel):

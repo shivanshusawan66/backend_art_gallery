@@ -4,13 +4,10 @@ from datetime import date
 from ai_mf_backend.models.v1.api import Response
 
 
-
 class FundOverview(BaseModel):
     net_assets_value: Optional[float]
     three_year_return: Optional[float]
     five_year_return: Optional[float]
-    
-
 
 
 class FundRiskStatistics(BaseModel):
@@ -40,7 +37,8 @@ class TopHolding(BaseModel):
 
 class TopSector(BaseModel):
     sector_name: Optional[str]
-    weight:  Optional[float]
+    weight: Optional[float]
+
 
 class FundManagerDetails(BaseModel):
     initial: Optional[str]
@@ -51,32 +49,36 @@ class FundManagerDetails(BaseModel):
     designation: Optional[str]
     age: Optional[int]
 
+
 class FundDescriptionDetails(BaseModel):
     short_description: Optional[str]
     long_description: Optional[str]
 
+
 class AbsoluteAndAnnualisedReturn(BaseModel):
-    absolute_1yr_return : Optional[float]
-    absolute_3yr_return : Optional[float]
-    absolute_5yr_return : Optional[float]
-    annualised_1_yr_return : Optional[float]
-    annualised_3_yr_return : Optional[float]
-    annualised_5yr_return : Optional[float]
+    absolute_1yr_return: Optional[float]
+    absolute_3yr_return: Optional[float]
+    absolute_5yr_return: Optional[float]
+    annualised_1_yr_return: Optional[float]
+    annualised_3_yr_return: Optional[float]
+    annualised_5yr_return: Optional[float]
+
 
 class FundCategoryandSubcategory(BaseModel):
     fund_category: Optional[str]
     fund_subcategory: Optional[str]
 
+
 class NavHistory(BaseModel):
     data: Optional[List[Dict[str, Any]]]
-    
+
 
 # here not use response because we do not require key data that'why we donot inherit form response
 class MutualFundDashboardResponse(BaseModel):
     status: bool
     message: str
     status_code: Optional[int] = 200
-    fund_category_subcategory : Optional[FundCategoryandSubcategory] = None
+    fund_category_subcategory: Optional[FundCategoryandSubcategory] = None
     fund_overview: Optional[FundOverview] = None
     fund_risk_statistics: Optional[FundRiskStatistics] = None
     returns_calculator: Optional[ReturnsCalculator] = None
@@ -87,6 +89,7 @@ class MutualFundDashboardResponse(BaseModel):
     fund_description: Optional[FundDescriptionDetails] = None
     absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
     fund_history_nav: Optional[NavHistory] = None
+
 
 class MutualFundDashboardPayload(BaseModel):
     fund_category_subcategory: Optional[FundCategoryandSubcategory] = None
@@ -101,18 +104,20 @@ class MutualFundDashboardPayload(BaseModel):
     absolute_and_annualised_return: Optional[AbsoluteAndAnnualisedReturn] = None
     fund_history_nav: Optional[NavHistory] = None
 
+
 class MutualFundDashboardMobileResponse(BaseModel):
     status: bool
     message: str
     status_code: Optional[int] = 200
     data: MutualFundDashboardPayload
 
+
 class MutualFundDashboardErrorResponse(Response):
-    data:List[Dict[str,Any]]
-    
+    data: List[Dict[str, Any]]
+
+
 class MutualFundFilterResponse(Response):
     data: List[Dict[str, Any]]
     page: int
     total_pages: int
     total_data: int
-    

@@ -16,6 +16,7 @@ class InsertPortfolio(BaseModel):
     investment_type: str
     frequency: str
 
+
 class UpdatePortfolio(BaseModel):
     investment_id: Optional[int] = None
     scheme_code: int
@@ -38,8 +39,10 @@ class DeletePortfolioRequest(BaseModel):
     investment_id: int
     is_real: bool
 
+
 class MFOptionandDetailsResponse(Response):
     data: list[dict[str, Any]]
+
 
 class DeletePortfolioResponse(Response):
     pass

@@ -23,7 +23,7 @@ class PortfolioSchema(SoftDeleteModel):
             models.Index(fields=["user_id"]),
         ]
         abstract = True
-    
+
 
 class MFRealPortfolio(PortfolioSchema):
 

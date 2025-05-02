@@ -85,9 +85,7 @@ async def get_personal_options():
         )
 
 
-@router.get(
-    "/options_user_financial_details", response_model=UserProfileOptionResponse
-)
+@router.get("/options_user_financial_details", response_model=UserProfileOptionResponse)
 async def get_financial_options():
     try:
         # Fetching financial options asynchronously

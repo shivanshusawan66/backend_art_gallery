@@ -34,13 +34,13 @@ from ai_mf_backend.core.v1.api.questionnaire.user_response_display import (
 )
 
 
-from ai_mf_backend.core.v1.api.mf_data.display_mf_each import(
+from ai_mf_backend.core.v1.api.mf_data.display_mf_each import (
     router as display_mf_each_router_v1,
 )
 
 # Display Mutual Fund Data
-from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import(
-    router as display_high_return_mutual_funds_router_v1
+from ai_mf_backend.core.v1.api.mf_data.display_high_return_mutual_funds import (
+    router as display_high_return_mutual_funds_router_v1,
 )
 
 # MF DATA
@@ -51,7 +51,7 @@ from ai_mf_backend.core.v1.api.mf_data.display_mf_recommendations import (
 from ai_mf_backend.core.v1.api.mf_data.display_mf_each import (
     router as display_mf_each_router_v1,
 )
-from ai_mf_backend.core.v1.api.mf_data.display_mf_filter import(
+from ai_mf_backend.core.v1.api.mf_data.display_mf_filter import (
     router as display_mf_filter_router_v1,
 )
 
@@ -60,7 +60,7 @@ from ai_mf_backend.core.v1.api.mf_portfolio.mf_portfolio_section import (
 )
 
 from ai_mf_backend.core.v1.api.mf_data.mf_filter_option_parameters import (
-    router as mf_filter_option_parameters_router_v1,   
+    router as mf_filter_option_parameters_router_v1,
 )
 from ai_mf_backend.core.v1.api.mf_data.mf_category_wise_data import (
     router as mf_category_wise_data_router_v1,

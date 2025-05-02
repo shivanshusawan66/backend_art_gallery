@@ -212,15 +212,15 @@ async def update_user_personal_financial_details(
     if isinstance(request.lock_in_period_accepted, bool):
         user_financial.lock_in_period_accepted = request.lock_in_period_accepted
     if request.investment_style:
-      if request.investment_style not in ["Lump-Sum", "SIP"]:
-        response.status_code = 400
-        return UserPersonalFinancialDetailsUpdateResponse(
-            status=False,
-            message="The investment style you entered is not valid. Please choose either 'Lump-Sum' or 'SIP' from the available options",
-            data={},
-            status_code=400,
-         )
-      user_financial.investment_style = request.investment_style
+        if request.investment_style not in ["Lump-Sum", "SIP"]:
+            response.status_code = 400
+            return UserPersonalFinancialDetailsUpdateResponse(
+                status=False,
+                message="The investment style you entered is not valid. Please choose either 'Lump-Sum' or 'SIP' from the available options",
+                data={},
+                status_code=400,
+            )
+        user_financial.investment_style = request.investment_style
 
     try:
         await sync_to_async(
@@ -256,6 +256,7 @@ async def update_user_personal_financial_details(
         data={"user_id": user.user_id},
         status_code=status_code,
     )
+
 
 @router.post(
     "/user_personal_details_image_upload",
@@ -323,8 +324,10 @@ async def user_personal_details_image_upload(
             await file.close()
 
         content_file = ContentFile(contents, name=file.filename)
-        
-        user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
+
+        user_details = await sync_to_async(
+            UserPersonalDetails.objects.filter(user=user).first
+        )()
 
         if not user_details:
             user_details = UserPersonalDetails(user=user)
@@ -333,7 +336,6 @@ async def user_personal_details_image_upload(
         content_file.name = unique_filename
         user_details.user_image = content_file
 
-        
         await sync_to_async(user_details.full_clean)()
         await sync_to_async(user_details.save)()
 
@@ -378,9 +380,13 @@ async def user_personal_details_image_delete(
             )
 
         if email:
-            user = await sync_to_async(UserContactInfo.objects.filter(email=email).first)()
+            user = await sync_to_async(
+                UserContactInfo.objects.filter(email=email).first
+            )()
         else:
-            user = await sync_to_async(UserContactInfo.objects.filter(mobile_number=mobile_number).first)()
+            user = await sync_to_async(
+                UserContactInfo.objects.filter(mobile_number=mobile_number).first
+            )()
 
         if not user:
             response.status_code = 400
@@ -391,7 +397,9 @@ async def user_personal_details_image_delete(
                 status_code=400,
             )
 
-        user_details = await sync_to_async(UserPersonalDetails.objects.filter(user=user).first)()
+        user_details = await sync_to_async(
+            UserPersonalDetails.objects.filter(user=user).first
+        )()
         if not user_details or not user_details.user_image:
             response.status_code = 400
             return UserPersonalDetailsImageUpdateResponse(
@@ -403,7 +411,7 @@ async def user_personal_details_image_delete(
 
         image_path = user_details.user_image.path
         if await sync_to_async(os.path.exists)(image_path):
-            await sync_to_async(os.remove)(image_path)  
+            await sync_to_async(os.remove)(image_path)
 
         user_details.user_image = None
         await sync_to_async(user_details.save)()

@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Any, List, Set, Tuple, Type, Union
-from django.db.models import Model,Q
+from django.db.models import Model, Q
 from django.db import transaction
 from ai_mf_backend.utils.v1.errors import FetchDataFromApiException
 
@@ -44,7 +44,9 @@ def process_and_store_data(
         delete_keys, upsert_rows = _classify_rows(chunk, model_fields, pk_fields)
         with transaction.atomic():
             _perform_deletes(model_class, delete_keys, pk_fields, batch_num)
-            perform_bulk_upsert(model_class, upsert_rows, pk_fields, model_fields, batch_num,batch_size)
+            perform_bulk_upsert(
+                model_class, upsert_rows, pk_fields, model_fields, batch_num, batch_size
+            )
 
 
 def _chunked(iterable: List[Any], size: int):
@@ -54,9 +56,7 @@ def _chunked(iterable: List[Any], size: int):
 
 
 def _classify_rows(
-    batch: List[Dict[str, Any]],
-    model_fields: Set[str],
-    pk_fields: Tuple[str, ...]
+    batch: List[Dict[str, Any]], model_fields: Set[str], pk_fields: Tuple[str, ...]
 ) -> Tuple[Set[Tuple[Any, ...]], List[Dict[str, Any]]]:
     """
     Separate rows for deletion vs upsert based on a 'flag' key.
@@ -69,7 +69,7 @@ def _classify_rows(
     upsert_rows: List[Dict[str, Any]] = []
 
     for raw in batch:
-        flag = raw.get('flag', 'A')
+        flag = raw.get("flag", "A")
         cleaned: Dict[str, Any] = {}
 
         for key, val in raw.items():
@@ -77,11 +77,10 @@ def _classify_rows(
             if norm in model_fields:
                 cleaned[norm] = val
 
-
         if not all(pk in cleaned for pk in pk_fields):
             continue
         pk_tuple = tuple(cleaned[pk] for pk in pk_fields)
-        if flag == 'D':
+        if flag == "D":
             delete_keys.add(pk_tuple)
         else:
             upsert_rows.append(cleaned)
@@ -93,7 +92,7 @@ def _perform_deletes(
     model_class: Type[Model],
     delete_keys: Set[Tuple[Any, ...]],
     pk_fields: Tuple[str, ...],
-    batch_num: int
+    batch_num: int,
 ) -> None:
     """
     Delete records matching each PK tuple.
@@ -115,11 +114,7 @@ def perform_bulk_upsert(
     if not rows:
         logger.debug("No rows provided for upsert operation")
 
-    rows_by_pk = {
-        tuple(row[pk] for pk in pk_fields): row
-        for row in rows
-    }
-    
+    rows_by_pk = {tuple(row[pk] for pk in pk_fields): row for row in rows}
 
     queries = []
     for pk_values in rows_by_pk.keys():
@@ -127,21 +122,21 @@ def perform_bulk_upsert(
         for field, value in zip(pk_fields, pk_values):
             q_obj &= Q(**{field: value})
         queries.append(q_obj)
-    
+
     combined_query = queries[0]
     for q in queries[1:]:
         combined_query |= q
-    
+
     existing_objects = list(model_class.objects.filter(combined_query))
-    
+
     existing_map = {
         tuple(getattr(obj, field) for field in pk_fields): obj
         for obj in existing_objects
     }
-    
+
     to_update = []
     to_create = []
-    
+
     for pk_tuple, row_data in rows_by_pk.items():
         if pk_tuple in existing_map:
             obj = existing_map[pk_tuple]
@@ -152,26 +147,32 @@ def perform_bulk_upsert(
         else:
             filtered_data = {k: v for k, v in row_data.items() if k in model_fields}
             to_create.append(model_class(**filtered_data))
-    
+
     update_fields = list(model_fields - set(pk_fields))
     update_fields = [f for f in update_fields if f != "id"]
-    
+
     created_count = 0
     updated_count = 0
-    
+
     with transaction.atomic():
         for i in range(0, len(to_update), chunk_size):
-            chunk = to_update[i:i + chunk_size]
+            chunk = to_update[i : i + chunk_size]
             if chunk:
                 model_class.objects.bulk_update(chunk, update_fields)
                 updated_count += len(chunk)
-                logger.info(f"Batch {batch_num}: Updated chunk {i//chunk_size + 1} with {len(chunk)} records")
+                logger.info(
+                    f"Batch {batch_num}: Updated chunk {i//chunk_size + 1} with {len(chunk)} records"
+                )
 
         for i in range(0, len(to_create), chunk_size):
-            chunk = to_create[i:i + chunk_size]
+            chunk = to_create[i : i + chunk_size]
             if chunk:
-                model_class.objects.bulk_create(chunk,ignore_conflicts=True)
+                model_class.objects.bulk_create(chunk, ignore_conflicts=True)
                 created_count += len(chunk)
-                logger.info(f"Batch {batch_num}: Created chunk {i//chunk_size + 1} with {len(chunk)} records")
-    
-    logger.info(f"Batch {batch_num}: Completed - Created {created_count} and updated {updated_count} records")
+                logger.info(
+                    f"Batch {batch_num}: Created chunk {i//chunk_size + 1} with {len(chunk)} records"
+                )
+
+    logger.info(
+        f"Batch {batch_num}: Completed - Created {created_count} and updated {updated_count} records"
+    )

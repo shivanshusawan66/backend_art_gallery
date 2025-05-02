@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-
 @router.post(
     "/submit_questionnaire_response",
     dependencies=[Depends(login_checker)],
@@ -35,7 +34,7 @@ router = APIRouter()
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def submit_questionnaire_response(
-    request:Request ,body: SubmitQuestionnaireRequest, response: Response
+    request: Request, body: SubmitQuestionnaireRequest, response: Response
 ):
     try:
         user_id = body.user_id

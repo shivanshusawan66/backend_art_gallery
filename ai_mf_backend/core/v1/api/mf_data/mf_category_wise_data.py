@@ -12,17 +12,18 @@ from ai_mf_backend.utils.v1.api_projection.valid_fields import validate_query_pa
 from ai_mf_backend.models.v1.api.mf_category_wise import (
     MFCategoryOptionResponse,
     MFDataCategorySubcategoryWise,
-    MFSubCategoryOptionResponse
+    MFSubCategoryOptionResponse,
 )
 from ai_mf_backend.models.v1.database.mf_category_wise import (
     MutualFundSubcategory,
     MutualFundType,
 )
-from ai_mf_backend.models.v1.database.mf_master_data import  MFSchemeMasterInDetails
+from ai_mf_backend.models.v1.database.mf_master_data import MFSchemeMasterInDetails
 from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 
 
 router = APIRouter()
+
 
 @router.get("/mf_options_fund_category", response_model=MFCategoryOptionResponse)
 @limiter.limit(api_config.REQUEST_PER_MIN)
@@ -71,8 +72,7 @@ async def get_mf_category_options(
         )
 
 
-@router.get("/mf_options_fund_subcategory",
-            response_model = MFSubCategoryOptionResponse)
+@router.get("/mf_options_fund_subcategory", response_model=MFSubCategoryOptionResponse)
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_mf_subcategory_options(
     request: Request,
@@ -80,7 +80,9 @@ async def get_mf_subcategory_options(
     category_id: int = Query(..., ge=1, title="ID of the Fund Category"),
 ):
     try:
-        category_instance = await sync_to_async(lambda: MutualFundType.objects.filter(deleted=False, id=category_id).first())()
+        category_instance = await sync_to_async(
+            lambda: MutualFundType.objects.filter(deleted=False, id=category_id).first()
+        )()
 
         if not category_instance:
             response.status_code = 404
@@ -92,7 +94,9 @@ async def get_mf_subcategory_options(
             )
 
         subcategories = await sync_to_async(
-            lambda: list(MutualFundSubcategory.objects.filter(fund_type_id=category_instance.id))
+            lambda: list(
+                MutualFundSubcategory.objects.filter(fund_type_id=category_instance.id)
+            )
         )()
         subcategory_options = [
             {
@@ -105,7 +109,7 @@ async def get_mf_subcategory_options(
 
         data = {
             "fund_category_type ": category_instance.fund_type,
-            "fund_subcategories": subcategory_options
+            "fund_subcategories": subcategory_options,
         }
 
         response.status_code = 200
@@ -115,7 +119,7 @@ async def get_mf_subcategory_options(
             data=data,
             status_code=response.status_code,
         )
-        
+
     except Exception as e:
         response.status_code = 400
         return MFSubCategoryOptionResponse(
@@ -136,96 +140,117 @@ async def get_mf_subcategory_options(
 async def fund_data_category_subcategory_wise(
     request: Request,
     response: Response,
-    fund_category_id: int = Query(
-        default=None, description="category id of fund"
-    ),
+    fund_category_id: int = Query(default=None, description="category id of fund"),
     fund_subcategory_id: int = Query(
         default=None, description="subcategory id of category"
     ),
     page: int = Query(1, gt=0),
-    page_size: int = Query(api_config.DEFAULT_PAGE_SIZE, ge=1, le=api_config.MAX_PAGE_SIZE),
+    page_size: int = Query(
+        api_config.DEFAULT_PAGE_SIZE, ge=1, le=api_config.MAX_PAGE_SIZE
+    ),
 ):
     allowed_params = ["fund_category_id", "fund_subcategory_id", "page", "page_size"]
 
     try:
         validate_query_params(dict(request.query_params), allowed_params)
 
-        marker_list = ["navrs","_1yrret", "asset_type", "category"]
+        marker_list = ["navrs", "_1yrret", "asset_type", "category"]
 
         fund_category_name = await sync_to_async(
-            lambda: MutualFundType.objects.filter(id=fund_category_id).values_list("fund_type", flat=True).first()
+            lambda: MutualFundType.objects.filter(id=fund_category_id)
+            .values_list("fund_type", flat=True)
+            .first()
         )()
 
         fund_subcategory_name = await sync_to_async(
-            lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id).values_list("fund_subcategory", flat=True).first()
+            lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id)
+            .values_list("fund_subcategory", flat=True)
+            .first()
         )()
 
         filter_kwargs = {}
 
         if fund_category_id:
             filter_kwargs["asset_type"] = await sync_to_async(
-                lambda: MutualFundType.objects.filter(id=fund_category_id).values_list("fund_type", flat=True).first()
+                lambda: MutualFundType.objects.filter(id=fund_category_id)
+                .values_list("fund_type", flat=True)
+                .first()
             )()
         if fund_subcategory_id:
             filter_kwargs["category"] = await sync_to_async(
-            lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id).values_list("fund_subcategory", flat=True).first()
+                lambda: MutualFundSubcategory.objects.filter(id=fund_subcategory_id)
+                .values_list("fund_subcategory", flat=True)
+                .first()
+            )()
+
+        refs = await sync_to_async(
+            lambda: list(MFReferenceTable.objects.filter(marker_name__in=marker_list))
         )()
 
-
-        refs = await sync_to_async(lambda: list(MFReferenceTable.objects.filter(marker_name__in=marker_list)))()
-
         marker_to_models = {
-            ref.marker_name: apps.get_model(api_config.PROJECT_NAME,ref.table_name)
+            ref.marker_name: apps.get_model(api_config.PROJECT_NAME, ref.table_name)
             for ref in refs
             if ref.marker_name in marker_list
         }
 
         active_schemecode = await sync_to_async(list)(
-            MFSchemeMasterInDetails.objects.filter(status="Active")
-            .values_list("schemecode", flat=True)
+            MFSchemeMasterInDetails.objects.filter(status="Active").values_list(
+                "schemecode", flat=True
+            )
         )
-    
-        base_query = MFSchemeMasterInDetails.objects.filter(schemecode__in=active_schemecode)
+
+        base_query = MFSchemeMasterInDetails.objects.filter(
+            schemecode__in=active_schemecode
+        )
 
         if "navrs" in marker_to_models:
-            base_query = base_query.annotate(navrs=Subquery(
-                marker_to_models["navrs"].objects.filter(
-                    schemecode=OuterRef("schemecode")
-                ).values("navrs")[:1]
-            ))
+            base_query = base_query.annotate(
+                navrs=Subquery(
+                    marker_to_models["navrs"]
+                    .objects.filter(schemecode=OuterRef("schemecode"))
+                    .values("navrs")[:1]
+                )
+            )
 
         if "_1yrret" in marker_to_models:
-            base_query = base_query.annotate(_1yrret=Subquery(
-                marker_to_models["_1yrret"].objects.filter(
-                    schemecode=OuterRef("schemecode")
-                ).values("_1yrret")[:1]
-            ))
+            base_query = base_query.annotate(
+                _1yrret=Subquery(
+                    marker_to_models["_1yrret"]
+                    .objects.filter(schemecode=OuterRef("schemecode"))
+                    .values("_1yrret")[:1]
+                )
+            )
 
         if "asset_type" in marker_to_models:
-            base_query = base_query.annotate(asset_type=Subquery(
-                marker_to_models["asset_type"].objects.filter(
-                    classcode=OuterRef("classcode")
-                ).values("asset_type")[:1]
-            ))
-        
+            base_query = base_query.annotate(
+                asset_type=Subquery(
+                    marker_to_models["asset_type"]
+                    .objects.filter(classcode=OuterRef("classcode"))
+                    .values("asset_type")[:1]
+                )
+            )
+
         if "category" in marker_to_models:
-            base_query = base_query.annotate(category=Subquery(
-                marker_to_models["category"].objects.filter(
-                    classcode=OuterRef("classcode")
-                ).values("category")[:1]
-            ))
+            base_query = base_query.annotate(
+                category=Subquery(
+                    marker_to_models["category"]
+                    .objects.filter(classcode=OuterRef("classcode"))
+                    .values("category")[:1]
+                )
+            )
 
+        filtered_query = base_query.filter(**filter_kwargs).order_by(
+            F("_1yrret").desc(nulls_last=True)
+        )
 
-        filtered_query = base_query.filter(**filter_kwargs).order_by(F("_1yrret").desc(nulls_last=True))
-        
-        result_query = filtered_query.values("schemecode", "s_name", "_1yrret", "navrs")    
+        result_query = filtered_query.values("schemecode", "s_name", "_1yrret", "navrs")
 
         full_results = await sync_to_async(lambda: list(result_query))()
 
         total_count = len(full_results)
         total_pages = (total_count + page_size - 1) // page_size
         offset = (page - 1) * page_size
-        paginated_qs = full_results[offset: offset + page_size]
+        paginated_qs = full_results[offset : offset + page_size]
 
         response.status_code = 200
         return MFDataCategorySubcategoryWise(

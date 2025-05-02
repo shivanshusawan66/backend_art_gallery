@@ -173,13 +173,13 @@ async def login_checker(Authorization: Annotated[str | None, Header()]):
     if not user_doc:
         raise MalformedJWTRequestException("This user does not exist.")
 
-
     expiry = float(decoded_payload["expiry"])
     current_time = float(django_timezone.now().timestamp())
     if current_time < expiry:
         return Authorization
     else:
         raise MalformedJWTRequestException("The provided Auth token has expired")
+
 
 async def validate_user_id(Authorization: str):
 

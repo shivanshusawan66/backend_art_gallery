@@ -97,7 +97,6 @@ async def get_all_sections(request: Request, response: Response):
         )
 
 
-
 @router.post(
     "/section_wise_questions/",
     response_model=SectionQuestionsResponse,
@@ -106,7 +105,7 @@ async def get_all_sections(request: Request, response: Response):
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_section_wise_questions(
-    request:Request,
+    request: Request,
     body: SectionRequest,
     response: Response,
     Authorization: str = Header(),
@@ -497,6 +496,7 @@ async def get_section_completion_status(
             data=[],
         )
 
+
 @router.get(
     "/total_completion_status",
     dependencies=[Depends(login_checker)],
@@ -513,19 +513,18 @@ async def get_total_completion_status(
 
         if not section_status_response.status or not section_status_response.data:
             response.status_code = 400
-            if is_mobile:   
+            if is_mobile:
                 return TotalCompletionStatusMobileResponse(
                     status=False,
                     message="Failed to fetch section completion data.",
                     data={
                         "total_completion_rate": 0.0,
                         "banner_status": True,
-                        "banner_message": "Complete your profile for better Mutual Fund recommendations"
-
+                        "banner_message": "Complete your profile for better Mutual Fund recommendations",
                     },
                     status_code=response.status_code,
                 )
-            
+
             else:
                 return TotalCompletionStatusResponse(
                     status=False,
@@ -535,8 +534,7 @@ async def get_total_completion_status(
                     banner_message="Complete your profile for better Mutual Fund recommendations",
                     status_code=response.status_code,
                 )
-        
-            
+
         total_answered = sum(
             section.answered_questions for section in section_status_response.data
         )
@@ -585,7 +583,7 @@ async def get_total_completion_status(
                     },
                     status_code=response.status_code,
                 )
-            
+
             else:
                 response.status_code = 200
                 return TotalCompletionStatusResponse(

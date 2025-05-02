@@ -18,9 +18,7 @@ class MFSchemeMonthWiseExpenseRatio(models.Model):
         verbose_name = "MF Scheme Month Wise Expense Ratio"
         verbose_name_plural = "MF Scheme Month Wise Expense Ratio"
         unique_together = (("schemecode", "date"),)
-        indexes = [
-            models.Index(fields=["schemecode", "date"])
-        ]
+        indexes = [models.Index(fields=["schemecode", "date"])]
 
 
 class MFSchemeEquityDetails(models.Model):
@@ -38,9 +36,7 @@ class MFSchemeEquityDetails(models.Model):
         db_table = "mf_scheme_equity_details"
         verbose_name = "MF Scheme Equity Detail"
         verbose_name_plural = "MF Scheme Equity Details"
-        indexes = [
-            models.Index(fields=["SchemeCode"])
-        ]
+        indexes = [models.Index(fields=["SchemeCode"])]
 
 
 class MFSchemeFMPYieldDetails(models.Model):
@@ -67,9 +63,7 @@ class MFSchemeFMPYieldDetails(models.Model):
         db_table = "mf_scheme_fmp_yield_details"
         verbose_name = "MF Scheme FMP Yield Details"
         verbose_name_plural = "MF Scheme FMP Yield Details"
-        indexes = [
-            models.Index(fields=["schemecode"])
-        ]
+        indexes = [models.Index(fields=["schemecode"])]
 
 
 class MFSchemeAverageMaturity(models.Model):
@@ -93,9 +87,7 @@ class MFSchemeAverageMaturity(models.Model):
         verbose_name = "MF Scheme Average Maturity"
         verbose_name_plural = "MF Scheme Average Maturity"
         unique_together = (("schemecode", "date"),)
-        indexes = [
-            models.Index(fields=["schemecode", "date"])
-        ]
+        indexes = [models.Index(fields=["schemecode", "date"])]
 
 
 class MFFaceValueChange(models.Model):
@@ -114,9 +106,7 @@ class MFFaceValueChange(models.Model):
         verbose_name = "MF Face Value Change"
         verbose_name_plural = "MF Face Value Change"
         unique_together = (("schemecode", "fvdate"),)
-        indexes = [
-            models.Index(fields=["schemecode", "fvdate"])
-        ]
+        indexes = [models.Index(fields=["schemecode", "fvdate"])]
 
 
 class MFSchemeNameChange(models.Model):
@@ -134,9 +124,7 @@ class MFSchemeNameChange(models.Model):
         verbose_name = "MF Scheme Name Change"
         verbose_name_plural = "MF Scheme Name Change"
         unique_together = (("Amc_Code", "SchemeCode", "Effectivedate"),)
-        indexes = [
-            models.Index(fields=["Amc_Code", "SchemeCode", "Effectivedate"])
-        ]
+        indexes = [models.Index(fields=["Amc_Code", "SchemeCode", "Effectivedate"])]
 
 
 class MFFundmanager(models.Model):
@@ -156,9 +144,7 @@ class MFFundmanager(models.Model):
         verbose_name = "MF Fund Manager"
         verbose_name_plural = "MF Fund Manager"
         unique_together = (("date", "schemecode"),)
-        indexes = [
-            models.Index(fields=["date", "schemecode"])
-        ]
+        indexes = [models.Index(fields=["date", "schemecode"])]
 
 
 class MFMergedschemes(models.Model):
@@ -174,9 +160,7 @@ class MFMergedschemes(models.Model):
         verbose_name = "MF Merged Scheme"
         verbose_name_plural = "MF Merged Schemes"
         unique_together = (("schemecode", "mergedwith"),)
-        indexes = [
-            models.Index(fields=["schemecode", "mergedwith"])
-        ]
+        indexes = [models.Index(fields=["schemecode", "mergedwith"])]
 
 
 class MFBulkDeals(models.Model):
@@ -201,7 +185,9 @@ class MFBulkDeals(models.Model):
             ("fincode", "date", "clientname", "dealtype", "volume", "price"),
         )
         indexes = [
-            models.Index(fields=["fincode", "date", "clientname", "dealtype", "volume", "price"])
+            models.Index(
+                fields=["fincode", "date", "clientname", "dealtype", "volume", "price"]
+            )
         ]
 
 
@@ -220,9 +206,7 @@ class MFSchemeAssetAllocation(models.Model):
         verbose_name = "MF Scheme Asset Allocation"
         verbose_name_plural = "MF Scheme Asset Allocation"
         unique_together = (("schemecode", "investment"),)
-        indexes = [
-            models.Index(fields=["schemecode", "investment"])
-        ]
+        indexes = [models.Index(fields=["schemecode", "investment"])]
 
 
 class MFCompanyMcap(models.Model):
@@ -237,6 +221,4 @@ class MFCompanyMcap(models.Model):
         db_table = "mf_company_mcap"
         verbose_name = "MF Company Mcap"
         verbose_name_plural = "MF Company Mcap"
-        indexes = [
-            models.Index(fields=["fincode"])
-        ]
+        indexes = [models.Index(fields=["fincode"])]
