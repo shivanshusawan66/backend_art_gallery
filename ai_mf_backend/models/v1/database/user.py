@@ -121,6 +121,7 @@ class UserPersonalDetails(SoftDeleteModel):
     name = models.CharField(max_length=100, validators=[validate_name])
     date_of_birth = models.DateField(
         validators=[validate_reasonable_birth_date, validate_not_future_date],
+        null=True, blank=True
     )
     gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, blank=True)
     marital_status = models.ForeignKey(
