@@ -11,7 +11,7 @@ from ai_mf_backend.core.v1.api import limiter
 
 from ai_mf_backend.utils.v1.authentication.secrets import (
     login_checker,
-    validate_user_id,
+    validate_user_id
 )
 
 from ai_mf_backend.models.v1.database.mf_master_data import (
@@ -29,6 +29,7 @@ from ai_mf_backend.models.v1.database.mf_portfolio_nav_dividend import (
 )
 
 from ai_mf_backend.models.v1.api.user_portfolio import (
+    GetPortfolio,
     GetPortfolioResponse,
     DeletePortfolioRequest,
     DeletePortfolioResponse,
@@ -37,7 +38,6 @@ from ai_mf_backend.models.v1.api.user_portfolio import (
     PatchPortfolioRequest,
     PatchPortfolioResponse,
     MFOptionandDetailsResponse,
-    UpdatePortfolio,
 
 )
 
@@ -244,7 +244,7 @@ async def mf_portfolio_section(
         portfolio_rows = await sync_to_async(list)(qs)
 
         real_portfolio_docs = [
-            UpdatePortfolio(
+            GetPortfolio(
                 investment_id=p.id,
                 scheme_code=p.scheme_code,
                 fund_name=p.scheme_name,
@@ -406,12 +406,8 @@ async def patch_mf_portfolio_item(
                     id=investment.investment_id,
                     user_id=user_instance,
                 ).update(
-                    latest_nav=investment.latest_nav,
                     scheme_code=investment.scheme_code,
-                    fund_name=investment.fund_name,
-                    fund_type=investment.fund_type,
-                    fund_category=investment.fund_category,
-                    orig_fund_nav=investment.orig_fund_nav,
+                    current_fund_nav=investment.current_fund_nav,
                     investment_date=investment.investment_date,
                     investment_type=investment.investment_type,
                     frequency=investment.frequency,

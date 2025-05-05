@@ -64,7 +64,6 @@ def assign_final_marker_weights(self, scheme_code: int):
             f"Error assigning final marker weights for scheme {scheme_code}: {e}"
         )
 
-
 @celery_app.task(acks_late=False, bind=True)
 def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
     try:
@@ -82,7 +81,7 @@ def assign_final_section_weights_for_mutual_funds(self, scheme_code: int):
                         continue
 
                 if final_section_weight:
-                    embedding_array.append(final_section_weight)
+                    embedding_array.append(final_section_weight*section.initial_section_weight)
                 else:
                     embedding_array.append(0.001)
 

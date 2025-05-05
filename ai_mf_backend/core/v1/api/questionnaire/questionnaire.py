@@ -312,7 +312,7 @@ async def get_section_wise_questions(
                 lambda: list(
                     Allowed_Response.objects.filter(question=question).values(
                         "id", "response"
-                    )
+                    ).order_by("position")
                 )
             )()
 

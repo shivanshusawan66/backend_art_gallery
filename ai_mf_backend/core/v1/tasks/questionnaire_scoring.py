@@ -60,7 +60,6 @@ def assign_final_question_weights(self, user_id: int):
             f"Error assigning final question weights for user {user_id}: {e}"
         )
 
-
 @celery_app.task(acks_late=False, bind=True)
 def assign_final_section_weights(self, user_id: int):
     try:
@@ -76,7 +75,7 @@ def assign_final_section_weights(self, user_id: int):
                     else:
                         continue
                 if final_section_weight:
-                    embedding_array.append(final_section_weight)
+                    embedding_array.append(final_section_weight*section.initial_section_weight)
                 else:
                     embedding_array.append(0.001)
 
