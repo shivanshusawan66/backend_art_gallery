@@ -12,12 +12,16 @@ from fastapi import (
     Header,
     UploadFile,
     status,
+    Request,
 )
+from ai_mf_backend.core.v1.api import limiter
 
 from asgiref.sync import sync_to_async
 
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
+
+from ai_mf_backend.config.v1.api_config import api_config
 
 from ai_mf_backend.models.v1.database.user import (
     Occupation,
@@ -54,14 +58,15 @@ from ai_mf_backend.utils.v1.validators.profile_update import (
 
 router = APIRouter()
 
-
 @router.post(
     "/user_personal_financial_details",
     response_model=UserPersonalFinancialDetailsUpdateResponse,
     dependencies=[Depends(login_checker)],
 )
+@limiter.limit(api_config.REQUEST_PER_MIN)
 async def update_user_personal_financial_details(
-    request: UserPersonalFinancialDetailsUpdateRequest,
+    request:Request,
+    body: UserPersonalFinancialDetailsUpdateRequest,
     response: Response,
     Authorization: str = Header(),
 ):
@@ -73,49 +78,59 @@ async def update_user_personal_financial_details(
     investment_amount_per_year = None
 
     try:
+        if not body.name or not body.date_of_birth :
+            response.status_code = 400
+            return UserPersonalFinancialDetailsUpdateResponse(
+                status=False,
+                message="Please fill name and DOB",
+                data={},
+                status_code=400,
+            )
+
+
         # Validating date of birth
-        validate_not_future_date(request.date_of_birth)
-        validate_reasonable_birth_date(request.date_of_birth)
+        validate_not_future_date(body.date_of_birth)
+        validate_reasonable_birth_date(body.date_of_birth)
 
         # Validating name
-        validate_name(request.name)
+        validate_name(body.name)
 
         # Validating gender
         gender = await sync_to_async(
-            Gender.objects.filter(id=request.gender_id).first
+            Gender.objects.filter(id=body.gender_id).first
         )()
-        if isinstance(request.gender_id, int) and not gender:
+        if isinstance(body.gender_id, int) and not gender:
             raise ValidationError("Invalid gender provided.")
 
         # Validating marital status
         marital_status = await sync_to_async(
-            MaritalStatus.objects.filter(id=request.marital_status_id).first
+            MaritalStatus.objects.filter(id=body.marital_status_id).first
         )()
-        if isinstance(request.marital_status_id, int) and not marital_status:
+        if isinstance(body.marital_status_id, int) and not marital_status:
             raise ValidationError("Invalid Marital status provided.")
 
         # Validating occupation
         occupation = await sync_to_async(
-            Occupation.objects.filter(id=request.occupation_id).first
+            Occupation.objects.filter(id=body.occupation_id).first
         )()
-        if isinstance(request.occupation_id, int) and not occupation:
+        if isinstance(body.occupation_id, int) and not occupation:
             raise ValidationError("Invalid occupation provided.")
 
         # Validating annual income
         annual_income = await sync_to_async(
-            AnnualIncome.objects.filter(id=request.annual_income_id).first
+            AnnualIncome.objects.filter(id=body.annual_income_id).first
         )()
-        if isinstance(request.annual_income_id, int) and not annual_income:
+        if isinstance(body.annual_income_id, int) and not annual_income:
             raise ValidationError("Invalid Annual income provided.")
 
         # Validating monthly saving capacity
         monthly_saving_capacity = await sync_to_async(
             MonthlySavingCapacity.objects.filter(
-                id=request.monthly_saving_capacity_id
+                id=body.monthly_saving_capacity_id
             ).first
         )()
         if (
-            isinstance(request.monthly_saving_capacity_id, int)
+            isinstance(body.monthly_saving_capacity_id, int)
             and not monthly_saving_capacity
         ):
             raise ValidationError("Invalid Monthly saving capacity provided.")
@@ -123,11 +138,11 @@ async def update_user_personal_financial_details(
         # Validating investment amount per year
         investment_amount_per_year = await sync_to_async(
             InvestmentAmountPerYear.objects.filter(
-                id=request.investment_amount_per_year_id
+                id=body.investment_amount_per_year_id
             ).first
         )()
         if (
-            isinstance(request.investment_amount_per_year_id, int)
+            isinstance(body.investment_amount_per_year_id, int)
             and not investment_amount_per_year
         ):
             raise ValidationError("Invalid investment amount per year provided.")
@@ -142,7 +157,7 @@ async def update_user_personal_financial_details(
         )
 
     user = await sync_to_async(
-        UserContactInfo.objects.filter(user_id=request.user_id, deleted=False).first
+        UserContactInfo.objects.filter(user_id=body.user_id, deleted=False).first
     )()
 
     if not user:
@@ -155,11 +170,11 @@ async def update_user_personal_financial_details(
         )
 
     user_personal = await sync_to_async(
-        UserPersonalDetails.objects.filter(user_id=request.user_id, deleted=False).first
+        UserPersonalDetails.objects.filter(user_id=body.user_id, deleted=False).first
     )()
     user_financial = await sync_to_async(
         UserFinancialDetails.objects.filter(
-            user_id=request.user_id, deleted=False
+            user_id=body.user_id, deleted=False
         ).first
     )()
 
@@ -190,29 +205,29 @@ async def update_user_personal_financial_details(
     if not user_financial:
         user_financial = UserFinancialDetails(user=user)
 
-    if request.name:
-        user_personal.name = request.name
-    if request.date_of_birth:
-        user_personal.date_of_birth = request.date_of_birth
-    if request.gender_id:
+    if body.name:
+        user_personal.name = body.name
+    if body.date_of_birth:
+        user_personal.date_of_birth = body.date_of_birth
+    if body.gender_id:
         user_personal.gender = gender
-    if request.marital_status_id:
+    if body.marital_status_id:
         user_personal.marital_status = marital_status
 
-    if request.occupation_id:
+    if body.occupation_id:
         user_financial.occupation = occupation
-    if request.annual_income_id:
+    if body.annual_income_id:
         user_financial.income_category = annual_income
-    if request.monthly_saving_capacity_id:
+    if body.monthly_saving_capacity_id:
         user_financial.saving_category = monthly_saving_capacity
-    if request.investment_amount_per_year_id:
+    if body.investment_amount_per_year_id:
         user_financial.investment_amount_per_year = investment_amount_per_year
-    if isinstance(request.regular_source_of_income, bool):
-        user_financial.regular_source_of_income = request.regular_source_of_income
-    if isinstance(request.lock_in_period_accepted, bool):
-        user_financial.lock_in_period_accepted = request.lock_in_period_accepted
-    if request.investment_style:
-        if request.investment_style not in ["Lump-Sum", "SIP"]:
+    if isinstance(body.regular_source_of_income, bool):
+        user_financial.regular_source_of_income = body.regular_source_of_income
+    if isinstance(body.lock_in_period_accepted, bool):
+        user_financial.lock_in_period_accepted = body.lock_in_period_accepted
+    if body.investment_style:
+        if body.investment_style not in ["Lump-Sum", "SIP"]:
             response.status_code = 400
             return UserPersonalFinancialDetailsUpdateResponse(
                 status=False,
@@ -220,7 +235,7 @@ async def update_user_personal_financial_details(
                 data={},
                 status_code=400,
             )
-        user_financial.investment_style = request.investment_style
+        user_financial.investment_style = body.investment_style
 
     try:
         await sync_to_async(

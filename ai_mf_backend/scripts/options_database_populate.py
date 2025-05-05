@@ -164,13 +164,11 @@ def populate_user_profile_data():
     ]
 
     mf_colors = [
-        "Blue",
-        "Brown",
-        "High",
         "Low",
         "Low to Moderate",
         "Moderate",
         "Moderately High",
+        "High",
         "Very High",
     ]
 

@@ -128,7 +128,7 @@ async def get_mf_recommendations(
 
         if "navrs_current" in marker_to_models:
             base_query = base_query.annotate(
-                navrs=Subquery(
+                nav=Subquery(
                     marker_to_models["navrs_current"]
                     .objects.filter(schemecode=OuterRef("schemecode"))
                     .values("navrs")[:1]
@@ -268,6 +268,9 @@ async def get_mf_recommendations(
         if investment_type is not None:
             filter_kwargs["sip"] = "T" if investment_type else "F"
 
+        if "navrs" in all_fields:
+            all_fields.remove("navrs")
+
         mf_table = MFSchemeMasterInDetails._meta.db_table
         sw_table = SectionWeightsPerMutualFund._meta.db_table
 
@@ -282,21 +285,21 @@ async def get_mf_recommendations(
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
                 .filter(**filter_kwargs)
-                .order_by("similarity", order_field)
-                .values(*all_fields,"schemecode","asset_type","category")[:60]
+                .order_by("-similarity", order_field)
+                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
             )
         elif filter_kwargs:
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
                 .filter(**filter_kwargs)
-                .order_by("similarity")
-                .values(*all_fields,"schemecode","asset_type","category")[:60]
+                .order_by("-similarity")
+                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
             )
         else:
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
-                .order_by("similarity")
-                .values(*all_fields,"schemecode","asset_type","category")[:60]
+                .order_by("-similarity")
+                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
             )
         
 
