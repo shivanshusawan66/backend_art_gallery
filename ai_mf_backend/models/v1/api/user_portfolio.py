@@ -50,7 +50,7 @@ class UpdatePortfolio(BaseModel):
     quantity: float
     current_fund_nav: Optional[float] = None
     investment_type: str
-    frequency: str
+    frequency: Optional[str]
 
 
 class GetPortfolioResponse(Response):
