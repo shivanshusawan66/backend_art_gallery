@@ -14,7 +14,7 @@ class InsertPortfolio(BaseModel):
     quantity: float
     current_fund_nav: Optional[float] = None
     investment_type: str
-    frequency: str
+    frequency: Optional[str] = None
 
 
 class GetPortfolio(BaseModel):
@@ -28,7 +28,18 @@ class GetPortfolio(BaseModel):
     quantity: float
     current_fund_nav: Optional[float] = None
     investment_type: str
-    frequency: str
+    frequency: Optional[str] = None
+
+class UpdatePortfolio(BaseModel):
+    investment_id: Optional[int] = None
+    scheme_code: int
+    fund_name: Optional[str] = None
+    investment_date: datetime
+    invested_amount: float
+    quantity: float
+    current_fund_nav: Optional[float] = None
+    investment_type: str
+    frequency: Optional[str] = None
 
 class UpdatePortfolio(BaseModel):
     investment_id: Optional[int] = None
