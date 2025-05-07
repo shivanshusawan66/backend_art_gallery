@@ -382,52 +382,38 @@ async def get_fund_dashboard(
             if not company_holdings:
                 top_holdings = []
             else:
-                processed_companies = set()
-                unique_holdings = []
-                Other_company_weight=0
-                for entry in company_holdings:
-                    holding_name = entry["compname"] if entry["compname"] is not None else "Others"
-                    if holding_name not in processed_companies:
-                        if holding_name!="Others":
-                           processed_companies.add(holding_name)
-                           unique_holdings.append({"compname": holding_name, "total_weight": entry["total_weight"]})
-                        else:
-                            Other_company_holdings+=entry["total_weight"]
-                if Other_company_weight!=0:
-                    unique_holdings.append({"compname": "Others", "total_weight": Other_company_holdings})
-
-
-                top_holdings_sorted = sorted(unique_holdings, key=lambda x: x["total_weight"], reverse=True)
+                top_holdings_sorted = sorted(
+                    company_holdings, key=lambda x: x["total_weight"], reverse=True
+                )
                 top_holdings = [
-                    TopHolding(holding_name=entry["compname"] if entry["compname"] is not None else "Others", 
-                                weight=entry["total_weight"])
-                        for entry in top_holdings_sorted
-                    ]
-            
+                    TopHolding(
+                        holding_name=(
+                            entry["compname"]
+                            if entry["compname"] is not None
+                            else "Others"
+                        ),
+                        weight=entry["total_weight"],
+                    )
+                    for entry in top_holdings_sorted[0:5]
+                ]
+
             if not sector_holding:
                 top_sectors = []
             else:
-                processed_sectors = set()
-                unique_sectors = []
-                Other_sector_holdings=0
-                for entry in sector_holding:
-                    sector_name = entry["sect_name"] if entry["sect_name"] is not None else "Others"
-                    if sector_name not in processed_sectors:
-                        if sector_name!="Others":
-                            processed_sectors.add(sector_name)
-                            unique_sectors.append({"sect_name": sector_name, "total_weight": entry["total_weight"]})  
-                        else:
-                            Other_sector_holdings+=entry["total_weight"]
-                if Other_sector_holdings!=0:
-                    unique_sectors.append({"sect_name": "Others", "total_weight": Other_sector_holdings})
-
-                top_sectors_sorted = sorted(sector_holding, key=lambda x: x["total_weight"], reverse=True)
+                top_sectors_sorted = sorted(
+                    sector_holding, key=lambda x: x["total_weight"], reverse=True
+                )
                 top_sectors = [
-                    TopSector(sector_name=entry["sect_name"] if entry["sect_name"] is not None else "Others", 
-                        weight=entry["total_weight"])
-                for entry in top_sectors_sorted
+                    TopSector(
+                        sector_name=(
+                            entry["sect_name"]
+                            if entry["sect_name"] is not None
+                            else "Others"
+                        ),
+                        weight=entry["total_weight"],
+                    )
+                    for entry in top_sectors_sorted[0:5]
                 ]
-
             asset_allocation = None
             portfolio_qs = None
             if "mode" in marker_to_models and schemecode is not None:
