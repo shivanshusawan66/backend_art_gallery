@@ -14,7 +14,7 @@ from ai_mf_backend.utils.v1.api_projection.valid_fields import process_fields
 from ai_mf_backend.config.v1.api_config import api_config
 from ai_mf_backend.core.v1.api import limiter
 
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 
 
 @router.get("/mf_high_return_funds", response_model=HighReturnMutualFundsResponse)

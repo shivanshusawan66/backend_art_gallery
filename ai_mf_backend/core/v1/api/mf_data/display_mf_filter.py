@@ -23,7 +23,7 @@ from ai_mf_backend.models.v1.database.mf_filter_parameters import (
 )
 from ai_mf_backend.core.v1.api import limiter
 
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 logger = logging.getLogger(__name__)
 
 

@@ -44,7 +44,7 @@ from ai_mf_backend.models.v1.api.user_portfolio import (
 
 from ai_mf_backend.config.v1.api_config import api_config
 
-router = APIRouter()
+router = APIRouter(tags=["mf_porfolio"])
 logger = logging.getLogger(__name__)
 
 

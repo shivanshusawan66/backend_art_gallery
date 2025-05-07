@@ -34,7 +34,7 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     login_checker,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 
 
 @router.get(

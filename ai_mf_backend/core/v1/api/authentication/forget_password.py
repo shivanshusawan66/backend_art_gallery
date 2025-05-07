@@ -41,7 +41,7 @@ from ai_mf_backend.config.v1.api_config import api_config
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(tags=["authentication"])
 
 
 @router.post("/forgot_password", response_model=ForgotPasswordResponse, status_code=200)
@@ -183,7 +183,6 @@ async def forgot_password(
 @router.post(
     "/change_password",
     deprecated=True,
-    tags=["Deprecated"],
     response_model=ChangePasswordResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,

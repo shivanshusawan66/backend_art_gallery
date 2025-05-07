@@ -4,10 +4,10 @@ from ai_mf_backend.models.v1.database.blog import BlogCategory
 
 from asgiref.sync import sync_to_async
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 
 
-@router.get("/options_blog_category", response_model=BlogCategoryOptionResponse)
+@router.get("/options_blog_category",deprecated=True, response_model=BlogCategoryOptionResponse)
 async def get_blog_category_options():
     try:
         categories = await sync_to_async(list)(BlogCategory.objects.all())

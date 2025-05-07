@@ -36,7 +36,7 @@ from ai_mf_backend.models.v1.api.display_each_mf import (
     MutualFundDashboardErrorResponse,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 
 logger = logging.getLogger(__name__)
 

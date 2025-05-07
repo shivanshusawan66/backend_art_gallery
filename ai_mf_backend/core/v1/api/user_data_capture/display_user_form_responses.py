@@ -19,7 +19,7 @@ from ai_mf_backend.models.v1.api.user_data import (
 )
 from ai_mf_backend.config.v1.api_config import api_config
 
-router = APIRouter()
+router = APIRouter(tags=["user_data_capture"])
 from django.core.exceptions import ValidationError
 
 

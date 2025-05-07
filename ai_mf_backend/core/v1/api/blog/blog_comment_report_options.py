@@ -5,11 +5,11 @@ from ai_mf_backend.models.v1.database.blog import BlogCommentReportType
 
 from asgiref.sync import sync_to_async
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/options_comment_report_type", response_model=BlogCategoryOptionResponse)
+@router.get("/options_comment_report_type",deprecated=True, response_model=BlogCategoryOptionResponse)
 async def get_comment_report_type_options():
     try:
         report_types = await sync_to_async(list)(BlogCommentReportType.objects.all())

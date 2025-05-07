@@ -21,8 +21,7 @@ from ai_mf_backend.models.v1.database.mf_category_wise import (
 from ai_mf_backend.models.v1.database.mf_master_data import MFSchemeMasterInDetails
 from ai_mf_backend.models.v1.database.mf_reference_table import MFReferenceTable
 
-
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 
 
 @router.get("/mf_options_fund_category", response_model=MFCategoryOptionResponse)
@@ -134,7 +133,6 @@ async def get_mf_subcategory_options(
     "/get_fund_data_category_subcategory_wise",
     response_model=MFDataCategorySubcategoryWise,
     deprecated=True,
-    tags=["Deprecated"],
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def fund_data_category_subcategory_wise(
