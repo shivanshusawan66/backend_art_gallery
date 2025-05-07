@@ -394,7 +394,7 @@ async def get_fund_dashboard(
                         ),
                         weight=entry["total_weight"],
                     )
-                    for entry in top_holdings_sorted[0:5]
+                    for entry in top_holdings_sorted
                 ]
 
             if not sector_holding:
@@ -412,7 +412,7 @@ async def get_fund_dashboard(
                         ),
                         weight=entry["total_weight"],
                     )
-                    for entry in top_sectors_sorted[0:5]
+                    for entry in top_sectors_sorted
                 ]
             asset_allocation = None
             portfolio_qs = None
