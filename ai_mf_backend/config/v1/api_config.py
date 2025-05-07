@@ -66,6 +66,9 @@ class APIConfig(BaseSettingsWrapper):
         "_3yearret",
         "s_name",
         "navrs",
+        "asset_type",
+        "category",
+        "expratio",
     ]
 
     COMPONENT_MARKER_MAP: ClassVar[Dict[str, List[str]]] = {
@@ -77,8 +80,9 @@ class APIConfig(BaseSettingsWrapper):
             "sd_y",
             "sharpe_y",
             "status",
+            
         ],
-        "Fund Overview": ["_5yearret", "_3yearret", "navrs_current"],
+        "Fund Overview": ["_5yearret", "_3yearret", "navrs_current","expratio",],
         "Return Calculator": ["sip"],
         "Asset Allocation": ["compname", "sect_name", "holdpercentage", "mode"],
         "Historical Nav & Returns": ["navrs_historical"],

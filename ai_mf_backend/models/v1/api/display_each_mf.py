@@ -8,6 +8,7 @@ class FundOverview(BaseModel):
     net_assets_value: Optional[float]
     three_year_return: Optional[float]
     five_year_return: Optional[float]
+    expense_ratio:Optional[float]
 
 
 class FundRiskStatistics(BaseModel):
@@ -78,6 +79,7 @@ class MutualFundDashboardResponse(BaseModel):
     status: bool
     message: str
     status_code: Optional[int] = 200
+    s_name:Optional[str]=None
     fund_category_subcategory: Optional[FundCategoryandSubcategory] = None
     fund_overview: Optional[FundOverview] = None
     fund_risk_statistics: Optional[FundRiskStatistics] = None
@@ -92,6 +94,7 @@ class MutualFundDashboardResponse(BaseModel):
 
 
 class MutualFundDashboardPayload(BaseModel):
+    s_name:Optional[str]=None
     fund_category_subcategory: Optional[FundCategoryandSubcategory] = None
     fund_overview: Optional[FundOverview] = None
     fund_risk_statistics: Optional[FundRiskStatistics] = None

@@ -52,6 +52,7 @@ TABLE_MARKER_MAPPING = {
         "_5yearret_annualised",
     ],
     MFSystematicInvestmentPlan: ["frequency"],
+    MFSchemeMonthWiseExpenseRatio:["expratio"],
 }
 
 

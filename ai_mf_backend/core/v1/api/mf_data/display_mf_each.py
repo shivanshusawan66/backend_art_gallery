@@ -190,6 +190,14 @@ async def get_fund_dashboard(
                     )[:1]
                 )
             )
+        if "expratio" in marker_to_models:
+            base_query = base_query.annotate(
+                expratio=Subquery(
+                    marker_to_models["expratio"]
+                    .objects.filter(schemecode=OuterRef("schemecode"))
+                    .values("expratio")[:1]
+                )
+            )
 
         if "navrs_current" in marker_to_models:
             base_query = base_query.annotate(
@@ -309,7 +317,7 @@ async def get_fund_dashboard(
         if schemecode is not None:
             result = await sync_to_async(
                 lambda: base_query.filter(schemecode=schemecode)
-                .values(*all_markers)
+                .values(*all_markers,'s_name')
                 .first()
             )()
 
@@ -374,37 +382,50 @@ async def get_fund_dashboard(
             if not company_holdings:
                 top_holdings = []
             else:
-                top_holdings_sorted = sorted(
-                    company_holdings, key=lambda x: x["total_weight"], reverse=True
-                )
-                top_holdings = [
-                    TopHolding(
-                        holding_name=(
-                            entry["compname"]
-                            if entry["compname"] is not None
-                            else "Others"
-                        ),
-                        weight=entry["total_weight"],
-                    )
-                    for entry in top_holdings_sorted[0:5]
-                ]
+                processed_companies = set()
+                unique_holdings = []
+                Other_company_weight=0
+                for entry in company_holdings:
+                    holding_name = entry["compname"] if entry["compname"] is not None else "Others"
+                    if holding_name not in processed_companies:
+                        if holding_name!="Others":
+                           processed_companies.add(holding_name)
+                           unique_holdings.append({"compname": holding_name, "total_weight": entry["total_weight"]})
+                        else:
+                            Other_company_holdings+=entry["total_weight"]
+                if Other_company_weight!=0:
+                    unique_holdings.append({"compname": "Others", "total_weight": Other_company_holdings})
 
+
+                top_holdings_sorted = sorted(unique_holdings, key=lambda x: x["total_weight"], reverse=True)
+                top_holdings = [
+                    TopHolding(holding_name=entry["compname"] if entry["compname"] is not None else "Others", 
+                                weight=entry["total_weight"])
+                        for entry in top_holdings_sorted
+                    ]
+            
             if not sector_holding:
                 top_sectors = []
             else:
-                top_sectors_sorted = sorted(
-                    sector_holding, key=lambda x: x["total_weight"], reverse=True
-                )
+                processed_sectors = set()
+                unique_sectors = []
+                Other_sector_holdings=0
+                for entry in sector_holding:
+                    sector_name = entry["sect_name"] if entry["sect_name"] is not None else "Others"
+                    if sector_name not in processed_sectors:
+                        if sector_name!="Others":
+                            processed_sectors.add(sector_name)
+                            unique_sectors.append({"sect_name": sector_name, "total_weight": entry["total_weight"]})  
+                        else:
+                            Other_sector_holdings+=entry["total_weight"]
+                if Other_sector_holdings!=0:
+                    unique_sectors.append({"sect_name": "Others", "total_weight": Other_sector_holdings})
+
+                top_sectors_sorted = sorted(sector_holding, key=lambda x: x["total_weight"], reverse=True)
                 top_sectors = [
-                    TopSector(
-                        sector_name=(
-                            entry["sect_name"]
-                            if entry["sect_name"] is not None
-                            else "Others"
-                        ),
-                        weight=entry["total_weight"],
-                    )
-                    for entry in top_sectors_sorted[0:5]
+                    TopSector(sector_name=entry["sect_name"] if entry["sect_name"] is not None else "Others", 
+                        weight=entry["total_weight"])
+                for entry in top_sectors_sorted
                 ]
 
             asset_allocation = None
@@ -454,6 +475,8 @@ async def get_fund_dashboard(
                     message="Success",
                     status_code=response.status_code,
                     data=MutualFundDashboardPayload(
+
+                        s_name=result.get('s_name'),
                         fund_category_subcategory=FundCategoryandSubcategory(
                             fund_category=result.get("asset_type"),
                             fund_subcategory=result.get("category"),
@@ -462,6 +485,7 @@ async def get_fund_dashboard(
                             net_assets_value=result.get("navrs"),
                             three_year_return=result.get("_3yearret"),
                             five_year_return=result.get("_5yearret"),
+                            expense_ratio=result.get("expratio"),
                         ),
                         fund_risk_statistics=FundRiskStatistics(
                             one_year_return=result.get("_1yrret"),
@@ -497,6 +521,7 @@ async def get_fund_dashboard(
                 return MutualFundDashboardResponse(
                     status=True,
                     message="Success",
+                    s_name=result.get('s_name'),
                     status_code=response.status_code,
                     fund_category_subcategory=FundCategoryandSubcategory(
                         fund_category=result.get("asset_type"),
@@ -506,6 +531,8 @@ async def get_fund_dashboard(
                         net_assets_value=result.get("navrs"),
                         three_year_return=result.get("_3yearret"),
                         five_year_return=result.get("_5yearret"),
+                        expense_ratio=result.get("expratio"),
+
                     ),
                     fund_risk_statistics=FundRiskStatistics(
                         one_year_return=result.get("_1yrret"),
