@@ -37,7 +37,7 @@ from ai_mf_backend.models.v1.api.user_authentication import (
 from ai_mf_backend.config.v1.api_config import api_config
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(tags=["authentication"])
 
 
 @router.post(

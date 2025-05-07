@@ -53,7 +53,7 @@ from ai_mf_backend.models.v1.database.questions import (
 
 from ai_mf_backend.config.v1.api_config import api_config
 
-router = APIRouter()
+router = APIRouter(tags=["questionnaire"])
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +61,6 @@ logger = logging.getLogger(__name__)
 @router.get(
     "/sections",
     deprecated=True,
-    tags=["Deprecated"],
     response_model=SectionsResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,

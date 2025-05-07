@@ -13,9 +13,7 @@ from ai_mf_backend.models.v1.database.mf_filter_parameters import (
     MFFilterColors,
     MFFilterParameters,
 )
-
-
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 
 
 @router.get(

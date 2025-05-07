@@ -21,7 +21,7 @@ from ai_mf_backend.models.v1.api.contact_message import (
     ContactMessageResponse,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["contact_message"])
 
 
 @router.get(

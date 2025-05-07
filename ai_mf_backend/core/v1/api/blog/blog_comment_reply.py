@@ -17,12 +17,13 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 logger = logging.getLogger(__name__)
 
 
 @router.post(
     "/comment_reply",
+    deprecated=True,
     response_model=CommentReplyResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
@@ -104,7 +105,7 @@ async def post_comment_reply(
         )
 
 
-@router.get("/comment_reply/{comment_id}", response_model=CommentReplyResponse)
+@router.get("/comment_reply/{comment_id}",deprecated=True, response_model=CommentReplyResponse)
 async def get_comment_replies(comment_id: int, response: Response):
     try:
         replies = await sync_to_async(list)(

@@ -23,11 +23,11 @@ from ai_mf_backend.models.v1.database.mf_filter_parameters import (
 )
 from ai_mf_backend.core.v1.api import limiter
 
-router = APIRouter()
+router = APIRouter(tags=["mf_data"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/mf_fund_filter/")
+@router.get("/mf_fund_filter")
 @limiter.limit(api_config.REQUEST_PER_MIN)
 async def get_fund_filter(
     request: Request,
@@ -197,6 +197,14 @@ async def get_fund_filter(
                     marker_to_models["_5yearret"]
                     .objects.filter(schemecode=OuterRef("schemecode"))
                     .values("_5yearret")[:1]
+                )
+            )
+        if "expratio" in marker_to_models:
+            base_query = base_query.annotate(
+                expratio=Subquery(
+                    marker_to_models["expratio"]
+                    .objects.filter(schemecode=OuterRef("schemecode"))
+                    .values("expratio")[:1]
                 )
             )
 

@@ -22,11 +22,12 @@ from ai_mf_backend.utils.v1.validators.blogs import (
     validate_blog_id,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 
 
 @router.get(
     "/filter_and_select_blog_data",
+    deprecated=True,
     response_model=BlogCardResponse,
 )
 @limiter.limit(api_config.REQUEST_PER_MIN)

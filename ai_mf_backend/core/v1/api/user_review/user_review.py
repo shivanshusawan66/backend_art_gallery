@@ -8,7 +8,7 @@ from ai_mf_backend.models.v1.database.user_review import UserReview
 from ai_mf_backend.models.v1.api.user_review import UserReviewResponse
 
 
-router = APIRouter()
+router = APIRouter(tags=["user_review"])
 logger = logging.getLogger(__name__)
 
 
