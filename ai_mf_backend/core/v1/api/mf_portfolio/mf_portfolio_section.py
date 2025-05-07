@@ -38,12 +38,14 @@ from ai_mf_backend.models.v1.api.user_portfolio import (
     PatchPortfolioRequest,
     PatchPortfolioResponse,
     MFOptionandDetailsResponse,
-
 )
 
 
 from ai_mf_backend.config.v1.api_config import api_config
-
+from ai_mf_backend.utils.v1.validators.investment_type import (
+    validate_fund_name, 
+    validate_investment_type
+)
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -260,6 +262,7 @@ async def mf_portfolio_section(
             for p in portfolio_rows
         ]
 
+        response.status_code = 200
         return GetPortfolioResponse(
             status=True,
             message="Portfolio fetched successfully",
@@ -301,10 +304,24 @@ async def delete_mf_portfolio_item(
 
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
+        investment_exists = await sync_to_async(
+            lambda: PortfolioModel.objects.filter(user_id=user_id, id=investment_id).exists()
+        )()
+
+        if not investment_exists:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            return DeletePortfolioResponse(
+                status=False,
+                message="Investment ID not found for the given user.",
+                data={},
+                status_code=response.status_code,
+            )
+
         await sync_to_async(
             lambda: PortfolioModel.objects.filter(user_id=user_id, id=investment_id).delete()
         )()
 
+        response.status_code = 200
         return DeletePortfolioResponse(
             status=True,
             message="Successfully deleted the data for the given investment id",
@@ -346,6 +363,8 @@ async def add_mf_portfolio_item(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
         instances = []
         for investment in investments:
+            validate_investment_type(investment.investment_type)
+            validate_fund_name(investment.fund_name)
             instances.append(
                 PortfolioModel(
                     user_id=user_instance,
@@ -359,7 +378,8 @@ async def add_mf_portfolio_item(
                 )
             )
         await sync_to_async(PortfolioModel.objects.bulk_create)(instances)
-    
+
+        response.status_code = 200
         return AddPortfolioResponse(
             status=True,
             message="Successfully added the data for the given investment id",
@@ -401,6 +421,19 @@ async def patch_mf_portfolio_item(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
         for investment in investments:
+            validate_investment_type(investment.investment_type)
+            investment_exists = await sync_to_async(
+                lambda: PortfolioModel.objects.filter(id=investment.investment_id).exists()
+            )()
+            if not investment_exists:
+                response.status_code = status.HTTP_404_NOT_FOUND
+                return PatchPortfolioResponse(
+                    status=False,
+                    message="Investment does not exists with this ID",
+                    data={},
+                    status_code=response.status_code,
+                )
+
             await sync_to_async(
                 lambda: PortfolioModel.objects.filter(
                     id=investment.investment_id,
@@ -416,9 +449,10 @@ async def patch_mf_portfolio_item(
                 )
             )()
 
+        response.status_code = 200
         return PatchPortfolioResponse(
             status=True,
-            message="Successfully added the data for the given investment id",
+            message="Successfully Updated the data",
             data={},
             status_code=response.status_code,
         )
