@@ -305,7 +305,7 @@ async def delete_mf_portfolio_item(
         PortfolioModel = MFRealPortfolio if is_real else MFTrialPortfolio
 
         investment_exists = await sync_to_async(
-            lambda: PortfolioModel.objects.filter(user_id=user_id, id=investment_id).exists()
+            lambda: PortfolioModel.objects.filter(id=investment_id).exists()
         )()
 
         if not investment_exists:
