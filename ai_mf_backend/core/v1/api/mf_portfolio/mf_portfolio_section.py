@@ -261,7 +261,10 @@ async def mf_portfolio_section(
             )
             for p in portfolio_rows
         ]
-
+        real_portfolio_docs = sorted(
+            real_portfolio_docs,
+            key=lambda x: (x.investment_date, x.fund_name.lower() if x.fund_name else "")
+        )
         response.status_code = 200
         return GetPortfolioResponse(
             status=True,
