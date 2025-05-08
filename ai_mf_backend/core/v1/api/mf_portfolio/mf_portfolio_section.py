@@ -46,7 +46,7 @@ from ai_mf_backend.utils.v1.validators.investment_type import (
     validate_fund_name, 
     validate_investment_type
 )
-router = APIRouter()
+router = APIRouter(tags=["mf_porfolio"])
 logger = logging.getLogger(__name__)
 
 

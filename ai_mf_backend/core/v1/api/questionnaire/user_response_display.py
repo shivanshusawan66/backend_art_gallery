@@ -23,7 +23,7 @@ from ai_mf_backend.models.v1.api.questionnaire_responses import (
 )
 from ai_mf_backend.config.v1.api_config import api_config
 
-router = APIRouter()
+router = APIRouter(tags=["questionnaire"])
 
 
 @router.get(

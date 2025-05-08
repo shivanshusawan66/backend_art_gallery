@@ -19,7 +19,7 @@ from ai_mf_backend.models.v1.api.user_data import (
 )
 from asgiref.sync import sync_to_async
 
-router = APIRouter()
+router = APIRouter(tags=["user_data_capture"])
 
 
 # Function to fetch options for personal details

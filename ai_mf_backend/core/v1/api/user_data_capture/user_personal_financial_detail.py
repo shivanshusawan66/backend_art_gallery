@@ -56,7 +56,7 @@ from ai_mf_backend.utils.v1.validators.profile_update import (
     validate_profile_modification_time,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["user_data_capture"])
 
 @router.post(
     "/user_personal_financial_details",

@@ -17,11 +17,11 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/comment", response_model=CommentResponse)
+@router.post("/comment",deprecated=True, response_model=CommentResponse)
 async def post_comment(
     request: CommentCreateRequest,
     response: Response,
@@ -91,7 +91,7 @@ async def post_comment(
         )
 
 
-@router.get("/comments/{blog_id}", response_model=CommentResponse)
+@router.get("/comments/{blog_id}",deprecated=True, response_model=CommentResponse)
 async def get_comments(blog_id: int, response: Response):
     try:
         comments = await sync_to_async(list)(
@@ -150,7 +150,7 @@ async def get_comments(blog_id: int, response: Response):
         )
 
 
-@router.put("/comment", response_model=CommentResponse)
+@router.put("/comment",deprecated=True, response_model=CommentResponse)
 async def update_comment(
     response: Response,
     request: CommentUpdateRequest,
@@ -225,7 +225,7 @@ async def update_comment(
         )
 
 
-@router.delete("/comment", response_model=CommentResponse)
+@router.delete("/comment",deprecated=True, response_model=CommentResponse)
 async def delete_comment(
     response: Response,
     request: CommentDeleteRequest,

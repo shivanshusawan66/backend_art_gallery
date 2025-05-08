@@ -18,12 +18,13 @@ from ai_mf_backend.models.v1.database.blog import (
 )
 
 
-router = APIRouter()
+router = APIRouter(tags=["blog"])
 logger = logging.getLogger(__name__)
 
 
 @router.post(
     "/report",
+    deprecated=True,
     response_model=ReportResponse,
     dependencies=[Depends(login_checker)],
     status_code=200,
