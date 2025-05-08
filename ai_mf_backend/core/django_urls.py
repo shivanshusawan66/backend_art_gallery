@@ -22,4 +22,5 @@ Including another URLconf
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
+    path('chaining/', include('smart_selects.urls')),
 ]

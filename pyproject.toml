@@ -35,6 +35,7 @@ django-ckeditor-5 = "^0.2.17"
 python-multipart = "^0.0.20"
 pgvector = "^0.4.0"
 scikit-learn = "^1.6.1"
+django-smart-selects = "^1.7.2"
 
 
 [build-system]

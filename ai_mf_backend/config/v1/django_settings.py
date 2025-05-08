@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "ai_mf_backend.config.v1.api_config.DjangoAppConfig",
     "phonenumber_field",
     "django_ckeditor_5",
+    "smart_selects"
 ]
 
 CSRF_TRUSTED_ORIGINS = [

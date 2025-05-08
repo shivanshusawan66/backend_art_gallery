@@ -1,4 +1,5 @@
 from django.db import models
+from smart_selects.db_fields import ChainedForeignKey
 from pgvector.django import VectorField
 from ai_mf_backend.models.v1.database.user import UserContactInfo
 from ai_mf_backend.models.v1.database import SoftDeleteModel
@@ -39,11 +40,21 @@ class Question(SoftDeleteModel):
 
 
 class Allowed_Response(SoftDeleteModel):
-    question = models.ForeignKey(
-        Question, on_delete=models.PROTECT, null=False, blank=False
-    )
     section = models.ForeignKey(
-        Section, on_delete=models.PROTECT, null=False, blank=False
+        Section,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False
+    )
+    question = ChainedForeignKey(
+        Question,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+        chained_field="section",
+        chained_model_field="section",
+        show_all=False,
+        auto_choose=True,
     )
     response = models.CharField(max_length=500)
     position = models.PositiveIntegerField(default=0.0)
@@ -94,16 +105,36 @@ class ConditionalQuestion(SoftDeleteModel):
 
 class UserResponse(SoftDeleteModel):
     user_id = models.ForeignKey(
-        UserContactInfo, on_delete=models.PROTECT, null=False, blank=False
-    )
-    question_id = models.ForeignKey(
-        Question, on_delete=models.PROTECT, null=False, blank=False
-    )
-    response_id = models.ForeignKey(
-        Allowed_Response, on_delete=models.PROTECT, null=False, blank=False
+        UserContactInfo,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False
     )
     section_id = models.ForeignKey(
-        Section, on_delete=models.PROTECT, null=False, blank=False
+        Section,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+    )
+    question_id = ChainedForeignKey(
+        Question,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+        chained_field="section_id",
+        chained_model_field="section",
+        show_all=False,
+        auto_choose=True,
+    )
+    response_id = ChainedForeignKey(
+        Allowed_Response,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+        chained_field="question_id",
+        chained_model_field="question",
+        show_all=False,  
+        auto_choose=True,
     )
     add_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
