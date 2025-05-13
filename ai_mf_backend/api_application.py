@@ -176,7 +176,7 @@ async def enforce_content_type(request: Request, call_next):
             "multipart/form-data",
             "image/jpeg",
             "image/png",
-            # "application/octet-stream"
+            "application/x-www-form-urlencoded",
         ]
 
         # Check if the content type starts with any of the allowed types
@@ -362,7 +362,13 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(Allowed_Response)
 class AllowedResponseAdmin(admin.ModelAdmin):
-    list_display = ("question", "section", "response", "add_date", "update_date")
+    list_display = (
+        "section",
+        "question",
+        "response",
+        "add_date",
+        "update_date"
+    )
     search_fields = (
         "question__question",
         "response",
@@ -375,9 +381,9 @@ class AllowedResponseAdmin(admin.ModelAdmin):
 class UserResponseAdmin(admin.ModelAdmin):
     list_display = (
         "user_id",
+        "section_id",
         "question_id",
         "response_id",
-        "section_id",
         "add_date",
         "update_date",
     )
