@@ -1,4 +1,4 @@
-from itertools import chain
+import copy
 from typing import Optional
 from asgiref.sync import sync_to_async
 from django.db.models.expressions import RawSQL
@@ -91,13 +91,9 @@ async def get_mf_recommendations(
                 status_code=400,
             )
 
-        all_fields = api_config.MUTUAL_FUND_DASHBOARD_COLOUMNS
-        all_markers = list(
-            set(chain.from_iterable(api_config.COMPONENT_MARKER_MAP.values()))
-        )
-
+        all_fields = copy.deepcopy(api_config.MUTUAL_FUND_DASHBOARD_COLOUMNS)
         refs = await sync_to_async(
-            lambda: list(MFReferenceTable.objects.filter(marker_name__in=all_markers))
+            lambda: list(MFReferenceTable.objects.filter(marker_name__in=all_fields))
         )()
 
         marker_to_models = {
@@ -132,12 +128,7 @@ async def get_mf_recommendations(
                     marker_to_models["navrs_current"]
                     .objects.filter(schemecode=OuterRef("schemecode"))
                     .values("navrs")[:1]
-                ),
-                navdate=Subquery(
-                    marker_to_models["navrs_current"]
-                    .objects.filter(schemecode=OuterRef("schemecode"))
-                    .values("navdate")[:1]
-                ),
+                )
             )
 
         # Risk metrics
@@ -213,6 +204,15 @@ async def get_mf_recommendations(
                 )
             )
 
+        if "expratio" in marker_to_models:
+            base_query = base_query.annotate(
+                expratio=Subquery(
+                    marker_to_models["expratio"]
+                    .objects.filter(schemecode=OuterRef("schemecode"))
+                    .values("expratio")[:1]
+                )
+            )
+
         # Classification fields
         if "asset_type" in marker_to_models:
             base_query = base_query.annotate(
@@ -268,8 +268,11 @@ async def get_mf_recommendations(
         if investment_type is not None:
             filter_kwargs["sip"] = "T" if investment_type else "F"
 
-        if "navrs" in all_fields:
-            all_fields.remove("navrs")
+        if "navrs_current" in all_fields:
+            index = all_fields.index("navrs_current")
+            all_fields[index] = "nav"
+        all_fields.extend(["schemecode","similarity"])
+
 
         mf_table = MFSchemeMasterInDetails._meta.db_table
         sw_table = SectionWeightsPerMutualFund._meta.db_table
@@ -280,26 +283,26 @@ async def get_mf_recommendations(
             WHERE sw.scheme_code = "{mf_table}".schemecode
             LIMIT 1)
         """
-        
+
         if filter_kwargs and order_field:
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
                 .filter(**filter_kwargs)
                 .order_by("-similarity", order_field)
-                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
+                .values(*all_fields,)[:60]
             )
         elif filter_kwargs:
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
                 .filter(**filter_kwargs)
                 .order_by("-similarity")
-                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
+                .values(*all_fields,)[:60]
             )
         else:
             similar_schemes = (
                 base_query.annotate(similarity=RawSQL(raw_sql, (user_embedding_list,)))
                 .order_by("-similarity")
-                .values(*all_fields,"schemecode","asset_type","category","nav","similarity")[:60]
+                .values(*all_fields,)[:60]
             )
         
 

@@ -1,5 +1,5 @@
 import logging
-from itertools import chain
+import copy
 from fastapi import APIRouter, Query, Response, Request
 from typing import Optional
 from asgiref.sync import sync_to_async
@@ -78,13 +78,10 @@ async def get_fund_filter(
             )()
             filter_kwargs["color"] = risk_type
 
-        all_fields = api_config.MUTUAL_FUND_DASHBOARD_COLOUMNS
-        all_markers = list(
-            set(chain.from_iterable(api_config.COMPONENT_MARKER_MAP.values()))
-        )
-
+        all_fields = copy.deepcopy(api_config.MUTUAL_FUND_DASHBOARD_COLOUMNS)
+        all_fields.append("status")
         refs = await sync_to_async(
-            lambda: list(MFReferenceTable.objects.filter(marker_name__in=all_markers))
+            lambda: list(MFReferenceTable.objects.filter(marker_name__in=all_fields))
         )()
 
         marker_to_models = {
@@ -119,12 +116,7 @@ async def get_fund_filter(
                     marker_to_models["navrs_current"]
                     .objects.filter(schemecode=OuterRef("schemecode"))
                     .values("navrs")[:1]
-                ),
-                navdate=Subquery(
-                    marker_to_models["navrs_current"]
-                    .objects.filter(schemecode=OuterRef("schemecode"))
-                    .values("navdate")[:1]
-                ),
+                )
             )
 
         # Risk metrics
@@ -226,6 +218,11 @@ async def get_fund_filter(
                     .values("category")[:1]
                 )
             )
+        
+        if "navrs_current" in all_fields:
+            index = all_fields.index("navrs_current")
+            all_fields[index] = "navrs"
+        all_fields.remove("status")
 
         if investment_type is not None:
             filter_kwargs["sip"] = "T" if investment_type else "F"

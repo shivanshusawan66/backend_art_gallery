@@ -65,7 +65,7 @@ class APIConfig(BaseSettingsWrapper):
         "_5yearret",
         "_3yearret",
         "s_name",
-        "navrs",
+        "navrs_current",
         "asset_type",
         "category",
         "expratio",
