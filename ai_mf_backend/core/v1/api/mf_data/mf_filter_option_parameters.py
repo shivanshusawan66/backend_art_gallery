@@ -28,11 +28,20 @@ async def get_mf_options_filter_parameters(
         mf_filter_parameters = await sync_to_async(list)(
             MFFilterParameters.objects.all()
         )
-
+        replacements = {
+        'jalpha_y': "Jensen's Alpha",
+        'beta_y': "Beta",
+        'treynor_y': "Treynor Ratio",
+        'sd_y': "Standard Deviation",
+        'sharpe_y': "Sharpe Ratio",
+        '_1yrret': "1Y Return",
+        '_3yearret': "3Y Return",
+        '_5yearret': "5Y Return",
+        }
         options = [
             {
                 "key": int(option.id),
-                "label": option.parameter_name,
+                "label": replacements[option.parameter_name],
                 "value": option.parameter_name.lower(),
             }
             for option in mf_filter_parameters
