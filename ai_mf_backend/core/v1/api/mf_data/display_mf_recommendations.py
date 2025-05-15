@@ -33,6 +33,7 @@ from ai_mf_backend.utils.v1.authentication.secrets import (
     jwt_token_checker,
     login_checker,
 )
+from ai_mf_backend.utils.v1.user_embeddings.user_persona import get_user_persona
 
 router = APIRouter(tags=["mf_data"])
 
@@ -109,6 +110,8 @@ async def get_mf_recommendations(
             user_embedding_list = user_embedding.tolist()
         else:
             user_embedding_list = user_embedding
+
+        user_persona = get_user_persona(sum(user_embedding_list))
 
         active_schemecodes = await sync_to_async(
             lambda: set(
@@ -322,6 +325,7 @@ async def get_mf_recommendations(
             page=page,
             total_pages=total_pages,
             total_data=total_count,
+            reasoning_for_recommendations = f"As per our questions you have filled, you have beed identified as a {user_persona}",
             data=paginated_qs,
             status_code=200,
         )
@@ -334,6 +338,7 @@ async def get_mf_recommendations(
             page=0,
             total_pages=0,
             total_data=0,
+            reasoning_for_recommendations = "",
             data=[],
             status_code=400,
         )

@@ -6,4 +6,5 @@ class MFRecommendationsResponse(Response):
     page: Optional[int] = None
     total_pages: Optional[int] = None
     total_data: Optional[int] = None
+    reasoning_for_recommendations : Optional[str] = ""
     data: List[Dict[str, Any]]
