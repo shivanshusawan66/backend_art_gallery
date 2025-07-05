@@ -21,7 +21,7 @@ class PostgresConfig(BaseSettingsWrapper):
     :type POSTGRES_PORT: Optional[int]
     """
 
-    POSTGRES_DB_NAME: str = "artwork_db"
+    POSTGRES_DB_NAME: str = "artwork_db_9y4i"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_USERNAME: Optional[str]
     POSTGRES_PASSWORD: Optional[str]
