@@ -1,0 +1,4 @@
+
+
+class AllUserApplicationResponse:
+    pass

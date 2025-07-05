@@ -12,8 +12,12 @@ run build-postgres
 
 comment out init.py from line 26-38 of core
 
-python ai_mf_backend/django_manage.py makemigrations ai_mf_backend 
+python skti_system_backend/django_manage.py makemigrations skti_system_backend 
 
-python ai_mf_backend/django_manage.py migrate ai_mf_backend 
+python skti_system_backend/django_manage.py migrate skti_system_backend 
 
 build workflow application
+
+uvicorn skti_system_backend.api_application:application `
+  --reload `
+  --port 8003
