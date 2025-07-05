@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
-from skti_system_backend.config.v1.database_config import mysql_config
+from skti_system_backend.config.v1.database_config import postgres_config
 from skti_system_backend.config.v1.authentication_config import authentication_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,12 +80,12 @@ TEMPLATES = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': mysql_config.MYSQL_DB_NAME,
-        'USER': mysql_config.MYSQL_USERNAME,
-        'PASSWORD': mysql_config.MYSQL_PASSWORD,
-        'HOST': mysql_config.MYSQL_HOST,
-        'PORT': mysql_config.MYSQL_PORT,
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': postgres_config.POSTGRES_DB_NAME,
+        'USER': postgres_config.POSTGRES_USERNAME,
+        'PASSWORD': postgres_config.POSTGRES_PASSWORD,
+        'HOST': postgres_config.POSTGRES_HOST,
+        'PORT': postgres_config.POSTGRES_PORT,
     }
 }
 

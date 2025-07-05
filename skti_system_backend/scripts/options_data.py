@@ -4,27 +4,28 @@ import django
 import random
 from django.db import connection, transaction
 
-# Setup Django environment - update this path to your project settings
+# Setup Django environment
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "skti_system_backend.config.v1.django_settings")
-
 django.setup()
 
 from skti_system_backend.models.v1.database.gallery import Tag, Category, Artwork
+
+def reset_sequence(model_class):
+    sequence_name = f"{model_class._meta.db_table}_id_seq"
+    with connection.cursor() as cursor:
+        cursor.execute(f"ALTER SEQUENCE {sequence_name} RESTART WITH 1;")
+        print(f"Reset sequence for {sequence_name}.")
 
 def reset_and_populate(model_class, data_list, field_name):
     with transaction.atomic():
         model_class.objects.all().delete()
         print(f"Cleared existing {model_class.__name__} entries.")
-
-        with connection.cursor() as cursor:
-            cursor.execute(f"ALTER TABLE {model_class._meta.db_table} AUTO_INCREMENT = 1;")
-            print(f"Auto-increment reset for {model_class._meta.db_table}.")
+        reset_sequence(model_class)
 
         for item in data_list:
             model_class.objects.create(**{field_name: item})
-
-    print(f"{model_class.__name__} table populated successfully.")
+        print(f"{model_class.__name__} table populated successfully.")
 
 def populate_tags():
     tags = [
@@ -33,7 +34,7 @@ def populate_tags():
         'Digital', 'Photorealism', 'Nature', 'Animals', 'Urban', 'Fantasy', 'Mythology', 'Black & White',
         'Colorful', 'Watercolor', 'Oil Painting', 'Acrylic', 'Ink', 'Mixed Media', 'Collage', 'Figurative'
     ]
-    reset_and_populate(Tag, tags, field_name="name")
+    reset_and_populate(Tag, tags, "name")
 
 def populate_categories():
     categories = [
@@ -41,21 +42,18 @@ def populate_categories():
         'Textile', 'Installation', 'Drawing', 'Mixed Media', 'Performance Art', 'Graffiti',
         'Glass Art', 'Conceptual Art', 'Street Photography', 'Film', 'Video Art'
     ]
-    reset_and_populate(Category, categories, field_name="name")
+    reset_and_populate(Category, categories, "name")
 
 def populate_artworks():
     with transaction.atomic():
         Artwork.objects.all().delete()
         print("Cleared existing Artwork entries.")
-
-        with connection.cursor() as cursor:
-            cursor.execute(f"ALTER TABLE {Artwork._meta.db_table} AUTO_INCREMENT = 1;")
-            print(f"Auto-increment reset for {Artwork._meta.db_table}.")
+        reset_sequence(Artwork)
 
     tags_qs = list(Tag.objects.all())
     categories_qs = list(Category.objects.all())
 
-    base_titles = [
+    titles = [
         "Sunset Over the Hills", "Whispers of the Forest", "Urban Chaos", "Silent Reflections",
         "Faces of Time", "Metallic Dreams", "Waves of Color", "Forgotten Ruins",
         "Celestial Dance", "The Lonely Tree", "Burst of Life", "Vintage Streets",
@@ -66,7 +64,7 @@ def populate_artworks():
         "Beyond the Veil", "Twilight Whisper"
     ]
 
-    base_descriptions = [
+    descriptions = [
         "A vivid depiction of natural beauty and light.",
         "Capturing the calm and peaceful moments in nature.",
         "Expressive and dynamic artwork inspired by city life.",
@@ -100,44 +98,31 @@ def populate_artworks():
     ]
 
     for i in range(30):
-        art = {
-            'title': base_titles[i],
-            'description': base_descriptions[i],
-            'category': random.choice(categories_qs),
-            'tags': random.sample(tags_qs, k=random.randint(1, 5)),
-            'image_path': f'artworks/img{i+1}.jpeg',
-        }
         artwork = Artwork.objects.create(
-            title=art['title'],
-            description=art['description'],
-            category=art['category'],
+            title=titles[i],
+            description=descriptions[i],
+            category=random.choice(categories_qs),
             is_deleted=False,
         )
-        # Assign image path string to image field name property
-        artwork.image.name = art['image_path']
-        artwork.tags.set(art['tags'])
+        artwork.image.name = f'artworks/img{i+1}.jpeg'
+        artwork.tags.set(random.sample(tags_qs, k=random.randint(1, 5)))
         artwork.save()
 
-    print("Artwork table populated successfully with 30 items.")
+    print("Artwork table populated successfully with 30 entries.")
 
 if __name__ == "__main__":
-    # First delete artworks (child)
-    Artwork.objects.all().delete()
-    print("Deleted all artworks.")
+    # First delete all data
+    with transaction.atomic():
+        Artwork.objects.all().delete()
+        Tag.objects.all().delete()
+        Category.objects.all().delete()
+        print("Deleted all Artwork, Tag, and Category records.")
 
-    # Then delete tags and categories (parents)
-    Tag.objects.all().delete()
-    Category.objects.all().delete()
-    print("Deleted all tags and categories.")
+        reset_sequence(Artwork)
+        reset_sequence(Tag)
+        reset_sequence(Category)
 
-    # Reset auto-increment for all three tables
-    with connection.cursor() as cursor:
-        cursor.execute(f"ALTER TABLE {Artwork._meta.db_table} AUTO_INCREMENT = 1;")
-        cursor.execute(f"ALTER TABLE {Tag._meta.db_table} AUTO_INCREMENT = 1;")
-        cursor.execute(f"ALTER TABLE {Category._meta.db_table} AUTO_INCREMENT = 1;")
-        print("Reset auto-increment keys for Artwork, Tag, and Category.")
-
-    # Now repopulate
+    # Repopulate all
     populate_tags()
     populate_categories()
     populate_artworks()
